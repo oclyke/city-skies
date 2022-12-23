@@ -1,0 +1,46 @@
+# linting
+name: check-lint
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  clang-format-lint:
+    runs-on: ubuntu-latest
+    steps:
+      # check out the repo
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      # install clang-format
+      - name: install clang-format
+        run: |
+          sudo apt update
+          sudo apt install clang-format
+          clang-format --version
+
+      # lint using clang-format
+      - name: clang-format lint
+        run: |
+          ./scripts/third-party/run-clang-format/run-clang-format.py -r src
+
+  python-lint:
+    runs-on: ubuntu-latest
+    steps:
+      # check out the repo
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      # setup python tools
+      - name: set up python tools
+        run: |
+          . ./scripts/setup.sh
+      
+      # lint using pylint
+      - name: run black
+        run: |
+          . bin/venv/bin/activate
+          black --exclude src/packages --check src

@@ -1,0 +1,6 @@
+# nanopb requirements
+protobuf
+grpcio-tools
+
+# linting / style
+black

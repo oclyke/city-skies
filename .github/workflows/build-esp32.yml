@@ -1,0 +1,68 @@
+# esp32 target build workflow 
+name: build esp32
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: [self-hosted]
+    steps:
+      # check out the repo w/ first-level submodules
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      # update submodules
+      - name: update submodules
+        run: |
+          git submodule update --init
+          git submodule update --init --recursive ports/esp32/third-party/esp-idf
+          git submodule update --init third-party/micropython
+      
+      # install esp-idf
+      - name: install esp-idf
+        run: |
+          ./ports/esp32/third-party/esp-idf/install.sh > /dev/null
+          . ./ports/esp32/third-party/esp-idf/export.sh
+
+      # build mpy-cross
+      - name: build mpy-cross
+        run: |
+          make -C third-party/micropython/mpy-cross
+
+      # prepare esp32 build environment
+      - name: prepare esp32 port
+        run: |
+          cd third-party/micropython/ports/esp32
+          make submodules
+
+  # build all esp32 boards
+  build:
+    needs: [setup]
+    strategy:
+      matrix:
+        board:
+          - 13-2022-v3
+          - 15-2022-v3
+    runs-on: [self-hosted]
+    steps:
+      - name: build esp32 ${{ matrix.board }}
+        run: |
+          . ./ports/esp32/third-party/esp-idf/export.sh
+          cd ports/esp32
+          idf.py -D MICROPY_BOARD=${{ matrix.board }} build
+          ../tools/snap-build.sh -o ../dist -b build -t ${{ matrix.board }}/$GITHUB_REF
+
+  # clean up for next time
+  clean:
+    runs-on: [self-hosted]
+    needs: [build]
+    steps:
+      - name: clean esp32 build
+        run: |
+          . ./ports/esp32/third-party/esp-idf/export.sh
+          cd ports/esp32
+          idf.py fullclean
+          rm -rf build

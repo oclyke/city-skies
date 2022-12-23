@@ -1,0 +1,18 @@
+# continuous integration
+name: ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  lint:
+    name: 'linting'
+    uses: ./.github/workflows/lint.yml
+
+  build:
+    # build esp32 targets
+    name: build esp32 targets
+    uses: ./.github/workflows/build-esp32.yml

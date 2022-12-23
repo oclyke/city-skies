@@ -1,0 +1,8 @@
+# runtime info, not to be source controlled
+bin
+
+# IDE configurations
+.vscode
+
+# pesky OSX files
+.DS_Store
