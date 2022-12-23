@@ -10,3 +10,6 @@
 [submodule "third-party/nanopb"]
 	path = third-party/nanopb
 	url = https://github.com/nanopb/nanopb.git
+[submodule "src/modules/sicgl/third-party/sicgl"]
+	path = src/modules/sicgl/third-party/sicgl
+	url = https://github.com/oclyke/sicgl.git
