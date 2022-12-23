@@ -1,1 +1,1 @@
-CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="../../third-party/micropython/ports/esp32/partitions.csv"
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="boards/partitions-4MiB-ota.csv"

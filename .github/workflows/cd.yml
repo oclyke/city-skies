@@ -22,16 +22,16 @@ jobs:
       # (must run on same runner as build-esp32 and dist is expected to exist)
       - name: create distribution binaries
         run: |
-          tar -czvf dist.tar.gz dist
-          zip -r dist.zip dist
+          tar -czvf ports/esp32/dist.tar.gz ports/esp32/dist
+          zip -r ports/esp32/dist.zip ports/esp32/dist
 
       # attach binaries to release
       - name: publish binaries
         uses: svenstaro/upload-release-action@v2
         with:
-          file: dist.tar.gz
+          file: ports/esp32/dist.tar.gz
 
       - name: publish binaries
         uses: svenstaro/upload-release-action@v2
         with:
-          file: dist.zip
+          file: ports/esp32/dist.zip
