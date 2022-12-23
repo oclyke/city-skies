@@ -14,7 +14,7 @@ ENV_FILE=$SCRIPT_DIR_ABSOLUTE/bin/.env.sh
 [ -z "$PYTHON3" ] && echo "PYTHON3 was not set" && PYTHON3=python3
 
 # run cleanup
-. $ROOT_DIR_ABSOLUTE/scripts/cleanup.sh
+. ./scripts/cleanup.sh
 
 # system vars
 reminders=
