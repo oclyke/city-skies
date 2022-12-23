@@ -47,6 +47,8 @@ jobs:
           - GENERIC
           - 13-2022-v3
           - 15-2022-v3
+          - 13r-alpha
+          - 15r-alpha
     runs-on: [self-hosted]
     steps:
       - name: build esp32 ${{ matrix.board }}
