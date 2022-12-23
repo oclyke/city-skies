@@ -34,10 +34,11 @@ jobs:
         with:
           submodules: true
 
-      # setup python tools
-      - name: set up python tools
+      # setup ci tools
+      - name: set up ci tools
         run: |
           . ./scripts/setup.sh
+          pip install -r requirements.ci.txt
       
       # lint using pylint
       - name: run black

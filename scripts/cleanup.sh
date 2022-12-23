@@ -10,5 +10,5 @@ echo "cleaning up previous installations"
 deactivate 2> /dev/null
 
 # remove virtual environments
-find ./$ROOT_DIR_RELATIVE/bin -type d -name "venv*"  -exec rm -rf {} \;
+find $ROOT_DIR_ABSOLUTE/bin -type d -name "venv*"  -exec rm -rf {} \;
 rm -rf $ROOT_DIR_ABSOLUTE/bin/venv

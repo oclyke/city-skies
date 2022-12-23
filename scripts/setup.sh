@@ -14,7 +14,7 @@ ENV_FILE=$SCRIPT_DIR_ABSOLUTE/bin/.env.sh
 [ -z "$PYTHON3" ] && echo "PYTHON3 was not set" && PYTHON3=python3
 
 # run cleanup
-. ./$ROOT_DIR_RELATIVE/scripts/cleanup.sh
+. $ROOT_DIR_ABSOLUTE/scripts/cleanup.sh
 
 # system vars
 reminders=
@@ -29,7 +29,6 @@ ln -s $venv bin/venv
 
 # upgrade pip and install python requirements
 pip install --upgrade pip
-pip install -r $ROOT_DIR_ABSOLUTE/requirements.txt
 
 # show reminders
 echo $reminders
