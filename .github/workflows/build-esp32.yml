@@ -55,7 +55,7 @@ jobs:
         run: |
           . ./ports/esp32/third-party/esp-idf/export.sh
           cd ports/esp32
-          idf.py -D MICROPY_BOARD=${{ matrix.board }} build
+          rm -rf build/genhdr && rm -rf build/frozen_mpy && idf.py -D MICROPY_BOARD=${{ matrix.board }} build
           ./scripts/snap-build.sh -o dist -b build -t ${{ matrix.board }}/$GITHUB_REF
 
   # clean up for next time
