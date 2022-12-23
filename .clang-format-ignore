@@ -1,3 +1,1 @@
-src/cmodules/ccolor/third-party/sicgl
-src/cmodules/fft/third-party/fakufaku
-src/cmodules/noise/third-party/open-simplex-noise-in-c
+src/cmodules/sicgl/third-party/sicgl
