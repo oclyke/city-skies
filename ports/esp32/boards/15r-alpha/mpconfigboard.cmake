@@ -1,3 +1,7 @@
+# include common configuration
+include(${CMAKE_CURRENT_LIST_DIR}/../common.cmake)
+
+# configure board
 set(SDKCONFIG_DEFAULTS
     ${MICROPY_PORT_DIR}/boards/sdkconfig.base
     ${MICROPY_PORT_DIR}/boards/sdkconfig.ble
