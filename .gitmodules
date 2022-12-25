@@ -13,3 +13,6 @@
 [submodule "src/cmodules/sicgl/third-party/sicgl"]
 	path = src/cmodules/sicgl/third-party/sicgl
 	url = https://github.com/oclyke/sicgl.git
+[submodule "src/packages/MicroWebSrv2"]
+	path = src/packages/MicroWebSrv2
+	url = https://github.com/jczic/MicroWebSrv2
