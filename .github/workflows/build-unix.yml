@@ -1,0 +1,48 @@
+# unix target build workflow 
+name: build unix
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: [self-hosted]
+    steps:
+      # check out the repo w/ first-level submodules
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      # update submodules
+      - name: update submodules
+        run: |
+          git submodule update --init
+          git submodule update --init third-party/micropython
+
+      # build mpy-cross
+      - name: build mpy-cross
+        run: |
+          make -C third-party/micropython/mpy-cross
+
+  # build all unix variants
+  build:
+    needs: [setup]
+    strategy:
+      matrix:
+        variant:
+          - GENERIC
+    runs-on: [self-hosted]
+    steps:
+      - name: build unix variant ${{ matrix.variant }}
+        run: |
+          . ./ports/unix/build.sh
+
+  # clean up for next time
+  clean:
+    runs-on: [self-hosted]
+    needs: [build]
+    steps:
+      - name: clean esp32 build
+        run: |
+          . ./ports/unix/build.sh clean
