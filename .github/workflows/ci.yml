@@ -12,7 +12,12 @@ jobs:
     name: 'linting'
     uses: ./.github/workflows/lint.yml
 
-  build:
+  build-esp32:
     # build esp32 targets
     name: build esp32 targets
     uses: ./.github/workflows/build-esp32.yml
+
+  build-unix:
+    # build unix variants
+    name: build unix variants
+    uses: ./.github/workflows/build-unix.yml
