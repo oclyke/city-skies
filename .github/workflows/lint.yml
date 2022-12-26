@@ -44,4 +44,4 @@ jobs:
       - name: run black
         run: |
           . bin/venv/bin/activate
-          black --exclude src/packages --check src
+          black .
