@@ -1,12 +1,12 @@
 [tool.black]
-check = "true"
-include = """
+check = 'true'
+include = '''
 src\/.*\.pyi?$|
 ports\/.*\.pyi?$
-"""
-exclude = """
+'''
+exclude = '''
 src\/packages\/microdot\/.*\.pyi?$|
 ports\/esp32\/third-party\/.*\.pyi?$|
 third-party\/.*\.pyi?$|
 bin\/.*\.pyi?$
-"""
+'''
