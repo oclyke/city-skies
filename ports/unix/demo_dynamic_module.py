@@ -4,6 +4,6 @@ unique_key = "a specially loaded module"
 import time
 import uasyncio as asyncio
 
-print('its me!')
+print("its me!")
 time.sleep(1)
-print('still me,,,')
+print("still me after sleeping for a sec!")
