@@ -19,6 +19,7 @@ jobs:
         run: |
           git submodule update --init
           git submodule update --init third-party/micropython
+          git submodule update --init --recursive src/cmodules/chinvat
 
       # build mpy-cross
       - name: build mpy-cross

@@ -20,6 +20,7 @@ jobs:
           git submodule update --init
           git submodule update --init --recursive ports/esp32/third-party/esp-idf
           git submodule update --init third-party/micropython
+          git submodule update --init --recursive src/cmodules/chinvat
       
       # install esp-idf
       - name: install esp-idf
