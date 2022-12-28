@@ -4,7 +4,7 @@
 
 #include "py/obj.h"
 #include "py/runtime.h"
-#include "system.pb.h"
+#include "shard.pb.h"
 
 // underlying data comes from chinvat protobuf definitions
 typedef struct _Shard_Variable_Double_obj_t {
@@ -25,12 +25,10 @@ STATIC mp_obj_t make_new(
     const mp_obj_t* args) {
   Shard_Variable_Double_obj_t* self = m_new_obj(Shard_Variable_Double_obj_t);
   self->base.type = &Shard_Variable_Double_type;
-  self->def.has_id = false;
-  self->def.has_version = false;
-  self->def.name.arg = NULL;
-  self->def.name.funcs.decode = NULL;
-  self->def.hash.arg = NULL;
-  self->def.hash.funcs.decode = NULL;
+
+  // zero the underlying structure
+  memset(&self->def, 0x00, sizeof(self->def));
+
   return MP_OBJ_FROM_PTR(self);
 }
 
