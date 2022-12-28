@@ -15,5 +15,7 @@ export VARIANT=dev
 export VARIANT_DIR=$SCRIPT_DIR/variants/$VARIANT
 export BUILD=$SCRIPT_DIR/dist/$VARIANT
 
+rm -rf $BUILD/frozen_mpy
+rm -rf $BUILD/genhdr
 make -C $MPY_UNIX_PORT_ROOT submodules
 make -C $MPY_UNIX_PORT_ROOT $TARGET
