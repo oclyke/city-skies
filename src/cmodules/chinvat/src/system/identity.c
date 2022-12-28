@@ -1,8 +1,9 @@
+#include "pychinvat/system/identity.h"
+
 #include <stdio.h>
 
 #include "py/obj.h"
 #include "py/runtime.h"
-#include "pychinvat/system/identity.h"
 #include "system.pb.h"
 
 // underlying data comes from chinvat protobuf definitions
@@ -22,7 +23,8 @@ STATIC void print(
 STATIC mp_obj_t make_new(
     const mp_obj_type_t* type, size_t n_args, size_t n_kw,
     const mp_obj_t* args) {
-  System_SystemInfo_IdentityInfo_obj_t* self = m_new_obj(System_SystemInfo_IdentityInfo_obj_t);
+  System_SystemInfo_IdentityInfo_obj_t* self =
+      m_new_obj(System_SystemInfo_IdentityInfo_obj_t);
   self->base.type = &System_SystemInfo_IdentityInfo_type;
 
   // zero the underlying structure

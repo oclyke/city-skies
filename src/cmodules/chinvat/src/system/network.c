@@ -1,8 +1,9 @@
+#include "pychinvat/system/network.h"
+
 #include <stdio.h>
 
 #include "py/obj.h"
 #include "py/runtime.h"
-#include "pychinvat/system/network.h"
 #include "system.pb.h"
 
 // underlying data comes from chinvat protobuf definitions

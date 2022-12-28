@@ -1,8 +1,9 @@
+#include "pychinvat/shard/variable/integer.h"
+
 #include <stdio.h>
 
 #include "py/obj.h"
 #include "py/runtime.h"
-#include "pychinvat/shard/variable/integer.h"
 #include "system.pb.h"
 
 // underlying data comes from chinvat protobuf definitions

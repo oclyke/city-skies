@@ -1,8 +1,9 @@
+#include "pychinvat/shard/variable/boolean.h"
+
 #include <stdio.h>
 
 #include "py/obj.h"
 #include "py/runtime.h"
-#include "pychinvat/shard/variable/boolean.h"
 #include "system.pb.h"
 
 // underlying data comes from chinvat protobuf definitions
