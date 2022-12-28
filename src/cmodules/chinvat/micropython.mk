@@ -6,6 +6,9 @@ SRC_USERMOD += $(MOD_DIR)/src/system/uuidv4.c
 SRC_USERMOD += $(MOD_DIR)/src/system/version.c
 SRC_USERMOD += $(MOD_DIR)/src/system/hardware.c
 SRC_USERMOD += $(MOD_DIR)/src/system/firmware.c
+SRC_USERMOD += $(MOD_DIR)/src/system/network.c
+SRC_USERMOD += $(MOD_DIR)/src/system/identity.c
+SRC_USERMOD += $(MOD_DIR)/src/system/system.c
 
 SRC_USERMOD += $(MOD_DIR)/third-party/chinvat/third-party/nanopb/pb_common.c
 SRC_USERMOD += $(MOD_DIR)/third-party/chinvat/third-party/nanopb/pb_encode.c

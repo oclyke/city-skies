@@ -4,6 +4,9 @@
 #include "pychinvat/system/hardware.h"
 #include "pychinvat/system/uuidv4.h"
 #include "pychinvat/system/version.h"
+#include "pychinvat/system/network.h"
+#include "pychinvat/system/identity.h"
+#include "pychinvat/system/system.h"
 
 STATIC const mp_rom_map_elem_t globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_chinvat)},
@@ -15,6 +18,12 @@ STATIC const mp_rom_map_elem_t globals_table[] = {
      (mp_obj_t)&System_HardwareInfo_type},
     {MP_OBJ_NEW_QSTR(MP_QSTR_System_FirmwareInfo),
      (mp_obj_t)&System_FirmwareInfo_type},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_System_NetworkInfo),
+     (mp_obj_t)&System_NetworkInfo_type},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_System_SystemInfo_IdentityInfo),
+     (mp_obj_t)&System_SystemInfo_IdentityInfo_type},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_System_SystemInfo),
+     (mp_obj_t)&System_SystemInfo_type},
 };
 STATIC MP_DEFINE_CONST_DICT(globals_dict, globals_table);
 
