@@ -1,7 +1,8 @@
 #include "pysicgl/utilities.h"
-#include "py/runtime.h"
 
 #include <errno.h>
+
+#include "py/runtime.h"
 
 int extract_ext_t_obj(mp_obj_t obj, ext_t* value) {
   int ret = 0;

@@ -1,14 +1,14 @@
+#include "pysicgl/screen.h"
+
 #include <stdio.h>
 
 #include "py/obj.h"
 #include "py/runtime.h"
-
-#include "pysicgl/screen.h"
 #include "pysicgl/utilities.h"
 
 // class methods
 STATIC mp_obj_t set_corners(mp_obj_t self_in, mp_obj_t c0, mp_obj_t c1) {
-  Screen_obj_t *self = MP_OBJ_TO_PTR(self_in);
+  Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
   ext_t u0, v0, u1, v1;
   int ret = unpack_ext_t_tuple2(c0, &u0, &v0);
   if (0 != ret) {
@@ -27,7 +27,7 @@ STATIC mp_obj_t set_corners(mp_obj_t self_in, mp_obj_t c0, mp_obj_t c1) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(set_corners_obj, set_corners);
 
 STATIC mp_obj_t set_extent(mp_obj_t self_in, mp_obj_t extent) {
-  Screen_obj_t *self = MP_OBJ_TO_PTR(self_in);
+  Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
   ext_t width, height;
   int ret = unpack_ext_t_tuple2(extent, &width, &height);
   if (0 != ret) {
@@ -42,7 +42,7 @@ STATIC mp_obj_t set_extent(mp_obj_t self_in, mp_obj_t extent) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_extent_obj, set_extent);
 
 STATIC mp_obj_t set_location(mp_obj_t self_in, mp_obj_t location) {
-  Screen_obj_t *self = MP_OBJ_TO_PTR(self_in);
+  Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
   ext_t lu, lv;
   int ret = unpack_ext_t_tuple2(location, &lu, &lv);
   if (0 != ret) {
@@ -57,7 +57,7 @@ STATIC mp_obj_t set_location(mp_obj_t self_in, mp_obj_t location) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_location_obj, set_location);
 
 STATIC mp_obj_t normalize(mp_obj_t self_in) {
-  Screen_obj_t *self = MP_OBJ_TO_PTR(self_in);
+  Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
   int ret = screen_normalize(self->screen);
   if (0 != ret) {
     mp_raise_msg(&mp_type_Exception, NULL);
@@ -116,9 +116,10 @@ STATIC void print(
 /**
  * @brief Create a new Screen_obj_t.
  * May either act as an instance or a reference.
- * 
- * @param reference if this argument is provided the screen will act as a reference
- * @return mp_obj_t 
+ *
+ * @param reference if this argument is provided the screen will act as a
+ * reference
+ * @return mp_obj_t
  */
 mp_obj_t new_screen(screen_t* reference) {
   Screen_obj_t* self = m_new_obj(Screen_obj_t);

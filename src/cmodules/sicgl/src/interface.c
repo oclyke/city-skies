@@ -1,27 +1,27 @@
-#include <stdio.h>
+#include "pysicgl/interface.h"
+
 #include <errno.h>
+#include <stdio.h>
 
 #include "py/obj.h"
 #include "py/runtime.h"
-
-#include "pysicgl/interface.h"
 #include "pysicgl/screen.h"
 #include "pysicgl/utilities.h"
 
 // attribute helpers
 STATIC mp_obj_t get_memory(mp_obj_t self_in) {
-  Interface_obj_t *self = MP_OBJ_TO_PTR(self_in);
+  Interface_obj_t* self = MP_OBJ_TO_PTR(self_in);
   size_t len = self->interface.length * bytes_per_pixel();
   return mp_obj_new_bytearray_by_ref(len, self->interface.memory);
 }
 STATIC mp_obj_t get_screen(mp_obj_t self_in) {
-  Interface_obj_t *self = MP_OBJ_TO_PTR(self_in);
+  Interface_obj_t* self = MP_OBJ_TO_PTR(self_in);
   return new_screen(self->interface.screen);
 }
 
 // class methods
 STATIC mp_obj_t set_memory(mp_obj_t self_in, mp_obj_t buffer) {
-  Interface_obj_t *self = MP_OBJ_TO_PTR(self_in);
+  Interface_obj_t* self = MP_OBJ_TO_PTR(self_in);
 
   mp_buffer_info_t buffer_info;
   mp_get_buffer_raise(buffer, &buffer_info, MP_BUFFER_READ | MP_BUFFER_WRITE);
@@ -35,7 +35,7 @@ STATIC mp_obj_t set_memory(mp_obj_t self_in, mp_obj_t buffer) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_memory_obj, set_memory);
 
 STATIC mp_obj_t set_screen(mp_obj_t self_in, mp_obj_t screen_obj) {
-  Interface_obj_t *self = MP_OBJ_TO_PTR(self_in);
+  Interface_obj_t* self = MP_OBJ_TO_PTR(self_in);
   Screen_obj_t* screen = screen_from_obj(screen_obj);
   self->interface.screen = screen->screen;
   return mp_const_none;
@@ -57,9 +57,11 @@ STATIC void print(
   mp_print_str(print, "Interface( screen: ");
   mp_obj_print_helper(print, get_screen(self_in), PRINT_REPR);
   mp_print_str(print, ", memory: ");
-  mp_obj_print_helper(print, mp_obj_new_int((mp_int_t)self->interface.memory), PRINT_REPR);
+  mp_obj_print_helper(
+      print, mp_obj_new_int((mp_int_t)self->interface.memory), PRINT_REPR);
   mp_print_str(print, ", length: ");
-  mp_obj_print_helper(print, mp_obj_new_int(self->interface.length), PRINT_REPR);
+  mp_obj_print_helper(
+      print, mp_obj_new_int(self->interface.length), PRINT_REPR);
   mp_print_str(print, ")");
 }
 
@@ -104,29 +106,26 @@ STATIC mp_obj_t make_new(
   return self_obj;
 }
 
-STATIC void attr(mp_obj_t self_in, qstr attribute, mp_obj_t *destination) {
-    switch (attribute) {
-      case MP_QSTR_memory:
-        destination[0] = get_memory(self_in);
-        break;
-      
-      case MP_QSTR_screen:
-        destination[0] = get_screen(self_in);
-        break;
+STATIC void attr(mp_obj_t self_in, qstr attribute, mp_obj_t* destination) {
+  switch (attribute) {
+    case MP_QSTR_memory:
+      destination[0] = get_memory(self_in);
+      break;
 
-      default:
-        // No attribute found, continue lookup in locals dict.
-        // https://github.com/micropython/micropython/pull/7934
-        destination[1] = MP_OBJ_SENTINEL;
-        break;
-    }
+    case MP_QSTR_screen:
+      destination[0] = get_screen(self_in);
+      break;
+
+    default:
+      // No attribute found, continue lookup in locals dict.
+      // https://github.com/micropython/micropython/pull/7934
+      destination[1] = MP_OBJ_SENTINEL;
+      break;
+  }
 }
 
 const mp_obj_type_t Interface_type = {
-    {&mp_type_type},
-    .name = MP_QSTR_Interface,
-    .print = print,
-    .make_new = make_new,
-    .attr = attr,
-    .locals_dict = (mp_obj_dict_t*)&locals_dict,
+    {&mp_type_type}, .name = MP_QSTR_Interface,
+    .print = print,  .make_new = make_new,
+    .attr = attr,    .locals_dict = (mp_obj_dict_t*)&locals_dict,
 };
