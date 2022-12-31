@@ -4,8 +4,6 @@
 #include "pysicgl/interface.h"
 #include "sicgl/domain/screen.h"
 
-#include <stdio.h>
-
 mp_obj_t screen_pixel(size_t n_args, const mp_obj_t *args) {
   // parse args
   enum {

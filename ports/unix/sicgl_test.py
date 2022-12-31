@@ -10,5 +10,7 @@ for h in range(HEIGHT):
   for w in range(WIDTH):
     interface.global_pixel(0xffffffff, (w, h))
 
+colors = [420, 69, 1111]
 s = sicgl.Screen((3, 3), (-2, 1))
-
+sf = sicgl.ScalarField(bytearray(13))
+cs = sicgl.ColorSequence(colors)

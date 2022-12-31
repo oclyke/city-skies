@@ -10,6 +10,8 @@
 #include "pysicgl/drawing/global.h"
 #include "pysicgl/drawing/screen.h"
 #include "pysicgl/drawing/interface.h"
+#include "pysicgl/drawing/blit.h"
+#include "pysicgl/drawing/field.h"
 
 // attribute helpers
 STATIC mp_obj_t get_memory(mp_obj_t self_in) {
@@ -68,6 +70,9 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(screen_rectangle_obj, 5, 5, screen_re
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(screen_circle_obj, 5, 5, screen_circle);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(screen_ellipse_obj, 5, 5, screen_ellipse);
 
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(blit_obj, 3, 3, blit);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(scalar_field_obj, 4, 4, scalar_field);
+
 // locals dict
 STATIC const mp_rom_map_elem_t locals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_set_memory), MP_ROM_PTR(&set_memory_obj)},
@@ -91,6 +96,9 @@ STATIC const mp_rom_map_elem_t locals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_screen_rectangle), MP_ROM_PTR(&screen_rectangle_obj)},
     {MP_ROM_QSTR(MP_QSTR_screen_circle), MP_ROM_PTR(&screen_circle_obj)},
     {MP_ROM_QSTR(MP_QSTR_screen_ellipse), MP_ROM_PTR(&screen_ellipse_obj)},
+
+    {MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&blit_obj)},
+    {MP_ROM_QSTR(MP_QSTR_scalar_field), MP_ROM_PTR(&scalar_field_obj)},
     
 };
 STATIC MP_DEFINE_CONST_DICT(locals_dict, locals_table);

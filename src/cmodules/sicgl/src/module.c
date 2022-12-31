@@ -7,6 +7,7 @@
 #include "pysicgl/color_sequence.h"
 #include "pysicgl/interface.h"
 #include "pysicgl/screen.h"
+#include "pysicgl/field.h"
 
 // module methods
 STATIC mp_obj_t allocate_memory(mp_obj_t obj) {
@@ -58,6 +59,7 @@ STATIC const mp_map_elem_t sicgl_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR_ColorSequence), (mp_obj_t)&ColorSequence_type},
     {MP_OBJ_NEW_QSTR(MP_QSTR_Screen), (mp_obj_t)&Screen_type},
     {MP_OBJ_NEW_QSTR(MP_QSTR_Interface), (mp_obj_t)&Interface_type},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_ScalarField), (mp_obj_t)&ScalarField_type},
 };
 STATIC MP_DEFINE_CONST_DICT(sicgl_globals, sicgl_globals_table);
 

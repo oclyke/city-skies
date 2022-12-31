@@ -5,11 +5,14 @@ SRC_USERMOD += $(MOD_DIR)/src/module.c
 
 SRC_USERMOD += $(MOD_DIR)/src/utilities.c
 SRC_USERMOD += $(MOD_DIR)/src/screen.c
+SRC_USERMOD += $(MOD_DIR)/src/field.c
 SRC_USERMOD += $(MOD_DIR)/src/interface.c
 SRC_USERMOD += $(MOD_DIR)/src/color_sequence.c
 SRC_USERMOD += $(MOD_DIR)/src/drawing/global.c
 SRC_USERMOD += $(MOD_DIR)/src/drawing/screen.c
 SRC_USERMOD += $(MOD_DIR)/src/drawing/interface.c
+SRC_USERMOD += $(MOD_DIR)/src/drawing/blit.c
+SRC_USERMOD += $(MOD_DIR)/src/drawing/field.c
 
 # sicgl sources
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/blit.c
