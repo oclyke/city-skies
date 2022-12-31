@@ -42,7 +42,7 @@ STATIC mp_obj_t allocate_memory(mp_obj_t obj) {
   size_t len = pixels * bpp;
   void* mem = m_malloc(len);
   memset(mem, 0, len);
-  return mp_obj_new_bytearray_by_ref(bpp * pixels, mem);
+  return mp_obj_new_bytearray_by_ref(len, mem);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(allocate_memory_obj, allocate_memory);
 
