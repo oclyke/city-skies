@@ -1,6 +1,15 @@
 import uasyncio as asyncio
 from microdot_asyncio import Microdot, send_file, Request, Response
 
+# set up output
+import sicgl
+
+WIDTH = 22
+HEIGHT = 13
+screen = sicgl.Screen((WIDTH, HEIGHT))
+memory = sicgl.allocate_memory(screen)
+interface = sicgl.Interface(screen, memory)
+
 # set up server
 PORT = 1337
 app = Microdot()
