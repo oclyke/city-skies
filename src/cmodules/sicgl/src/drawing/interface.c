@@ -1,11 +1,12 @@
 #include "pysicgl/drawing/interface.h"
-#include "pysicgl/utilities.h"
-#include "pysicgl/interface.h"
-#include "sicgl/domain/interface.h"
 
 #include <stdio.h>
 
-mp_obj_t interface_pixel(size_t n_args, const mp_obj_t *args) {
+#include "pysicgl/interface.h"
+#include "pysicgl/utilities.h"
+#include "sicgl/domain/interface.h"
+
+mp_obj_t interface_pixel(size_t n_args, const mp_obj_t* args) {
   // parse args
   enum {
     ARG_interface,
@@ -18,14 +19,15 @@ mp_obj_t interface_pixel(size_t n_args, const mp_obj_t *args) {
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
-  ret = sicgl_interface_pixel(&self->interface, mp_obj_get_int(args[ARG_color]), u, v);
+  ret = sicgl_interface_pixel(
+      &self->interface, mp_obj_get_int(args[ARG_color]), u, v);
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
   return mp_const_none;
 }
 
-mp_obj_t interface_line(size_t n_args, const mp_obj_t *args) {
+mp_obj_t interface_line(size_t n_args, const mp_obj_t* args) {
   // parse args
   enum {
     ARG_interface,
@@ -43,14 +45,15 @@ mp_obj_t interface_line(size_t n_args, const mp_obj_t *args) {
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
-  ret = sicgl_interface_line(&self->interface, mp_obj_get_int(args[ARG_color]), u0, v0, u1, v1);
+  ret = sicgl_interface_line(
+      &self->interface, mp_obj_get_int(args[ARG_color]), u0, v0, u1, v1);
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
   return mp_const_none;
 }
 
-mp_obj_t interface_rectangle(size_t n_args, const mp_obj_t *args) {
+mp_obj_t interface_rectangle(size_t n_args, const mp_obj_t* args) {
   // parse args
   enum {
     ARG_interface,
@@ -68,14 +71,15 @@ mp_obj_t interface_rectangle(size_t n_args, const mp_obj_t *args) {
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
-  ret = sicgl_interface_rectangle(&self->interface, mp_obj_get_int(args[ARG_color]), u0, v0, u1, v1);
+  ret = sicgl_interface_rectangle(
+      &self->interface, mp_obj_get_int(args[ARG_color]), u0, v0, u1, v1);
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
   return mp_const_none;
 }
 
-mp_obj_t interface_circle(size_t n_args, const mp_obj_t *args) {
+mp_obj_t interface_circle(size_t n_args, const mp_obj_t* args) {
   // parse args
   enum {
     ARG_interface,
@@ -89,14 +93,16 @@ mp_obj_t interface_circle(size_t n_args, const mp_obj_t *args) {
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
-  ret = sicgl_interface_circle_ellipse(&self->interface, mp_obj_get_int(args[ARG_color]), u0, v0, mp_obj_get_int(args[ARG_diameter]));
+  ret = sicgl_interface_circle_ellipse(
+      &self->interface, mp_obj_get_int(args[ARG_color]), u0, v0,
+      mp_obj_get_int(args[ARG_diameter]));
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
   return mp_const_none;
 }
 
-mp_obj_t interface_ellipse(size_t n_args, const mp_obj_t *args) {
+mp_obj_t interface_ellipse(size_t n_args, const mp_obj_t* args) {
   // parse args
   enum {
     ARG_interface,
@@ -114,7 +120,8 @@ mp_obj_t interface_ellipse(size_t n_args, const mp_obj_t *args) {
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
-  ret = sicgl_interface_ellipse(&self->interface, mp_obj_get_int(args[ARG_color]), u0, v0, semiu, semiv);
+  ret = sicgl_interface_ellipse(
+      &self->interface, mp_obj_get_int(args[ARG_color]), u0, v0, semiu, semiv);
   if (0 != ret) {
     mp_raise_OSError(ret);
   }

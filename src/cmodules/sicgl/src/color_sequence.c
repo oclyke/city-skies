@@ -1,7 +1,7 @@
 #include "pysicgl/color_sequence.h"
 
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
 
 #include "py/obj.h"
 #include "py/runtime.h"
@@ -13,20 +13,25 @@ typedef struct _map_type_entry_t {
 } map_type_entry_t;
 
 STATIC const map_type_entry_t color_sequence_map_types_table[] = {
-  { MP_ROM_QSTR(MP_QSTR_continuous_circular), color_sequence_get_color_continuous_circular },
-  { MP_ROM_QSTR(MP_QSTR_continuous_linear), color_sequence_get_color_continuous_linear },
-  { MP_ROM_QSTR(MP_QSTR_discrete_circular), color_sequence_get_color_discrete_circular },
-  { MP_ROM_QSTR(MP_QSTR_discrete_linear), color_sequence_get_color_discrete_linear },
+    {MP_ROM_QSTR(MP_QSTR_continuous_circular),
+     color_sequence_get_color_continuous_circular},
+    {MP_ROM_QSTR(MP_QSTR_continuous_linear),
+     color_sequence_get_color_continuous_linear},
+    {MP_ROM_QSTR(MP_QSTR_discrete_circular),
+     color_sequence_get_color_discrete_circular},
+    {MP_ROM_QSTR(MP_QSTR_discrete_linear),
+     color_sequence_get_color_discrete_linear},
 };
-STATIC const size_t NUM_COLOR_SEQUENCE_MAP_TYPES = sizeof(color_sequence_map_types_table)/sizeof(map_type_entry_t);
-int find_color_sequence_map_type_entry_index (mp_obj_t key, size_t* index) {
+STATIC const size_t NUM_COLOR_SEQUENCE_MAP_TYPES =
+    sizeof(color_sequence_map_types_table) / sizeof(map_type_entry_t);
+int find_color_sequence_map_type_entry_index(mp_obj_t key, size_t* index) {
   int ret = 0;
   if (NULL == index) {
     ret = -EINVAL;
     goto out;
   }
 
-  // try to find the 
+  // try to find the
   for (size_t idx = 0; idx < NUM_COLOR_SEQUENCE_MAP_TYPES; idx++) {
     if (color_sequence_map_types_table[idx].key == key) {
       *index = idx;
@@ -43,14 +48,19 @@ out:
 // utilities for c bindings
 /**
  * @brief get information regarding a color sequence.
- * 
+ *
  * @param sequence the color sequence in question
- * @param length an output into which the color sequence length will be placed, if non-null.
- * @param colors array of color_t into which the colors will be fetched, if non-null.
- * @param size size of the colors array, indicating how many colors may be fetched.
- * @return int 
+ * @param length an output into which the color sequence length will be placed,
+ * if non-null.
+ * @param colors array of color_t into which the colors will be fetched, if
+ * non-null.
+ * @param size size of the colors array, indicating how many colors may be
+ * fetched.
+ * @return int
  */
-int color_sequence_get(ColorSequence_obj_t* sequence, size_t* length, color_t* colors_out, size_t size) {
+int color_sequence_get(
+    ColorSequence_obj_t* sequence, size_t* length, color_t* colors_out,
+    size_t size) {
   int ret = 0;
   if (NULL == sequence) {
     ret = -EINVAL;
@@ -93,7 +103,8 @@ int color_sequence_get(ColorSequence_obj_t* sequence, size_t* length, color_t* c
     }
 
   } else if (&mp_type_bytearray == colors_type) {
-    // when colors is a byte array each color is represented by bytes_per_pixel elements
+    // when colors is a byte array each color is represented by bytes_per_pixel
+    // elements
     mp_buffer_info_t buffer_info;
     mp_get_buffer_raise(colors, &buffer_info, MP_BUFFER_READ);
 
@@ -130,7 +141,8 @@ STATIC mp_obj_t set_colors(mp_obj_t self_in, mp_obj_t colors) {
     self->colors = mp_const_none;
   } else {
     const mp_obj_type_t* type = mp_obj_get_type(colors);
-    if ((&mp_type_list != type) && (&mp_type_tuple != type) && (&mp_type_bytearray != type)) {
+    if ((&mp_type_list != type) && (&mp_type_tuple != type) &&
+        (&mp_type_bytearray != type)) {
       mp_raise_msg(&mp_type_Exception, NULL);
     }
     self->colors = colors;
@@ -207,7 +219,9 @@ STATIC mp_obj_t make_new(
   };
   static const mp_arg_t allowed_args[] = {
       {MP_QSTR_colors, MP_ARG_OBJ, {.u_obj = mp_const_none}},
-      {MP_QSTR_type, MP_ARG_OBJ, {.u_obj = MP_ROM_QSTR(MP_QSTR_continuous_circular)}},
+      {MP_QSTR_type,
+       MP_ARG_OBJ,
+       {.u_obj = MP_ROM_QSTR(MP_QSTR_continuous_circular)}},
   };
   mp_map_t kw_args;
   mp_map_init_fixed_table(&kw_args, n_kw, all_args + n_args);
@@ -220,7 +234,7 @@ STATIC mp_obj_t make_new(
   self->base.type = &ColorSequence_type;
   mp_obj_t self_obj = MP_OBJ_FROM_PTR(self);
 
-  // set colors and type  
+  // set colors and type
   set_colors(self_obj, args[ARG_colors].u_obj);
   // set_type(self_obj, mp_obj_new_int(args[ARG_type].u_int));
   set_type(self_obj, args[ARG_type].u_obj);
@@ -229,10 +243,7 @@ STATIC mp_obj_t make_new(
 }
 
 const mp_obj_type_t ColorSequence_type = {
-    {&mp_type_type},
-    .name = MP_QSTR_ColorSequence,
-    .print = print,
-    .make_new = make_new,
-    .attr = attr,
-    .locals_dict = (mp_obj_dict_t*)&locals_dict,
+    {&mp_type_type}, .name = MP_QSTR_ColorSequence,
+    .print = print,  .make_new = make_new,
+    .attr = attr,    .locals_dict = (mp_obj_dict_t*)&locals_dict,
 };

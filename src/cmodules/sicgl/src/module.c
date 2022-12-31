@@ -5,9 +5,9 @@
 #include "py/runtime.h"
 #include "pysicgl.h"
 #include "pysicgl/color_sequence.h"
+#include "pysicgl/field.h"
 #include "pysicgl/interface.h"
 #include "pysicgl/screen.h"
-#include "pysicgl/field.h"
 
 // module methods
 STATIC mp_obj_t allocate_memory(mp_obj_t obj) {

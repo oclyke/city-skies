@@ -133,9 +133,7 @@ mp_obj_t mp_obj_new_screen_reference(screen_t* reference) {
   return MP_OBJ_FROM_PTR(self);
 }
 
-mp_obj_t mp_obj_new_screen( void ) {
-  return mp_obj_new_screen_reference(NULL);
-}
+mp_obj_t mp_obj_new_screen(void) { return mp_obj_new_screen_reference(NULL); }
 
 STATIC mp_obj_t make_new(
     const mp_obj_type_t* type, size_t n_args, size_t n_kw,

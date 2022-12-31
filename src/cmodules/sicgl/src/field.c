@@ -35,7 +35,8 @@ STATIC void print(
   mp_print_str(print, "ScalarField( length: ");
   mp_obj_print_helper(print, mp_obj_new_int(self->length), PRINT_REPR);
   mp_print_str(print, ", memory: ");
-  mp_obj_print_helper(print, mp_obj_new_int((mp_int_t)self->scalars), PRINT_REPR);
+  mp_obj_print_helper(
+      print, mp_obj_new_int((mp_int_t)self->scalars), PRINT_REPR);
   mp_print_str(print, ")");
 }
 

@@ -1,13 +1,13 @@
 #include "pysicgl/drawing/blit.h"
-#include "pysicgl/utilities.h"
-#include "pysicgl/interface.h"
-#include "pysicgl/screen.h"
-#include "sicgl/blit.h"
-
 
 #include <stdio.h>
 
-mp_obj_t blit(size_t n_args, const mp_obj_t *args) {
+#include "pysicgl/interface.h"
+#include "pysicgl/screen.h"
+#include "pysicgl/utilities.h"
+#include "sicgl/blit.h"
+
+mp_obj_t blit(size_t n_args, const mp_obj_t* args) {
   // parse args
   enum {
     ARG_interface,
