@@ -3,6 +3,7 @@ from microdot_asyncio import Microdot, send_file, Request, Response
 
 # set up output
 import sicgl
+
 WIDTH = 22
 HEIGHT = 13
 screen = sicgl.Screen((WIDTH, HEIGHT))
