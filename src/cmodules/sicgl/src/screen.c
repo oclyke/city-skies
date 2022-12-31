@@ -121,7 +121,7 @@ STATIC void print(
  * reference
  * @return mp_obj_t
  */
-mp_obj_t new_screen(screen_t* reference) {
+mp_obj_t mp_obj_new_screen_reference(screen_t* reference) {
   Screen_obj_t* self = m_new_obj(Screen_obj_t);
   self->base.type = &Screen_type;
   self->screen = &self->_screen;
@@ -131,6 +131,10 @@ mp_obj_t new_screen(screen_t* reference) {
     self->_is_reference = true;
   }
   return MP_OBJ_FROM_PTR(self);
+}
+
+mp_obj_t mp_obj_new_screen( void ) {
+  return mp_obj_new_screen_reference(NULL);
 }
 
 STATIC mp_obj_t make_new(
@@ -152,7 +156,7 @@ STATIC mp_obj_t make_new(
       n_args, n_kw, all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
   // create instance object
-  mp_obj_t self = new_screen(NULL);
+  mp_obj_t self = mp_obj_new_screen();
 
   // set initial values
   set_extent(self, args[ARG_extent].u_obj);

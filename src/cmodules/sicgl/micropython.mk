@@ -6,6 +6,7 @@ SRC_USERMOD += $(MOD_DIR)/src/module.c
 SRC_USERMOD += $(MOD_DIR)/src/utilities.c
 SRC_USERMOD += $(MOD_DIR)/src/screen.c
 SRC_USERMOD += $(MOD_DIR)/src/interface.c
+SRC_USERMOD += $(MOD_DIR)/src/color_sequence.c
 
 # sicgl sources
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/blit.c

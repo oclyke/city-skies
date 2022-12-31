@@ -29,4 +29,6 @@ STATIC inline Screen_obj_t* screen_from_obj(mp_obj_t o) {
   return MP_OBJ_TO_PTR(o);
 }
 
-mp_obj_t new_screen(screen_t* reference);
+// publicly accessible constructors
+mp_obj_t mp_obj_new_screen_reference(screen_t* reference);
+mp_obj_t mp_obj_new_screen(void);

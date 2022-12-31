@@ -4,6 +4,7 @@
 #include "py/objarray.h"
 #include "py/runtime.h"
 #include "pysicgl.h"
+#include "pysicgl/color_sequence.h"
 #include "pysicgl/interface.h"
 #include "pysicgl/screen.h"
 
@@ -54,6 +55,7 @@ STATIC const mp_map_elem_t sicgl_globals_table[] = {
      (mp_obj_t)MP_ROM_PTR(&allocate_memory_obj)},
 
     // classes
+    {MP_OBJ_NEW_QSTR(MP_QSTR_ColorSequence), (mp_obj_t)&ColorSequence_type},
     {MP_OBJ_NEW_QSTR(MP_QSTR_Screen), (mp_obj_t)&Screen_type},
     {MP_OBJ_NEW_QSTR(MP_QSTR_Interface), (mp_obj_t)&Interface_type},
 };

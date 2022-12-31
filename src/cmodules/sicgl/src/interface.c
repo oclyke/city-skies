@@ -16,7 +16,11 @@ STATIC mp_obj_t get_memory(mp_obj_t self_in) {
 }
 STATIC mp_obj_t get_screen(mp_obj_t self_in) {
   Interface_obj_t* self = MP_OBJ_TO_PTR(self_in);
-  return new_screen(self->interface.screen);
+  if (NULL == self->interface.screen) {
+    return mp_const_none;
+  } else {
+    return mp_obj_new_screen_reference(self->interface.screen);
+  }
 }
 
 // class methods
