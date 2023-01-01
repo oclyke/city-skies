@@ -1,14 +1,71 @@
 import uasyncio as asyncio
 from microdot_asyncio import Microdot, send_file, Request, Response
 
-# set up output
-import sicgl
+class Layer:
+    READY = 0
+    EXCEPTION = 1
+    def __init__(self, shard):
+        self._shard = shard
+        self._state = Layer.READY
+        self._exception = None
+    
+    async def run(self):
+        if self._state == Layer.READY:
+            try:
+                await self._shard.run()
+            except Exception as e:
+                self.handle_exception(e)
 
-WIDTH = 22
-HEIGHT = 13
-screen = sicgl.Screen((WIDTH, HEIGHT))
-memory = sicgl.allocate_memory(screen)
-interface = sicgl.Interface(screen, memory)
+    async def handle_exception(self, exception):
+        self._state = Layer.EXCEPTION
+        self._exception = exception
+        raise exception
+
+async def run_pipeline():
+    # set up output
+    import sicgl
+
+    WIDTH = 22
+    HEIGHT = 13
+    screen = sicgl.Screen((WIDTH, HEIGHT))
+    memory = sicgl.allocate_memory(screen)
+    interface = sicgl.Interface(screen, memory)
+
+    # set up layers
+    layers = []
+
+    # make a demo shard
+    # (in reality this will be dynamically loaded from the controller)
+    shard = __import__('demo_shard')
+    layers.append(Layer(shard))
+
+    # rate-limit the output
+    output_event = asyncio.Event() # on esp32 this would be a threadsafe flag set in a timer callback
+    async def rate_limiter(period_ms):
+        import time
+        next_frame_ticks_ms = time.ticks_ms() + period_ms
+        while True:
+            # wait for next time
+            while time.ticks_ms() < next_frame_ticks_ms:
+                await asyncio.sleep(0)
+
+            # signal
+            output_event.set()
+            next_frame_ticks_ms = time.ticks_ms() + period_ms
+
+    FRAME_PERIOD_MS = 100
+    asyncio.create_task(rate_limiter(FRAME_PERIOD_MS))
+    
+    # handle layers
+    while True:
+        for layer in layers:
+            await layer.run() # run the layer
+            layer.compose() # compose the output
+
+        
+        # wait for the next output opportunity
+        await output_event.wait()
+        output_event.clear()
 
 # set up server
 PORT = 1337
@@ -32,12 +89,13 @@ async def blink():
 
     while True:
         print("blink: ", time.ticks_ms(), "ms")
-        await asyncio.sleep(10)
+        await asyncio.sleep(3)
 
 
 async def main():
     # create async tasks
     asyncio.create_task(app.start_server(debug=True, port=PORT))
+    asyncio.create_task(run_pipeline())
     asyncio.create_task(blink())
 
     # the main task should not return so that asyncio continues to handle tasks
