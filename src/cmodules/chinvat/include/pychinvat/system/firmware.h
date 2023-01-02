@@ -3,4 +3,4 @@
 #include "py/obj.h"
 
 // declare the type
-const mp_obj_type_t System_FirmwareInfo_type;
+const mp_obj_type_t FirmwareInfo_type;
