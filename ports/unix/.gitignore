@@ -1,2 +1,5 @@
 # build outputs
 dist
+
+# runtime info
+runtime

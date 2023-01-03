@@ -1,6 +1,5 @@
-# freeze("../../modules")
-# freeze("modules")
-# freeze("packages/pystorage/src")
+# source python modules
+freeze("modules")
 
 # microdot web server
 freeze(
