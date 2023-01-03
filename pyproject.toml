@@ -1,5 +1,4 @@
 [tool.black]
-check = 'true'
 include = '''
 src\/.*\.pyi?$|
 ports\/.*\.pyi?$
