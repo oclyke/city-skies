@@ -1,8 +1,7 @@
 #include "plan.h"
-#include "utilities.h"
 
-#include <math.h>
 #include <errno.h>
+#include <math.h>
 #include <stdio.h>
 
 #include "fft.h"
@@ -11,6 +10,7 @@
 #include "py/objstr.h"
 #include "py/runtime.h"
 #include "py/stream.h"
+#include "utilities.h"
 
 #define NOT_CONFIGURED_ERROR_MSG "fft plan not configured!"
 
@@ -22,13 +22,13 @@ typedef struct _FftPlan_obj_t {
 const mp_obj_type_t FftPlan_type;
 
 /**
- * @brief Get the scaled distance between two integer locations according 
+ * @brief Get the scaled distance between two integer locations according
  * to an exponential scale factor to account for human hearing.
- * 
+ *
  * @param factor exponential factor
  * @param low low index
  * @param high high index
- * @return STATIC 
+ * @return STATIC
  */
 STATIC mp_int_t ear_kernel(mp_int_t factor, size_t low, size_t high) {
   return (pow(high, factor) - pow(low, factor));
@@ -36,14 +36,15 @@ STATIC mp_int_t ear_kernel(mp_int_t factor, size_t low, size_t high) {
 
 /**
  * @brief Sum a range of floating point values from the given input buffer.
- * 
- * @param input 
- * @param min 
- * @param max 
- * @param floor 
- * @return  
+ *
+ * @param input
+ * @param min
+ * @param max
+ * @param floor
+ * @return
  */
-STATIC mp_float_t sum_bin_range(float* input, size_t size_bins, size_t from, size_t to, mp_float_t floor) {
+STATIC mp_float_t sum_bin_range(
+    float* input, size_t size_bins, size_t from, size_t to, mp_float_t floor) {
   mp_float_t accumulated = 0;
   for (size_t idx = from; idx <= to; idx++) {
     if (idx > size_bins) {
@@ -81,10 +82,10 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_2(feed_obj, feed);
 
 /**
  * @brief for now this function simply applies a hamming window - call it after
-*  feeding in data and before executing the fft. only call once per feed
- * 
- * @param self_in 
- * @return STATIC 
+ *  feeding in data and before executing the fft. only call once per feed
+ *
+ * @param self_in
+ * @return STATIC
  */
 STATIC mp_obj_t window(mp_obj_t self_in) {
   FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
@@ -108,7 +109,7 @@ STATIC mp_obj_t execute(mp_obj_t self_in) {
 
   // execute the fft
   fft_execute(self->config);
-  
+
   // apply absolute value
   for (int idx = 0; idx < self->config->size; idx += 2) {
     self->config->output[idx] = fabs(self->config->output[idx]);
@@ -167,7 +168,8 @@ STATIC mp_obj_t output(mp_obj_t self_in, mp_obj_t output_obj) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(output_obj, output);
 
-STATIC mp_obj_t reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
+STATIC mp_obj_t
+reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
   // reshapes input samples into output samples to compensate for nonlinearity
   // of the human ear https://www.audiocheck.net/soundtests_nonlinear.php
   FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
@@ -201,12 +203,14 @@ STATIC mp_obj_t reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_o
   size_t bin_low = 0;
   size_t bin_high = 0;
 
-  // for each of the output bins sum the corresponding range of input bins, according to the ear kernel
+  // for each of the output bins sum the corresponding range of input bins,
+  // according to the ear kernel
   size_t idx = 0;
   mp_float_t sum = 0;
   mp_float_t maximum = sum;
   do {
-    // determine the number of bins that should be accumulated into this output index
+    // determine the number of bins that should be accumulated into this output
+    // index
     bins_handled += ear_kernel(factor, idx, idx + 1);
     bins_handled_int = (size_t)bins_handled;
 
@@ -222,7 +226,8 @@ STATIC mp_obj_t reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_o
       }
     }
 
-    // the output at this index will either be a new value or the same value as previous depending on whether the upper bin index had moved
+    // the output at this index will either be a new value or the same value as
+    // previous depending on whether the upper bin index had moved
     output[idx] = mp_obj_new_float(sum);
 
     // advance the output index
@@ -253,7 +258,8 @@ STATIC void print(
 }
 
 STATIC mp_obj_t make_new(
-    const mp_obj_type_t* type, size_t n_args, size_t n_kw, const mp_obj_t* all_args) {
+    const mp_obj_type_t* type, size_t n_args, size_t n_kw,
+    const mp_obj_t* all_args) {
   // parse args
   enum {
     ARG_size,

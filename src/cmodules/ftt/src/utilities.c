@@ -1,5 +1,6 @@
-#include "py/runtime.h"
 #include <errno.h>
+
+#include "py/runtime.h"
 
 int extract_float_obj(mp_obj_t obj, mp_float_t* value) {
   int ret = 0;
