@@ -136,8 +136,7 @@ class SemanticVersion:
     def metadata(self):
         return self._metadata
 
-    @property
-    def semver(self):
+    def to_string(self):
         # return f'{self.major}.{self.minor}.{self.patch}{"" if not self.is_prerelease "-"}{"" if not self.is_prerelease else self.metadata}'
         res = str(self.major) + "." + str(self.minor) + "." + str(self.patch)
         if self.is_prerelease:

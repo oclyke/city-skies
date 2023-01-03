@@ -121,6 +121,16 @@ async def upload(request):
     module = __import__(name)
 
 
+@app.get("/hardware/version")
+async def get_hw_version(request):
+    return Response(hw_version.to_string())
+
+
+@app.get("/firmware/version")
+async def get_fw_version(request):
+    return Response(fw_version.to_string())
+
+
 @app.get("/identity/tag")
 async def get_tag(request):
     return Response(identity.tag)
