@@ -4,8 +4,8 @@ from resource import Resource
 
 
 class SpeedManager(Resource):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, name):
+        super().__init__(name)
         from variables import DoubleVariable
 
         self._speed = DoubleVariable(
@@ -46,4 +46,4 @@ class SpeedManager(Resource):
         return self._phase
 
 
-speed_manager = SpeedManager()
+speed_manager = SpeedManager("speed")

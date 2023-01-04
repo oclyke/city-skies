@@ -1,23 +1,14 @@
 import json
+from resource import ResourceLocator
 
 
-class Variable:
+class Variable(ResourceLocator):
     def __init__(self, type, default, name, description=None):
+        super().__init__(name)
         self._type = type
         self._default = self._type(default)
         self._value = self._default
         self._description = str(description)
-
-        # name conditioning
-        pairs = str(name).strip().split(" ", 1)
-        try:
-            self._name, _ = pairs
-        except ValueError:
-            self._name = pairs[0]
-
-    @property
-    def name(self):
-        return self._name
 
     @property
     def description(self):

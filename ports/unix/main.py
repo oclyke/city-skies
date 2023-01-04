@@ -3,6 +3,7 @@ from microdot_asyncio import Microdot, send_file, Request, Response
 from semver import SemanticVersion
 from shard import ShardManager
 from speed import speed_manager
+from audio import audio_manager, AudioSource
 import os
 
 # constants
@@ -151,6 +152,70 @@ async def get_speed_variable(request, name):
     return Response(speed_manager.variables[name].serialize())
 
 
+@app.get("/audio/sources")
+async def get_speed_variables(request):
+    return Response(list(audio_manager.sources.keys()))
+
+
+@app.get("/audio/source/<source>/volume")
+async def get_audio_source_volume(request, source):
+    return Response(str(audio_manager.sources[source].volume))
+
+
+@app.put("/audio/source/<source>/volume")
+async def set_audio_source_volume(request, source):
+    audio_manager.sources[source].volume = request.body.decode()
+
+
+async def mock_audio_source():
+    sample_frequency = 16000
+    sample_length = 256
+    source = AudioSource("SineTest", (sample_frequency, sample_length))
+
+    # register this audio source
+    audio_manager.register_source(source)
+
+    import math
+
+    def sine_wave(freq, sample_freq):
+        # the time period between each step is 1/sample_freq seconds long
+        # one full cycle should take 1/freq seconds
+        count = 0
+        while True:
+            phase = count / sample_freq
+            # weird note: I thought this should be 2 * math.pi but no matter what I do
+            # I get a frequency that is double what I expected, so for now let's just
+            # use math.pi
+            yield math.sin(math.pi * freq * phase)
+            count += 1
+            if count > sample_freq:
+                count = 0
+
+    # make the test signal
+    sine_400hz = sine_wave(8000, sample_frequency)
+
+    # output to view the fft strengths
+    strengths = [0.0] * 32
+
+    while True:
+        # simulate waiting for a real audio source to fill the buffer
+        for idx in range(sample_length):
+            source._samples[idx] = next(sine_400hz)
+        await asyncio.sleep(sample_length / sample_frequency)
+
+        # now that the audio source is filled with data compute the fft
+        source.compute_fft()
+        stats = source.fft_stats
+        _, _, max_idx = stats
+        bin_width = source.fft_bin_width
+        strongest_freq = max_idx * source.fft_bin_width
+        source.get_fft_strengths(strengths)
+
+        # print(strengths)
+        # print('')
+        # print(stats, bin_width, strongest_freq)
+
+
 async def blink():
     import time
 
@@ -163,6 +228,7 @@ async def main():
     # create async tasks
     asyncio.create_task(app.start_server(debug=True, port=PORT))
     asyncio.create_task(run_pipeline())
+    asyncio.create_task(mock_audio_source())
     asyncio.create_task(blink())
 
     # the main task should not return so that asyncio continues to handle tasks
