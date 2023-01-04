@@ -6,8 +6,14 @@ class Variable:
         self._type = type
         self._default = self._type(default)
         self._value = self._default
-        self._name = str(name)
         self._description = str(description)
+
+        # name conditioning
+        pairs = str(name).strip().split(" ", 1)
+        try:
+            self._name, _ = pairs
+        except ValueError:
+            self._name = pairs[0]
 
     @property
     def name(self):
@@ -83,8 +89,9 @@ class IntegerVariable(Variable):
     @Variable.value.setter
     def value(self, value):
         v = self._type(value)
-        if not v in range(*self._allowed_range):
-            raise ValueError
+        if self._allowed_range is not None:
+            if not v in range(*self._allowed_range):
+                raise ValueError
         self._value = v
 
     def get_dict(self):
@@ -114,8 +121,9 @@ class DoubleVariable(Variable):
     @Variable.value.setter
     def value(self, value):
         v = self._type(value)
-        if not v in range(*self._allowed_range):
-            raise ValueError
+        if self._allowed_range is not None:
+            if not v in range(*self._allowed_range):
+                raise ValueError
         self._value = v
 
     def get_dict(self):

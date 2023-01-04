@@ -38,13 +38,14 @@ class AudioSource:
     @property
     def fft(self):
         return self._fft
-    
+
     @property
     def variables(self):
         return self._variables
-    
+
     def register_variable(self, variable):
         self._variables[variable.name] = variable
+
 
 class AudioManager:
     def __init__(self):
@@ -54,9 +55,10 @@ class AudioManager:
     @property
     def sources(self):
         return self._sources
-    
+
     def add_source(self, source):
         self._sources.append(source)
+
 
 # create a singleton instance of the audio manager
 audio = AudioManager()

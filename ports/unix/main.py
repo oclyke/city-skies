@@ -1,11 +1,17 @@
 import uasyncio as asyncio
 from microdot_asyncio import Microdot, send_file, Request, Response
 from semver import SemanticVersion
+from shard import ShardManager
+from speed import speed_manager
 import os
 
 # constants
 hw_version = SemanticVersion.from_semver("0.0.0-unix")
 fw_version = SemanticVersion.from_semver("0.0.0")
+api_version = SemanticVersion.from_semver("0.0.0")
+
+# shard manager
+shard_manager = ShardManager("runtime/shards")
 
 # configured values
 class IdentityInfo:
@@ -30,28 +36,6 @@ class IdentityInfo:
 
 
 identity = IdentityInfo("runtime/identity")
-
-
-class Layer:
-    READY = 0
-    EXCEPTION = 1
-
-    def __init__(self, shard):
-        self._shard = shard
-        self._state = Layer.READY
-        self._exception = None
-
-    async def run(self):
-        if self._state == Layer.READY:
-            try:
-                await self._shard.run()
-            except Exception as e:
-                self.handle_exception(e)
-
-    async def handle_exception(self, exception):
-        self._state = Layer.EXCEPTION
-        self._exception = exception
-        raise exception
 
 
 async def run_pipeline():
@@ -131,6 +115,11 @@ async def get_fw_version(request):
     return Response(fw_version.to_string())
 
 
+@app.get("/api/version")
+async def get_api_version(request):
+    return Response(api_version.to_string())
+
+
 @app.get("/identity/tag")
 async def get_tag(request):
     return Response(identity.tag)
@@ -139,6 +128,27 @@ async def get_tag(request):
 @app.put("/identity/tag")
 async def set_tag(request):
     identity.tag = request.body.decode()
+
+
+@app.get("/shards")
+async def get_shards(request):
+    return Response(shard_manager.shards)
+
+
+@app.put("/shard/<name>")
+async def add_shard_source(request, name):
+    shard_manager.store_shard(name, {}, request.body.decode())
+
+
+@app.get("/speed/variables")
+async def get_speed_variables(request):
+    return Response(list(speed_manager.variables.keys()))
+
+
+@app.get("/speed/variable/<name>")
+async def get_speed_variable(request, name):
+    print("getting speed variable: ", name)
+    return Response(speed_manager.variables[name].serialize())
 
 
 async def blink():
