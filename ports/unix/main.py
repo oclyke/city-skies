@@ -47,7 +47,11 @@ async def run_pipeline():
     HEIGHT = 13
     screen = sicgl.Screen((WIDTH, HEIGHT))
     memory = sicgl.allocate_memory(screen)
-    interface = sicgl.Interface(screen, memory)
+    canvas_interface = sicgl.Interface(screen, memory)
+
+    # memory into which to place the gamma corrected output
+    gamma_memory = sicgl.allocate_memory(screen)
+    gamma_interface = sicgl.Interface(screen, gamma_memory)
 
     # set up layers
     layers = []
@@ -78,11 +82,31 @@ async def run_pipeline():
     FRAME_PERIOD_MS = 100
     asyncio.create_task(rate_limiter(FRAME_PERIOD_MS))
 
+    # make a tool to reverse a list
+    # (too lazy to do it for real, this is meant to be illustrative)
+    # ((* es eeh-loo-straw-teeve *))
+    def reverse(iter):
+        return iter
+
     # handle layers
     while True:
-        for layer in layers:
-            await layer.run()  # run the layer
-            # layer.compose() # compose the output
+        # compute layers in reverse so that they can be composited into
+        # the canvas in the same step
+        for layer in reverse(layers):
+
+            # run the layer
+            await layer.run()
+
+            # composite the layer's canvas into the main canvas
+            canvas_interface.compose(
+                layer.canvas.screen, layer.canvas.memory, layer.composition_mode
+            )
+
+        # gamma correct the canvas
+        sicgl.gamma_correct(canvas_interface, gamma_interface)
+
+        # # push the corrected canvas out to display
+        # display.push(gamma_interface.memory)
 
         # wait for the next output opportunity
         await output_event.wait()
