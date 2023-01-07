@@ -6,6 +6,55 @@ class VariableResponder:
         self._handler(name, value)
 
 
+class VariableManager(VariableResponder):
+    def __init__(self, path):
+        super().__init__(lambda name, value: self._handle_variable_change(name, value))
+        self._path = path
+        self._variables = {}
+
+        # ensure filesystem storage exists
+        from pathutils import ensure_dirs
+
+        ensure_dirs(self._path)
+
+    def _handle_variable_change(self, name, value):
+        self._store_variable_value(name, value)
+
+    def _store_variable_value(self, name, value):
+        with open(f"{self._vars_path}/{name}", "w") as f:
+            f.write(str(value))
+
+    def _load_variable_value(self, name):
+        with open(f"{self._vars_path}/{name}", "r") as f:
+            return str(f.read())
+
+    def declare_variable(self, cls, *args, **kwargs):
+        """
+        This method allows automatic association of a declared variable
+        to this layer so that it may be properly cached.
+        """
+
+        var = cls(
+            *args, **kwargs, responder=self
+        )  # create the variable with self as responder
+        self._variables[var.name] = var  # register it into the list
+
+        # try loading an existing value for the registered variable
+        try:
+            var.value = self._load_variable_value(var.name)
+        except:
+            pass
+
+        # finally store the current value
+        self._store_variable_value(var.name, var.value)
+
+        return var
+
+    @property
+    def variables(self):
+        return self._variables
+
+
 class VariableDeclaration:
     def __init__(self, type, default, name, description=None, responder=None):
         self._name = name

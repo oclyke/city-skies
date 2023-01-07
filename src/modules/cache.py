@@ -52,3 +52,7 @@ class Cache:
         self._cache[key] = value
         self.store()
         self.notify(key)
+
+    @property
+    def cache(self):
+        return self._cache

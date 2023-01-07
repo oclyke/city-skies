@@ -54,6 +54,14 @@ async def get_shards(request):
     return Response(shard_manager.shards)
 
 
+# curl -H "Content-Type: text/plain" -X GET http://localhost:1337/speed/info
+@app.get("/speed/info")
+async def get_speed_variables(request):
+    from singletons import speed_manager
+
+    return Response(speed_manager.info)
+
+
 # curl -H "Content-Type: text/plain" -X GET http://localhost:1337/speed/variables
 @app.get("/speed/variables")
 async def get_speed_variables(request):
@@ -78,8 +86,16 @@ async def get_speed_variables(request):
     return Response(list(audio_manager.sources.keys()))
 
 
-# curl -H "Content-Type: text/plain" -X GET http://localhost:1337/audio/source/SineTest/volume
-@app.get("/audio/source/<source>/volume")
+# curl -H "Content-Type: text/plain" -X GET http://localhost:1337/audio/SineTest/info
+@app.get("/audio/<source>/info")
+async def get_speed_variables(request, source):
+    from singletons import audio_manager
+
+    return Response(audio_manager.sources[source].info)
+
+
+# curl -H "Content-Type: text/plain" -X GET http://localhost:1337/audio/source/SineTest/info/volume
+@app.get("/audio/source/<source>/info/volume")
 async def get_audio_source_volume(request, source):
     from singletons import audio_manager
 
@@ -113,6 +129,15 @@ async def add_layer(request, expression):
 
     shard = request.body.decode()
     expression_manager.get(expression).add_layer(shard)
+
+
+# curl -H "Content-Type: text/plain" -X GET http://localhost:1337/expressions/active/layer/<id>/info
+@app.get("/expressions/<expression>/layer/<layer_id>/info")
+async def add_layer(request, expression, layer_id):
+    from singletons import expression_manager
+
+    info = expression_manager.get(expression).layers[int(layer_id)].info
+    return Response(info)
 
 
 @app.put("/expressions/<expression>/layer/<id>/index")

@@ -2,8 +2,7 @@ class SpeedManager:
     def __init__(self, path):
         import time
         from cache import Cache
-        from variables import VariableResponder
-        from variables import DoubleVariable
+        from variables import VariableManager
 
         # store starting time
         self._time = time.ticks_ms()
@@ -13,10 +12,7 @@ class SpeedManager:
         self._vars_path = f"{self._root_path}/vars"
 
         # variables which may be dynamically registered for external control
-        self._variables = {}
-        self._variable_responder = VariableResponder(
-            lambda name, value: self._store_variable_value(name, value)
-        )
+        self._variable_responder = VariableManager(f"{self._root_path}/vars")
 
         # info recorded in a cache
         # (this must be done after default values are set because it will automatically enable the module if possible)
@@ -31,40 +27,6 @@ class SpeedManager:
 
     def _handle_info_change(self, key, value):
         pass
-
-    def _store_variable_value(self, name, value):
-        with open(f"{self._vars_path}/{name}", "w") as f:
-            f.write(str(value))
-
-    def _load_variable_value(self, name):
-        with open(f"{self._vars_path}/{name}", "r") as f:
-            return str(f.read())
-
-    def declare_variable(self, cls, *args, **kwargs):
-        """
-        This method allows automatic association of a declared variable
-        to this source so that it may be properly cached.
-        """
-        # create the variable
-        var = cls(*args, **kwargs, responder=self._variable_responder)
-
-        # register it into the layer's list
-        self._variables[var.name] = var
-
-        # try loading an existing value for the registered variable
-        try:
-            var.value = self._load_variable_value(var.name)
-        except:
-            pass
-
-        # finally store the current value
-        self._store_variable_value(var.name, var.value)
-
-        return var
-
-    @property
-    def variables(self):
-        return self._variables
 
     def update(self):
         import time
@@ -81,12 +43,12 @@ class SpeedManager:
         self._phase = math.fmod(self._phase, 1.0)
 
     @property
-    def speed(self):
-        return self._speed.value
+    def info(self):
+        return self._info.cache
 
-    @speed.setter
-    def speed(self, value):
-        self._speed.value = value
+    @property
+    def variables(self):
+        return self._variable_manager.variables
 
     @property
     def time(self):

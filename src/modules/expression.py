@@ -1,8 +1,7 @@
 class Layer:
     def __init__(self, expression, id, interface):
-        from variables import VariableResponder
+        from variables import VariableManager
         from cache import Cache
-        from pathutils import ensure_dirs
 
         # layers require a parent expression
         self._expression = expression
@@ -21,13 +20,7 @@ class Layer:
         self._frame_generator_obj = None
 
         # variables which may be dynamically registered for external control
-        self._variables = {}
-        self._variable_responder = VariableResponder(
-            lambda name, value: self.store_variable_value(name, value)
-        )
-
-        # ensure that variables will have a directory
-        ensure_dirs(self._vars_path)
+        self._variable_manager = VariableManager(f"{self._root_path}/vars")
 
         # info recorded in a cache
         # (this must be done after default values are set because it will automatically enable the module if possible)
@@ -56,78 +49,24 @@ class Layer:
         if key == "shard":
             self._load_shard(value)
 
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def shard(self):
-        return self._info.get("shard")
-
-    @shard.setter
-    def shard(self, uuid):
-        self._info.set("shard", uuid)
-
-    @property
-    def active(self):
-        return self._info.get("active")
-
-    @active.setter
-    def active(self, value):
-        self._info.set("active", value)
-
-    @property
-    def composition_mode(self):
-        return self._info.get("composition_mode")
-
-    @composition_mode.setter
-    def composition_mode(self, mode):
-        self._info.set("composition_mode", mode)
-
-    @property
-    def index(self):
-        return self._info.get("index")
-
-    @index.setter
-    def index(self, value):
-        self._info.set("index", value)
-
-    def store_variable_value(self, name, value):
-        with open(f"{self._vars_path}/{name}", "w") as f:
-            f.write(str(value))
-
-    def load_variable_value(self, name):
-        with open(f"{self._vars_path}/{name}", "r") as f:
-            return str(f.read())
-
-    def declare_variable(self, cls, *args, **kwargs):
-        """
-        This method allows automatic association of a declared variable
-        to this layer so that it may be properly cached.
-        """
-        # create the variable
-        var = cls(*args, **kwargs, responder=self._variable_responder)
-
-        # register it into the layer's list
-        self._variables[var.name] = var
-
-        # try loading an existing value for the registered variable
-        try:
-            var.value = self.load_variable_value(var.name)
-        except:
-            pass
-
-        # finally store the current value
-        self.store_variable_value(var.name, var.value)
-
-        return var
-
     def run(self):
         """
         Gets the next frame from the frame generator object, only if the layer is ready and active
         """
         if self._ready and self.active:
             next(self._frame_generator_obj)
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def info(self):
+        return self._info.cache
+
+    @property
+    def variables(self):
+        return self._variable_manager.variables
 
 
 class Expression:
@@ -204,7 +143,10 @@ class Expression:
         self._recompute_layer_indices()
 
     def get_layer_index(self, id):
-        return self.layer_map[id].index
+        return self.get_layer_by_id(id).info.get("index")
+
+    def get_layer_by_id(self, id):
+        return self._layer_map[id]
 
     def remove_layer(self, id):
         import os

@@ -1,11 +1,11 @@
 class ShardManager:
     def __init__(self, path):
-        from pathutils import ensure_parent_dirs
+        from pathutils import ensure_dirs
 
         self._path = path
 
         # ensure that the desired path exists
-        ensure_parent_dirs(self._path)
+        ensure_dirs(self._path)
 
     @property
     def shards(self):
