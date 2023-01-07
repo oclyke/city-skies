@@ -37,8 +37,6 @@ async def run_pipeline():
     def reverse(iter):
         return iter
 
-    print("active layers are: ", expression_manager.active.layers)
-
     # handle layers
     while True:
         # compute layers in reverse so that they can be composited into
