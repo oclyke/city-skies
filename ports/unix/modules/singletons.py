@@ -6,7 +6,7 @@ from expression import ExpressionManager
 from hardware import display
 import sicgl
 
-
+# memory for the composited output
 memory = sicgl.allocate_memory(display)
 canvas_interface = sicgl.Interface(display, memory)
 
@@ -18,8 +18,9 @@ gamma_interface = sicgl.Interface(display, gamma_memory)
 layer_memory = sicgl.allocate_memory(display)
 layer_interface = sicgl.Interface(display, layer_memory)
 
+# data managers
 identity = IdentityInfo("runtime/identity")
-audio_manager = AudioManager("audio")
-speed_manager = SpeedManager("speed")
+audio_manager = AudioManager("runtime/audio")
+speed_manager = SpeedManager("runtime/speed")
 shard_manager = ShardManager("runtime/shards")
 expression_manager = ExpressionManager("runtime/expressions", layer_interface)

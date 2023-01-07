@@ -2,6 +2,7 @@ class Layer:
     def __init__(self, expression, id, interface):
         from variables import VariableResponder
         from cache import Cache
+        from pathutils import ensure_dirs
 
         # layers require a parent expression
         self._expression = expression
@@ -26,8 +27,6 @@ class Layer:
         )
 
         # ensure that variables will have a directory
-        from pathutils import ensure_dirs
-
         ensure_dirs(self._vars_path)
 
         # info recorded in a cache
@@ -54,7 +53,6 @@ class Layer:
             self._ready = True
 
     def _handle_info_change(self, key, value):
-        print(f"({self}) layer info changed. [{key}]: {value}")
         if key == "shard":
             self._load_shard(value)
 

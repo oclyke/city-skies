@@ -1,18 +1,16 @@
-import os
-
-
 class ShardManager:
     def __init__(self, path):
+        from pathutils import ensure_parent_dirs
+
         self._path = path
 
         # ensure that the desired path exists
-        try:
-            os.listdir(self._path)
-        except:
-            os.mkdir(self._path)
+        ensure_parent_dirs(self._path)
 
     @property
     def shards(self):
+        import os
+
         available = os.listdir(f"{self._path}")
         return available
 
