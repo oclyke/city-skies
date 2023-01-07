@@ -1,64 +1,7 @@
 import sicgl
 import uasyncio as asyncio
-from semver import SemanticVersion
-from shard import ShardManager
-from speed import speed_manager
-from cache import Cache
-from expression import Expression
-from variables import VariableResponder
-
-# diplay hardware
-WIDTH = 22
-HEIGHT = 13
-
-# shard manager
-shard_manager = ShardManager("runtime/shards")
-
-# sicgl interfaces
-screen = sicgl.Screen((WIDTH, HEIGHT))
-memory = sicgl.allocate_memory(screen)
-canvas_interface = sicgl.Interface(screen, memory)
-
-# memory into which to place the gamma corrected output
-gamma_memory = sicgl.allocate_memory(screen)
-gamma_interface = sicgl.Interface(screen, gamma_memory)
-
-# memory for intermediate layer action
-layer_memory = sicgl.allocate_memory(screen)
-layer_interface = sicgl.Interface(screen, layer_memory)
-
-# define expressions
-expressionA = Expression("runtime/expressions/A", layer_interface)
-expressionB = Expression("runtime/expressions/B", layer_interface)
-
-# make references for active and inactive expressions
-expressions = {
-    "active": None,
-    "inactive": None,
-}
-
-# a tool to activate an expression while simultaneously deactivating the other
-def activate_expression(name):
-    global expressions
-    if name == "A":
-        expressions["active"] = expressionA
-        expressions["inactive"] = expressionB
-    elif name == "B":
-        expressions["active"] = expressionB
-        expressions["inactive"] = expressionA
-    else:
-        raise ValueError
-
-
-# expression selection information
-def onExpressionCacheChange(key, value):
-    if key == "active":
-        activate_expression(value)
-
-
-expressions_cache = Cache(
-    "runtime/expressions/info", {"active": "A"}, onExpressionCacheChange
-)
+from singletons import expression_manager
+from singletons import canvas_interface, gamma_interface, layer_memory, display
 
 
 async def run_pipeline():
@@ -89,17 +32,19 @@ async def run_pipeline():
     def reverse(iter):
         return iter
 
+    print("active layers are: ", expression_manager.active.layers)
+
     # handle layers
     while True:
         # compute layers in reverse so that they can be composited into
         # the canvas in the same step
-        for layer in reverse(expressions["active"].layers):
+        for layer in reverse(expression_manager.active.layers):
 
             # run the layer
             layer.run()
 
             # composite the layer's canvas into the main canvas
-            canvas_interface.compose(screen, layer_memory, layer.composition_mode)
+            canvas_interface.compose(display, layer_memory, layer.composition_mode)
 
         # gamma correct the canvas
         sicgl.gamma_correct(canvas_interface, gamma_interface)

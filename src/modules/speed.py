@@ -44,6 +44,3 @@ class SpeedManager(Resource):
     def phase(self):
         self.update()
         return self._phase
-
-
-speed_manager = SpeedManager("speed")
