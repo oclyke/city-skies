@@ -1,14 +1,23 @@
-import json
-from resource import ResourceLocator
+class VariableResponder:
+    def __init__(self, handler):
+        self._handler = handler
+
+    def handle(self, name, value):
+        self._handler(name, value)
 
 
-class Variable(ResourceLocator):
-    def __init__(self, type, default, name, description=None):
-        super().__init__(name)
+class VariableDeclaration:
+    def __init__(self, type, default, name, description=None, responder=None):
+        self._name = name
         self._type = type
         self._default = self._type(default)
         self._value = self._default
         self._description = str(description)
+        self._responder = responder
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def description(self):
@@ -25,6 +34,8 @@ class Variable(ResourceLocator):
     @value.setter
     def value(self, val):
         self._value = self._type(val)
+        if self._responder is not None:
+            self._responder.handle(self._name, self._value)
 
     def get_dict(self):
         return {
@@ -36,17 +47,19 @@ class Variable(ResourceLocator):
         }
 
     def serialize(self, f=None):
+        import json
+
         if f is None:
             return json.dumps(self.get_dict())
         else:
             json.dump(self.get_dict(), f)
 
 
-class BooleanVariable(Variable):
+class BooleanVariable(VariableDeclaration):
     TYPECODE = 1
 
-    def __init__(self, default, name, tags=("False", "True"), description=None):
-        super().__init__(bool, default, name, description)
+    def __init__(self, default, name, tags=("False", "True"), **kwargs):
+        super().__init__(bool, default, name, **kwargs)
         self._tags = tuple(str(tag) for tag in tags)
 
     def get_dict(self):
@@ -58,18 +71,13 @@ class BooleanVariable(Variable):
         return dict(**base, **additional)
 
 
-class IntegerVariable(Variable):
+class IntegerVariable(VariableDeclaration):
     TYPECODE = 2
 
     def __init__(
-        self,
-        default,
-        name,
-        default_range=(0, 100),
-        allowed_range=None,
-        description=None,
+        self, default, name, default_range=(0, 100), allowed_range=None, **kwargs
     ):
-        super().__init__(int, default, name, description)
+        super().__init__(int, default, name, **kwargs)
         self._default_range = tuple(int(val) for val in default_range)
         self._allowed_range = (
             tuple(int(val) for val in allowed_range)
@@ -77,7 +85,7 @@ class IntegerVariable(Variable):
             else None
         )
 
-    @Variable.value.setter
+    @VariableDeclaration.value.setter
     def value(self, value):
         v = self._type(value)
         if self._allowed_range is not None:
@@ -95,13 +103,13 @@ class IntegerVariable(Variable):
         return dict(**base, **additional)
 
 
-class DoubleVariable(Variable):
+class DoubleVariable(VariableDeclaration):
     TYPECODE = 3
 
     def __init__(
-        self, default, name, default_range=(0, 1), allowed_range=None, description=None
+        self, default, name, default_range=(0, 1), allowed_range=None, **kwargs
     ):
-        super().__init__(float, default, name, description)
+        super().__init__(float, default, name, **kwargs)
         self._default_range = tuple(float(val) for val in default_range)
         self._allowed_range = (
             tuple(float(val) for val in allowed_range)
@@ -109,7 +117,7 @@ class DoubleVariable(Variable):
             else None
         )
 
-    @Variable.value.setter
+    @VariableDeclaration.value.setter
     def value(self, value):
         v = self._type(value)
         if self._allowed_range is not None:
@@ -127,14 +135,14 @@ class DoubleVariable(Variable):
         return dict(**base, **additional)
 
 
-class OptionVariable(Variable):
+class OptionVariable(VariableDeclaration):
     TYPECODE = 4
 
-    def __init__(self, default, name, options, description=None):
-        super().__init__(int, default, name, description)
+    def __init__(self, default, name, options, **kwargs):
+        super().__init__(int, default, name, **kwargs)
         self._options = tuple(str(val) for val in options)
 
-    @Variable.value.setter
+    @VariableDeclaration.value.setter
     def value(self, value):
         v = self._type(value)
         if not v in range(len(self._options)):

@@ -1,5 +1,4 @@
 import os
-import json
 
 
 class ShardManager:
@@ -17,27 +16,11 @@ class ShardManager:
         available = os.listdir(f"{self._path}")
         return available
 
-    def store_shard(self, name, info, source):
-        dirname = f"{self._path}/{name}"
-        try:
-            os.rmdir(dirname)
-        except OSError:
-            pass
-        os.mkdir(dirname)
-
-        # store info
-        with open(f"{dirname}/info.json", "w") as f:
-            json.dump(info, f)
-
-        # store source
-        with open(f"{dirname}/shard.py", "w") as f:
+    def store_shard(self, uuid, source):
+        # shards are uniquely identified by their uuid
+        with open(f"{self._path}/{uuid}.py", "w") as f:
             f.write(source)
 
-    def get_shard_module(self, name):
-        module = __import__(f"{self._path}/{name}/shard")
+    def get_shard_module(self, uuid):
+        module = __import__(f"{self._path}/{uuid}")
         return module
-
-    def get_shard_info(self, name):
-        with open(f"{self._path}/{name}/info.json", "r") as f:
-            info = json.load(f)
-        return info
