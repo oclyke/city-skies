@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "py/binary.h"
@@ -8,6 +9,7 @@
 #include "pysicgl/field.h"
 #include "pysicgl/interface.h"
 #include "pysicgl/screen.h"
+#include "sicgl/gamma.h"
 
 // module methods
 STATIC mp_obj_t allocate_memory(mp_obj_t obj) {
@@ -47,6 +49,20 @@ STATIC mp_obj_t allocate_memory(mp_obj_t obj) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(allocate_memory_obj, allocate_memory);
 
+STATIC mp_obj_t
+gamma_correct(mp_obj_t input_interface, mp_obj_t output_interface) {
+  Interface_obj_t* input = interface_from_obj(input_interface);
+  Interface_obj_t* output = interface_from_obj(output_interface);
+
+  int ret = sicgl_gamma_correct(&input->interface, &output->interface);
+  if (0 != ret) {
+    mp_raise_msg(&mp_type_Exception, NULL);
+  }
+
+  return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(gamma_correct_obj, gamma_correct);
+
 // module
 STATIC const mp_map_elem_t sicgl_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR___name__), MP_OBJ_NEW_QSTR(MP_QSTR_sicgl)},
@@ -54,6 +70,8 @@ STATIC const mp_map_elem_t sicgl_globals_table[] = {
     // methods
     {MP_OBJ_NEW_QSTR(MP_QSTR_allocate_memory),
      (mp_obj_t)MP_ROM_PTR(&allocate_memory_obj)},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_gamma_correct),
+     (mp_obj_t)MP_ROM_PTR(&gamma_correct_obj)},
 
     // classes
     {MP_OBJ_NEW_QSTR(MP_QSTR_ColorSequence), (mp_obj_t)&ColorSequence_type},

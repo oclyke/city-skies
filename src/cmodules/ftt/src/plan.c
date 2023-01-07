@@ -119,6 +119,34 @@ STATIC mp_obj_t execute(mp_obj_t self_in) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(execute_obj, execute);
 
+STATIC mp_obj_t stats(mp_obj_t self_in) {
+  FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  if (!self->config) {
+    mp_raise_OSError(-ENOMEM);
+  }
+
+  mp_float_t sum = 0;
+  mp_float_t max = 0;
+  size_t max_idx = 0;
+  for (size_t idx = 0; idx < self->config->size; idx += 2) {
+    mp_float_t val = self->config->output[idx];
+    sum += val;
+    if (val > max) {
+      max = val;
+      max_idx = idx;
+    }
+  }
+
+  // return the maximum value to allow for scaling
+  const size_t num_items = 3;
+  mp_obj_t items[num_items];
+  items[0] = mp_obj_new_float(sum);
+  items[1] = mp_obj_new_float(max);
+  items[2] = mp_obj_new_int(max_idx);
+  return mp_obj_new_tuple(num_items, items);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(stats_obj, stats);
+
 STATIC mp_obj_t output(mp_obj_t self_in, mp_obj_t output_obj) {
   FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
   if (!self->config) {
@@ -146,25 +174,15 @@ STATIC mp_obj_t output(mp_obj_t self_in, mp_obj_t output_obj) {
     max_bins_out = numout;
   }
 
-  // find the max value of the real outputs and store their absolute value
-  // note: we ignore the value of the dc component (output[0])
-  bool initmax = true;
-  mp_float_t max = 0.0;
+  // copy items into output
   for (size_t idx = 0; idx < max_bins_out; idx++) {
     size_t odx = 2 * idx;
     mp_float_t val = self->config->output[odx];
-    if (initmax && (idx > 0)) {
-      max = val;
-      initmax = false;
-    }
-    if (val > max) {
-      max = val;
-    }
     output[idx] = mp_obj_new_float(val);
   }
 
   // return the maximum value to allow for scaling
-  return mp_obj_new_float(max);
+  return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(output_obj, output);
 
@@ -207,7 +225,6 @@ reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
   // according to the ear kernel
   size_t idx = 0;
   mp_float_t sum = 0;
-  mp_float_t maximum = sum;
   do {
     // determine the number of bins that should be accumulated into this output
     // index
@@ -219,11 +236,6 @@ reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
       bin_low = bin_high;
       bin_high = bins_handled_int;
       sum = sum_bin_range(input, input_bins, bin_low, bin_high, floor);
-
-      // check the sum to see if it is the maximum
-      if (sum > maximum) {
-        maximum = sum;
-      }
     }
 
     // the output at this index will either be a new value or the same value as
@@ -235,7 +247,7 @@ reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
   } while (idx < numout);
 
   // return the maximum value for scaling
-  return mp_obj_new_int(maximum);
+  return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(reshape_obj, reshape);
 
@@ -245,6 +257,7 @@ STATIC const mp_rom_map_elem_t plan_locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_execute), MP_ROM_PTR(&execute_obj)},
     {MP_ROM_QSTR(MP_QSTR_output), MP_ROM_PTR(&output_obj)},
     {MP_ROM_QSTR(MP_QSTR_reshape), MP_ROM_PTR(&reshape_obj)},
+    {MP_ROM_QSTR(MP_QSTR_stats), MP_ROM_PTR(&stats_obj)},
 };
 STATIC MP_DEFINE_CONST_DICT(plan_locals_dict, plan_locals_dict_table);
 

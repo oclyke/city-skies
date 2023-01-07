@@ -6,3 +6,9 @@ include("$(MPY_DIR)/extmod/uasyncio/manifest.py")
 
 # include manifest from city-skies common source
 include("../../../../src/manifest.py")
+
+# freeze city-skies unix port modules
+freeze("../../modules")
+
+# freeze variant module
+freeze("modules")
