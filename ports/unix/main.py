@@ -1,3 +1,7 @@
+import time
+boot_time_ms = time.ticks_ms()
+first_light = True
+
 import sicgl
 import uasyncio as asyncio
 from singletons import expression_manager
@@ -51,6 +55,13 @@ async def run_pipeline():
 
         # # push the corrected canvas out to display
         # display.push(gamma_interface.memory)
+
+        global first_light
+        if first_light:
+            global boot_time_ms
+            first_light = False
+            first_time_ms = time.ticks_ms()
+            print('time to first light: ', time.ticks_diff(first_time_ms, boot_time_ms))
 
         # wait for the next output opportunity
         await output_event.wait()
