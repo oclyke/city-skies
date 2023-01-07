@@ -1,4 +1,5 @@
 import time
+
 boot_time_ms = time.ticks_ms()
 first_light = True
 
@@ -61,7 +62,7 @@ async def run_pipeline():
             global boot_time_ms
             first_light = False
             first_time_ms = time.ticks_ms()
-            print('time to first light: ', time.ticks_diff(first_time_ms, boot_time_ms))
+            print("time to first light: ", time.ticks_diff(first_time_ms, boot_time_ms))
 
         # wait for the next output opportunity
         await output_event.wait()
