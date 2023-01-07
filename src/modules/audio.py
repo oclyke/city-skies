@@ -59,7 +59,3 @@ class AudioManager(Resource):
 
     def register_source(self, source):
         self._sources[source.name] = source
-
-
-# create a singleton instance of the audio manager
-audio_manager = AudioManager("audio")
