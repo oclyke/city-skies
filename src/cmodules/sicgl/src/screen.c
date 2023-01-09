@@ -6,6 +6,22 @@
 #include "py/runtime.h"
 #include "pysicgl/utilities.h"
 
+// attribute helpers
+STATIC mp_obj_t get_width(mp_obj_t self_in) {
+  Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  return mp_obj_new_int(self->screen->width);
+}
+
+STATIC mp_obj_t get_height(mp_obj_t self_in) {
+  Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  return mp_obj_new_int(self->screen->height);
+}
+
+STATIC mp_obj_t get_pixels(mp_obj_t self_in) {
+  Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  return mp_obj_new_int(self->screen->width * self->screen->height);
+}
+
 // class methods
 STATIC mp_obj_t set_corners(mp_obj_t self_in, mp_obj_t c0, mp_obj_t c1) {
   Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
@@ -165,10 +181,30 @@ STATIC mp_obj_t make_new(
   return self;
 }
 
+STATIC void attr(mp_obj_t self_in, qstr attribute, mp_obj_t* destination) {
+  switch (attribute) {
+    case MP_QSTR_width:
+      destination[0] = get_width(self_in);
+      break;
+
+    case MP_QSTR_height:
+      destination[0] = get_height(self_in);
+      break;
+
+    case MP_QSTR_pixels:
+      destination[0] = get_pixels(self_in);
+      break;
+
+    default:
+      // No attribute found, continue lookup in locals dict.
+      // https://github.com/micropython/micropython/pull/7934
+      destination[1] = MP_OBJ_SENTINEL;
+      break;
+  }
+}
+
 const mp_obj_type_t Screen_type = {
-    {&mp_type_type},
-    .name = MP_QSTR_Screen,
-    .print = print,
-    .make_new = make_new,
-    .locals_dict = (mp_obj_dict_t*)&locals_dict,
+    {&mp_type_type}, .name = MP_QSTR_Screen,
+    .print = print,  .make_new = make_new,
+    .attr = attr,    .locals_dict = (mp_obj_dict_t*)&locals_dict,
 };

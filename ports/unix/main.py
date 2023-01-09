@@ -31,23 +31,19 @@ async def run_pipeline():
     FRAME_PERIOD_MS = 1000
     asyncio.create_task(rate_limiter(FRAME_PERIOD_MS))
 
-    # make a tool to reverse a list
-    # (too lazy to do it for real, this is meant to be illustrative)
-    # ((* es eeh-loo-straw-teeve *))
-    def reverse(iter):
-        return iter
-
     # handle layers
     while True:
         # compute layers in reverse so that they can be composited into
         # the canvas in the same step
-        for layer in reverse(expression_manager.active.layers):
+        for layer in expression_manager.active.layers_reversed:
 
             # run the layer
             layer.run()
 
             # composite the layer's canvas into the main canvas
-            canvas_interface.compose(display, layer_memory, layer.composition_mode)
+            canvas_interface.compose(
+                display, layer_memory, layer.info.get("composition_mode")
+            )
 
         # gamma correct the canvas
         sicgl.gamma_correct(canvas_interface, gamma_interface)

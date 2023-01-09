@@ -53,7 +53,7 @@ class Layer:
         """
         Gets the next frame from the frame generator object, only if the layer is ready and active
         """
-        if self._ready and self.active:
+        if self._ready and self.info.get("active"):
             next(self._frame_generator_obj)
 
     @property
@@ -62,7 +62,7 @@ class Layer:
 
     @property
     def info(self):
-        return self._info.cache
+        return self._info
 
     @property
     def variables(self):
@@ -105,6 +105,7 @@ class Expression:
         # maintains the order of layers in composition
         self._layer_map = {}
         self._layer_stack = []
+        self._layer_stack_reverse = []
 
         # load layers from the filesystem
         for id in os.listdir(self._layers_path):
@@ -115,13 +116,22 @@ class Expression:
         # now arrange the layers by index
         self._arrange_layers_by_index()
 
+    def _update_reverse_layer_stack(self):
+        # update the reversed layer stack
+        # (it is necessary to copy the layer stack into a new list before
+        # reversing otherwise the original will be affected by reference)
+        self._layer_stack_reverse = list(self._layer_stack)
+        self._layer_stack_reverse.reverse()
+
     def _arrange_layers_by_index(self):
         # sort the layers in the stack by index
-        self._layer_stack.sort(key=lambda layer: layer.index)
+        self._layer_stack.sort(key=lambda layer: layer.info.get("index"))
+        self._update_reverse_layer_stack()
 
     def _recompute_layer_indices(self):
         for idx, layer in enumerate(self._layer_stack):
-            layer.index = idx
+            layer.info.set("index", idx)
+        self._update_reverse_layer_stack()
 
     def _make_layer(self, id):
         return Layer(self, id, self._interface)
@@ -132,7 +142,7 @@ class Expression:
         id = next(self._layer_id_generator)
         os.mkdir(f"{self._layers_path}/{id}")
         layer = self._make_layer(id)
-        layer.shard = shard
+        layer.info.set("shard", shard)
         self._layer_stack.append(layer)
         self._layer_map[str(id)] = layer
         self._recompute_layer_indices()
@@ -166,6 +176,10 @@ class Expression:
     @property
     def layers(self):
         return self._layer_stack
+
+    @property
+    def layers_reversed(self):
+        return self._layer_stack_reverse
 
 
 class ExpressionManager:
