@@ -13,7 +13,10 @@ class Layer:
         self._info_path = f"{self._root_path}/info"
 
         # a sicgl interface will be provided
-        self._interface = interface
+        self._canvas = interface
+
+        # the layer may have a local palette, this value is managed via the info cache
+        self._palette = None
 
         # set defaults for shard execution
         self._ready = False
@@ -48,6 +51,8 @@ class Layer:
     def _handle_info_change(self, key, value):
         if key == "shard":
             self._load_shard(value)
+        elif key == "palette":
+            self._palette = value
 
     def run(self):
         """
@@ -68,6 +73,17 @@ class Layer:
     def variables(self):
         return self._variable_manager.variables
 
+    @property
+    def canvas(self):
+        return self._canvas
+
+    @property
+    def palette(self):
+        if self._palette is not None:
+            return self._palette
+        else:
+            return self._expression._palette_manager.palette
+
 
 class Expression:
     @staticmethod
@@ -87,7 +103,7 @@ class Expression:
             except:
                 yield id
 
-    def __init__(self, path, interface):
+    def __init__(self, path, interface, palette_manager):
         from pathutils import ensure_dirs
         import os
 
@@ -98,6 +114,9 @@ class Expression:
         # store a reference to the interface that will be passed to layers
         self._interface = interface
 
+        # store a reference to the palette manager
+        self._palette_manager = palette_manager
+
         # ensure that a directory exists for layers
         ensure_dirs(self._layers_path)
 
@@ -105,7 +124,6 @@ class Expression:
         # maintains the order of layers in composition
         self._layer_map = {}
         self._layer_stack = []
-        self._layer_stack_reverse = []
 
         # load layers from the filesystem
         for id in os.listdir(self._layers_path):
@@ -115,23 +133,15 @@ class Expression:
 
         # now arrange the layers by index
         self._arrange_layers_by_index()
-
-    def _update_reverse_layer_stack(self):
-        # update the reversed layer stack
-        # (it is necessary to copy the layer stack into a new list before
-        # reversing otherwise the original will be affected by reference)
-        self._layer_stack_reverse = list(self._layer_stack)
-        self._layer_stack_reverse.reverse()
+        self._recompute_layer_indices()
 
     def _arrange_layers_by_index(self):
         # sort the layers in the stack by index
         self._layer_stack.sort(key=lambda layer: layer.info.get("index"))
-        self._update_reverse_layer_stack()
 
     def _recompute_layer_indices(self):
         for idx, layer in enumerate(self._layer_stack):
             layer.info.set("index", idx)
-        self._update_reverse_layer_stack()
 
     def _make_layer(self, id):
         return Layer(self, id, self._interface)
@@ -177,17 +187,13 @@ class Expression:
     def layers(self):
         return self._layer_stack
 
-    @property
-    def layers_reversed(self):
-        return self._layer_stack_reverse
-
 
 class ExpressionManager:
-    def __init__(self, path, interface):
+    def __init__(self, path, palette_manager, interface):
         from cache import Cache
 
-        self._expressionA = Expression(f"{path}/A", interface)
-        self._expressionB = Expression(f"{path}/B", interface)
+        self._expressionA = Expression(f"{path}/A", interface, palette_manager)
+        self._expressionB = Expression(f"{path}/B", interface, palette_manager)
 
         self._active = None
         self._inactive = None

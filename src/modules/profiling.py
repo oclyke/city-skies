@@ -1,7 +1,7 @@
 import time
 
 
-class ProfilingTimer:
+class ProfileTimer:
     def set(self):
         self._t = time.ticks_us()
 
@@ -19,7 +19,7 @@ class ProfilingTimer:
 
 # @timed
 def timed(f, *args, **kwargs):
-    t = ProfilingTimer()
+    t = ProfileTimer()
     name = str(f).split(" ")[1]
 
     def inner(*args, **kwargs):

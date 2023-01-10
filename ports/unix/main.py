@@ -1,15 +1,26 @@
-import time
-
-boot_time_ms = time.ticks_ms()
-first_light = True
-
-import sicgl
 import uasyncio as asyncio
+from framerate import FramerateHistory
 from singletons import expression_manager
-from singletons import canvas_interface, gamma_interface, layer_memory, display
+
+
+framerate = FramerateHistory()
 
 
 async def run_pipeline():
+    from singletons import (
+        canvas_interface,
+        gamma_interface,
+        layer_interface,
+        layer_memory,
+        display,
+    )
+    from hardware import driver
+    from profiling import ProfileTimer
+    import sicgl
+
+    # make a timer for profiling the framerate
+    profiler = ProfileTimer()
+
     # rate-limit the output
     output_event = (
         asyncio.Event()
@@ -28,14 +39,24 @@ async def run_pipeline():
             output_event.set()
             next_frame_ticks_ms = time.ticks_ms() + period_ms
 
-    FRAME_PERIOD_MS = 1000
+    FRAME_PERIOD_MS = 30
     asyncio.create_task(rate_limiter(FRAME_PERIOD_MS))
 
     # handle layers
     while True:
-        # compute layers in reverse so that they can be composited into
-        # the canvas in the same step
-        for layer in expression_manager.active.layers_reversed:
+        profiler.set()
+
+        # zero the canvas to prevent artifacts from previous render loops
+        # from leaking through
+        # (sometimes it would be beneficial to persist the previous state,
+        # but shards can do that by allocating their own memory as needed)
+        canvas_interface.interface_fill(0x000000)
+
+        for layer in expression_manager.active.layers:
+            # zero the layer interface for each shard
+            # (if a layer wants to use persistent memory it can do whacky stuff
+            # such as allocating its own local interface and copying out the results)
+            layer_interface.interface_fill(0x000000)
 
             # run the layer
             layer.run()
@@ -48,27 +69,16 @@ async def run_pipeline():
         # gamma correct the canvas
         sicgl.gamma_correct(canvas_interface, gamma_interface)
 
-        # # push the corrected canvas out to display
-        # display.push(gamma_interface.memory)
+        # output the display data
+        driver.push(gamma_interface)
 
-        global first_light
-        if first_light:
-            global boot_time_ms
-            first_light = False
-            first_time_ms = time.ticks_ms()
-            print("time to first light: ", time.ticks_diff(first_time_ms, boot_time_ms))
+        # compute framerate
+        profiler.mark()
+        framerate.record_period_ms(profiler.period_ms)
 
         # wait for the next output opportunity
         await output_event.wait()
         output_event.clear()
-
-
-async def blink():
-    import time
-
-    while True:
-        print("blink: ", time.ticks_ms(), "ms")
-        await asyncio.sleep(3)
 
 
 async def serve_api():
@@ -83,6 +93,14 @@ async def serve_api():
     from control_api import app
 
     asyncio.create_task(app.start_server(debug=True, port=PORT))
+
+
+async def blink():
+    while True:
+        await asyncio.sleep(5)
+        print(
+            f"{framerate.average} fps, ({len(expression_manager.active.layers)} layers)"
+        )
 
 
 async def main():

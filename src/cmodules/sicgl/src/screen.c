@@ -23,6 +23,16 @@ STATIC mp_obj_t get_pixels(mp_obj_t self_in) {
 }
 
 // class methods
+STATIC mp_obj_t normalize(mp_obj_t self_in) {
+  Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  int ret = screen_normalize(self->screen);
+  if (0 != ret) {
+    mp_raise_msg(&mp_type_Exception, NULL);
+  }
+  return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(normalize_obj, normalize);
+
 STATIC mp_obj_t set_corners(mp_obj_t self_in, mp_obj_t c0, mp_obj_t c1) {
   Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
   ext_t u0, v0, u1, v1;
@@ -38,6 +48,7 @@ STATIC mp_obj_t set_corners(mp_obj_t self_in, mp_obj_t c0, mp_obj_t c1) {
   if (0 != ret) {
     mp_raise_msg(&mp_type_Exception, NULL);
   }
+  normalize(self);
   return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(set_corners_obj, set_corners);
@@ -53,6 +64,7 @@ STATIC mp_obj_t set_extent(mp_obj_t self_in, mp_obj_t extent) {
   if (0 != ret) {
     mp_raise_msg(&mp_type_Exception, NULL);
   }
+  normalize(self);
   return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_extent_obj, set_extent);
@@ -68,19 +80,10 @@ STATIC mp_obj_t set_location(mp_obj_t self_in, mp_obj_t location) {
   if (0 != ret) {
     mp_raise_msg(&mp_type_Exception, NULL);
   }
+  normalize(self);
   return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_location_obj, set_location);
-
-STATIC mp_obj_t normalize(mp_obj_t self_in) {
-  Screen_obj_t* self = MP_OBJ_TO_PTR(self_in);
-  int ret = screen_normalize(self->screen);
-  if (0 != ret) {
-    mp_raise_msg(&mp_type_Exception, NULL);
-  }
-  return mp_const_none;
-}
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(normalize_obj, normalize);
 
 STATIC mp_obj_t intersect(mp_obj_t self_in, mp_obj_t s0, mp_obj_t s1) {
   screen_t* target = screen_from_obj(self_in)->screen;

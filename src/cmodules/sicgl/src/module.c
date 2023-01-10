@@ -63,6 +63,27 @@ gamma_correct(mp_obj_t input_interface, mp_obj_t output_interface) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(gamma_correct_obj, gamma_correct);
 
+STATIC mp_obj_t make_color(mp_obj_t red, mp_obj_t green, mp_obj_t blue) {
+  color_t color = color_from_channels(mp_obj_get_int(red), mp_obj_get_int(green), mp_obj_get_int(blue));
+  return mp_obj_new_int(color);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_3(make_color_obj, make_color);
+
+STATIC mp_obj_t get_color_channels(mp_obj_t color_obj) {
+  color_t color = mp_obj_get_int(color_obj);
+
+  // return the maximum value to allow for scaling
+  const size_t num_items = 3;
+  mp_obj_t items[num_items];
+
+  items[0] = mp_obj_new_int(color_channel_red(color));
+  items[1] = mp_obj_new_int(color_channel_green(color));
+  items[2] = mp_obj_new_int(color_channel_blue(color));
+
+  return mp_obj_new_tuple(num_items, items);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(get_color_channels_obj, get_color_channels);
+
 // module
 STATIC const mp_map_elem_t sicgl_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR___name__), MP_OBJ_NEW_QSTR(MP_QSTR_sicgl)},
@@ -72,6 +93,10 @@ STATIC const mp_map_elem_t sicgl_globals_table[] = {
      (mp_obj_t)MP_ROM_PTR(&allocate_memory_obj)},
     {MP_OBJ_NEW_QSTR(MP_QSTR_gamma_correct),
      (mp_obj_t)MP_ROM_PTR(&gamma_correct_obj)},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_make_color),
+     (mp_obj_t)MP_ROM_PTR(&make_color_obj)},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_get_color_channels),
+     (mp_obj_t)MP_ROM_PTR(&get_color_channels_obj)},
 
     // classes
     {MP_OBJ_NEW_QSTR(MP_QSTR_ColorSequence), (mp_obj_t)&ColorSequence_type},
