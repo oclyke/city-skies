@@ -22,3 +22,6 @@
 [submodule "src/cmodules/ftt/third-party/fakufaku"]
 	path = src/cmodules/ftt/third-party/fakufaku
 	url = https://github.com/fakufaku/esp32-fft
+[submodule "src/cmodules/noise/third-party/open-simplex-noise-in-c"]
+	path = src/cmodules/noise/third-party/open-simplex-noise-in-c
+	url = https://github.com/smcameron/open-simplex-noise-in-c

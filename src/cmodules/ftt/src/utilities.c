@@ -7,7 +7,7 @@ int extract_float_obj(mp_obj_t obj, mp_float_t* value) {
   if (mp_obj_is_float(obj)) {
     *value = mp_obj_get_float(obj);
   } else if (mp_obj_is_int(obj)) {
-    *value = mp_obj_get_float(obj);
+    *value = (mp_float_t)mp_obj_get_int(obj);
   } else {
     ret = -EINVAL;
     goto out;
