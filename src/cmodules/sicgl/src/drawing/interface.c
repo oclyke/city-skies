@@ -13,8 +13,8 @@ mp_obj_t interface_fill(size_t n_args, const mp_obj_t* args) {
     ARG_color,
   };
   Interface_obj_t* self = MP_OBJ_TO_PTR(args[ARG_interface]);
-  int ret = sicgl_interface_fill(
-      &self->interface, mp_obj_get_int(args[ARG_color]));
+  int ret =
+      sicgl_interface_fill(&self->interface, mp_obj_get_int(args[ARG_color]));
   if (0 != ret) {
     mp_raise_OSError(ret);
   }

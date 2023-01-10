@@ -64,7 +64,8 @@ gamma_correct(mp_obj_t input_interface, mp_obj_t output_interface) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(gamma_correct_obj, gamma_correct);
 
 STATIC mp_obj_t make_color(mp_obj_t red, mp_obj_t green, mp_obj_t blue) {
-  color_t color = color_from_channels(mp_obj_get_int(red), mp_obj_get_int(green), mp_obj_get_int(blue));
+  color_t color = color_from_channels(
+      mp_obj_get_int(red), mp_obj_get_int(green), mp_obj_get_int(blue));
   return mp_obj_new_int(color);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(make_color_obj, make_color);

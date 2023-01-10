@@ -80,8 +80,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
     global_ellipse_obj, 4, 4, global_ellipse);
 
-STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
-    screen_fill_obj, 2, 2, screen_fill);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(screen_fill_obj, 2, 2, screen_fill);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
     screen_pixel_obj, 4, 4, screen_pixel);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(screen_line_obj, 5, 5, screen_line);
@@ -119,7 +118,8 @@ STATIC const mp_rom_map_elem_t locals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_global_pixel), MP_ROM_PTR(&global_pixel_obj)},
     {MP_ROM_QSTR(MP_QSTR_global_line), MP_ROM_PTR(&global_line_obj)},
     {MP_ROM_QSTR(MP_QSTR_global_rectangle), MP_ROM_PTR(&global_rectangle_obj)},
-    {MP_ROM_QSTR(MP_QSTR_global_rectangle_filled), MP_ROM_PTR(&global_rectangle_filled_obj)},
+    {MP_ROM_QSTR(MP_QSTR_global_rectangle_filled),
+     MP_ROM_PTR(&global_rectangle_filled_obj)},
     {MP_ROM_QSTR(MP_QSTR_global_circle), MP_ROM_PTR(&global_circle_obj)},
     {MP_ROM_QSTR(MP_QSTR_global_ellipse), MP_ROM_PTR(&global_ellipse_obj)},
 
@@ -127,7 +127,8 @@ STATIC const mp_rom_map_elem_t locals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_screen_pixel), MP_ROM_PTR(&screen_pixel_obj)},
     {MP_ROM_QSTR(MP_QSTR_screen_line), MP_ROM_PTR(&screen_line_obj)},
     {MP_ROM_QSTR(MP_QSTR_screen_rectangle), MP_ROM_PTR(&screen_rectangle_obj)},
-    {MP_ROM_QSTR(MP_QSTR_screen_rectangle_filled), MP_ROM_PTR(&screen_rectangle_filled_obj)},
+    {MP_ROM_QSTR(MP_QSTR_screen_rectangle_filled),
+     MP_ROM_PTR(&screen_rectangle_filled_obj)},
     {MP_ROM_QSTR(MP_QSTR_screen_circle), MP_ROM_PTR(&screen_circle_obj)},
     {MP_ROM_QSTR(MP_QSTR_screen_ellipse), MP_ROM_PTR(&screen_ellipse_obj)},
 

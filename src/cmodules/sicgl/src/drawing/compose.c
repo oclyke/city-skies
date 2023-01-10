@@ -18,60 +18,69 @@ static inline color_t clamp_u8(color_t channel) {
 }
 
 static void compositor_set(color_t* source, color_t* dest, size_t width) {
-    memcpy(dest, source, width * bytes_per_pixel());
+  memcpy(dest, source, width * bytes_per_pixel());
 }
 
-static void compositor_add_clamped(color_t* source, color_t* dest, size_t width) {
+static void compositor_add_clamped(
+    color_t* source, color_t* dest, size_t width) {
   for (size_t idx = 0; idx < width; idx++) {
     dest[idx] = color_from_channels(
         clamp_u8(color_channel_red(dest[idx]) + color_channel_red(source[idx])),
-        clamp_u8(color_channel_green(dest[idx]) + color_channel_green(source[idx])),
-        clamp_u8(color_channel_blue(dest[idx]) + color_channel_blue(source[idx])));
+        clamp_u8(
+            color_channel_green(dest[idx]) + color_channel_green(source[idx])),
+        clamp_u8(
+            color_channel_blue(dest[idx]) + color_channel_blue(source[idx])));
   }
 }
 
-static void compositor_subtract_clamped(color_t* source, color_t* dest, size_t width) {
+static void compositor_subtract_clamped(
+    color_t* source, color_t* dest, size_t width) {
   for (size_t idx = 0; idx < width; idx++) {
-  dest[idx] = color_from_channels(
-      clamp_u8(color_channel_red(dest[idx]) - color_channel_red(source[idx])),
-      clamp_u8(color_channel_green(dest[idx]) - color_channel_green(source[idx])),
-      clamp_u8(color_channel_blue(dest[idx]) - color_channel_blue(source[idx])));
+    dest[idx] = color_from_channels(
+        clamp_u8(color_channel_red(dest[idx]) - color_channel_red(source[idx])),
+        clamp_u8(
+            color_channel_green(dest[idx]) - color_channel_green(source[idx])),
+        clamp_u8(
+            color_channel_blue(dest[idx]) - color_channel_blue(source[idx])));
   }
 }
 
-static void compositor_multiply_clamped(color_t* source, color_t* dest, size_t width) {
+static void compositor_multiply_clamped(
+    color_t* source, color_t* dest, size_t width) {
   for (size_t idx = 0; idx < width; idx++) {
-  dest[idx] = color_from_channels(
-      clamp_u8(color_channel_red(dest[idx]) * color_channel_red(source[idx])),
-      clamp_u8(color_channel_green(dest[idx]) * color_channel_green(source[idx])),
-      clamp_u8(color_channel_blue(dest[idx]) * color_channel_blue(source[idx])));
+    dest[idx] = color_from_channels(
+        clamp_u8(color_channel_red(dest[idx]) * color_channel_red(source[idx])),
+        clamp_u8(
+            color_channel_green(dest[idx]) * color_channel_green(source[idx])),
+        clamp_u8(
+            color_channel_blue(dest[idx]) * color_channel_blue(source[idx])));
   }
 }
 
 static void compositor_AND(color_t* source, color_t* dest, size_t width) {
   for (size_t idx = 0; idx < width; idx++) {
-  dest[idx] = color_from_channels(
-      color_channel_red(dest[idx]) & color_channel_red(source[idx]),
-      color_channel_green(dest[idx]) & color_channel_green(source[idx]),
-      color_channel_blue(dest[idx]) & color_channel_blue(source[idx]));
+    dest[idx] = color_from_channels(
+        color_channel_red(dest[idx]) & color_channel_red(source[idx]),
+        color_channel_green(dest[idx]) & color_channel_green(source[idx]),
+        color_channel_blue(dest[idx]) & color_channel_blue(source[idx]));
   }
 }
 
 static void compositor_OR(color_t* source, color_t* dest, size_t width) {
   for (size_t idx = 0; idx < width; idx++) {
-  dest[idx] = color_from_channels(
-      color_channel_red(dest[idx]) | color_channel_red(source[idx]),
-      color_channel_green(dest[idx]) | color_channel_green(source[idx]),
-      color_channel_blue(dest[idx]) | color_channel_blue(source[idx]));
+    dest[idx] = color_from_channels(
+        color_channel_red(dest[idx]) | color_channel_red(source[idx]),
+        color_channel_green(dest[idx]) | color_channel_green(source[idx]),
+        color_channel_blue(dest[idx]) | color_channel_blue(source[idx]));
   }
 }
 
 static void compositor_XOR(color_t* source, color_t* dest, size_t width) {
   for (size_t idx = 0; idx < width; idx++) {
-  dest[idx] = color_from_channels(
-      color_channel_red(dest[idx]) ^ color_channel_red(source[idx]),
-      color_channel_green(dest[idx]) ^ color_channel_green(source[idx]),
-      color_channel_blue(dest[idx]) ^ color_channel_blue(source[idx]));
+    dest[idx] = color_from_channels(
+        color_channel_red(dest[idx]) ^ color_channel_red(source[idx]),
+        color_channel_green(dest[idx]) ^ color_channel_green(source[idx]),
+        color_channel_blue(dest[idx]) ^ color_channel_blue(source[idx]));
   }
 }
 
