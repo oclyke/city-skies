@@ -21,11 +21,11 @@ class VariableManager(VariableResponder):
         self._store_variable_value(name, value)
 
     def _store_variable_value(self, name, value):
-        with open(f"{self._vars_path}/{name}", "w") as f:
+        with open(f"{self._path}/{name}", "w") as f:
             f.write(str(value))
 
     def _load_variable_value(self, name):
-        with open(f"{self._vars_path}/{name}", "r") as f:
+        with open(f"{self._path}/{name}", "r") as f:
             return str(f.read())
 
     def declare_variable(self, cls, *args, **kwargs):

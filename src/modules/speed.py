@@ -5,7 +5,11 @@ class SpeedManager:
         from variables import VariableManager
 
         # store starting time
-        self._time = time.ticks_ms()
+        self._last_time = time.ticks_ms()
+
+        # store variables pertaining to managed time
+        self._managed_ticks_ms = 0
+        self._managed_phase = 0
 
         # store paths
         self._root_path = path
@@ -15,7 +19,6 @@ class SpeedManager:
         self._variable_responder = VariableManager(f"{self._root_path}/vars")
 
         # info recorded in a cache
-        # (this must be done after default values are set because it will automatically enable the module if possible)
         initial_info = {
             "speed": 1.0,
         }
@@ -32,15 +35,26 @@ class SpeedManager:
         import time
         import math
 
-        now = time.ticks_ms()
-        delta_ms = time.ticks_diff(now, self._time)
-
         # update the time
-        self._time = now
+        now = time.ticks_ms()
+        delta_ms = time.ticks_diff(now, self._last_time)
+        self._last_time += delta_ms
+
+        # update the managed time
+        advance_ms = self._info.get("speed") * delta_ms
+        self._managed_ticks_ms += advance_ms
 
         # update the phase according to the speed
-        self._phase += self.speed * delta_ms / 1000.0
-        self._phase = math.fmod(self._phase, 1.0)
+        self._managed_phase += advance_ms / 1000.0
+        self._managed_phase = math.fmod(self._managed_phase, 1.0)
+
+    def ticks_ms(self):
+        self.update()
+        return self._managed_ticks_ms
+
+    def phase(self):
+        self.update()
+        return self._managed_phase
 
     @property
     def info(self):
@@ -49,13 +63,3 @@ class SpeedManager:
     @property
     def variables(self):
         return self._variable_manager.variables
-
-    @property
-    def time(self):
-        self.update()
-        return self._time
-
-    @property
-    def phase(self):
-        self.update()
-        return self._phase

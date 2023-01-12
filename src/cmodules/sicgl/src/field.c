@@ -1,6 +1,7 @@
 #include "pysicgl/field.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "py/obj.h"
 #include "py/runtime.h"
@@ -45,10 +46,10 @@ STATIC mp_obj_t make_new(
     const mp_obj_t* all_args) {
   // parse args
   enum {
-    ARG_scalars,
+    ARG_size,
   };
   static const mp_arg_t allowed_args[] = {
-      {MP_QSTR_scalars, MP_ARG_OBJ, {.u_obj = NULL}},
+      {MP_QSTR_size, MP_ARG_REQUIRED | MP_ARG_INT, {.u_int = -1}},
   };
   mp_map_t kw_args;
   mp_map_init_fixed_table(&kw_args, n_kw, all_args + n_args);
@@ -56,19 +57,18 @@ STATIC mp_obj_t make_new(
   mp_arg_parse_all_kw_array(
       n_args, n_kw, all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
+  mp_int_t size = args[ARG_size].u_int;
+  if (size < 0) {
+    mp_raise_msg(&mp_type_Exception, NULL);
+  }
+
   // create instance object
   ScalarField_obj_t* self = m_new_obj(ScalarField_obj_t);
   self->base.type = &ScalarField_type;
-  self->scalars = NULL;
-  self->length = 0;
-  mp_obj_t self_obj = MP_OBJ_FROM_PTR(self);
+  self->scalars = (double*)malloc(size * sizeof(double));
+  self->length = size;
 
-  // set initial values
-  if (NULL != args[ARG_scalars].u_obj) {
-    set_scalars(self_obj, args[ARG_scalars].u_obj);
-  }
-
-  return self_obj;
+  return MP_OBJ_FROM_PTR(self);
 }
 
 const mp_obj_type_t ScalarField_type = {

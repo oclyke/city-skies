@@ -42,3 +42,5 @@ CFLAGS_USERMOD += -Wno-error=unused-label
 CFLAGS_USERMOD += -Wno-error=double-promotion
 CFLAGS_USERMOD += -Wno-error=float-conversion
 CFLAGS_USERMOD += -Wno-error=sign-compare
+
+CFLAGS_USERMOD += -DSICGL_DEBUG_PRINTF

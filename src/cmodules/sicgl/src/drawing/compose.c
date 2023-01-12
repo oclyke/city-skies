@@ -17,48 +17,71 @@ static inline color_t clamp_u8(color_t channel) {
   }
 }
 
-static void compositor_set(color_t* source, color_t* dest) { *dest = *source; }
-
-static void compositor_add_clamped(color_t* source, color_t* dest) {
-  *dest = color_from_channels(
-      clamp_u8(color_channel_red(*dest) + color_channel_red(*source)),
-      clamp_u8(color_channel_green(*dest) + color_channel_green(*source)),
-      clamp_u8(color_channel_blue(*dest) + color_channel_blue(*source)));
+static void compositor_set(color_t* source, color_t* dest, size_t width) {
+  memcpy(dest, source, width * bytes_per_pixel());
 }
 
-static void compositor_subtract_clamped(color_t* source, color_t* dest) {
-  *dest = color_from_channels(
-      clamp_u8(color_channel_red(*dest) - color_channel_red(*source)),
-      clamp_u8(color_channel_green(*dest) - color_channel_green(*source)),
-      clamp_u8(color_channel_blue(*dest) - color_channel_blue(*source)));
+static void compositor_add_clamped(
+    color_t* source, color_t* dest, size_t width) {
+  for (size_t idx = 0; idx < width; idx++) {
+    dest[idx] = color_from_channels(
+        clamp_u8(color_channel_red(dest[idx]) + color_channel_red(source[idx])),
+        clamp_u8(
+            color_channel_green(dest[idx]) + color_channel_green(source[idx])),
+        clamp_u8(
+            color_channel_blue(dest[idx]) + color_channel_blue(source[idx])));
+  }
 }
 
-static void compositor_multiply_clamped(color_t* source, color_t* dest) {
-  *dest = color_from_channels(
-      clamp_u8(color_channel_red(*dest) * color_channel_red(*source)),
-      clamp_u8(color_channel_green(*dest) * color_channel_green(*source)),
-      clamp_u8(color_channel_blue(*dest) * color_channel_blue(*source)));
+static void compositor_subtract_clamped(
+    color_t* source, color_t* dest, size_t width) {
+  for (size_t idx = 0; idx < width; idx++) {
+    dest[idx] = color_from_channels(
+        clamp_u8(color_channel_red(dest[idx]) - color_channel_red(source[idx])),
+        clamp_u8(
+            color_channel_green(dest[idx]) - color_channel_green(source[idx])),
+        clamp_u8(
+            color_channel_blue(dest[idx]) - color_channel_blue(source[idx])));
+  }
 }
 
-static void compositor_AND(color_t* source, color_t* dest) {
-  *dest = color_from_channels(
-      color_channel_red(*dest) & color_channel_red(*source),
-      color_channel_green(*dest) & color_channel_green(*source),
-      color_channel_blue(*dest) & color_channel_blue(*source));
+static void compositor_multiply_clamped(
+    color_t* source, color_t* dest, size_t width) {
+  for (size_t idx = 0; idx < width; idx++) {
+    dest[idx] = color_from_channels(
+        clamp_u8(color_channel_red(dest[idx]) * color_channel_red(source[idx])),
+        clamp_u8(
+            color_channel_green(dest[idx]) * color_channel_green(source[idx])),
+        clamp_u8(
+            color_channel_blue(dest[idx]) * color_channel_blue(source[idx])));
+  }
 }
 
-static void compositor_OR(color_t* source, color_t* dest) {
-  *dest = color_from_channels(
-      color_channel_red(*dest) | color_channel_red(*source),
-      color_channel_green(*dest) | color_channel_green(*source),
-      color_channel_blue(*dest) | color_channel_blue(*source));
+static void compositor_AND(color_t* source, color_t* dest, size_t width) {
+  for (size_t idx = 0; idx < width; idx++) {
+    dest[idx] = color_from_channels(
+        color_channel_red(dest[idx]) & color_channel_red(source[idx]),
+        color_channel_green(dest[idx]) & color_channel_green(source[idx]),
+        color_channel_blue(dest[idx]) & color_channel_blue(source[idx]));
+  }
 }
 
-static void compositor_XOR(color_t* source, color_t* dest) {
-  *dest = color_from_channels(
-      color_channel_red(*dest) ^ color_channel_red(*source),
-      color_channel_green(*dest) ^ color_channel_green(*source),
-      color_channel_blue(*dest) ^ color_channel_blue(*source));
+static void compositor_OR(color_t* source, color_t* dest, size_t width) {
+  for (size_t idx = 0; idx < width; idx++) {
+    dest[idx] = color_from_channels(
+        color_channel_red(dest[idx]) | color_channel_red(source[idx]),
+        color_channel_green(dest[idx]) | color_channel_green(source[idx]),
+        color_channel_blue(dest[idx]) | color_channel_blue(source[idx]));
+  }
+}
+
+static void compositor_XOR(color_t* source, color_t* dest, size_t width) {
+  for (size_t idx = 0; idx < width; idx++) {
+    dest[idx] = color_from_channels(
+        color_channel_red(dest[idx]) ^ color_channel_red(source[idx]),
+        color_channel_green(dest[idx]) ^ color_channel_green(source[idx]),
+        color_channel_blue(dest[idx]) ^ color_channel_blue(source[idx]));
+  }
 }
 
 mp_obj_t compose(size_t n_args, const mp_obj_t* args) {
@@ -77,6 +100,10 @@ mp_obj_t compose(size_t n_args, const mp_obj_t* args) {
 
   compositor_fn compositor = NULL;
   switch (mode) {
+    case 0:
+      compositor = compositor_set;
+      break;
+
     case 1:
       compositor = compositor_add_clamped;
       break;

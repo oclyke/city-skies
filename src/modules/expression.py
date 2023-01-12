@@ -13,7 +13,10 @@ class Layer:
         self._info_path = f"{self._root_path}/info"
 
         # a sicgl interface will be provided
-        self._interface = interface
+        self._canvas = interface
+
+        # the layer may have a local palette, this value is managed via the info cache
+        self._palette = None
 
         # set defaults for shard execution
         self._ready = False
@@ -48,12 +51,14 @@ class Layer:
     def _handle_info_change(self, key, value):
         if key == "shard":
             self._load_shard(value)
+        elif key == "palette":
+            self._palette = value
 
     def run(self):
         """
         Gets the next frame from the frame generator object, only if the layer is ready and active
         """
-        if self._ready and self.active:
+        if self._ready and self.info.get("active"):
             next(self._frame_generator_obj)
 
     @property
@@ -62,11 +67,22 @@ class Layer:
 
     @property
     def info(self):
-        return self._info.cache
+        return self._info
 
     @property
     def variables(self):
         return self._variable_manager.variables
+
+    @property
+    def canvas(self):
+        return self._canvas
+
+    @property
+    def palette(self):
+        if self._palette is not None:
+            return self._palette
+        else:
+            return self._expression._palette_manager.palette
 
 
 class Expression:
@@ -87,7 +103,7 @@ class Expression:
             except:
                 yield id
 
-    def __init__(self, path, interface):
+    def __init__(self, path, interface, palette_manager):
         from pathutils import ensure_dirs
         import os
 
@@ -97,6 +113,9 @@ class Expression:
 
         # store a reference to the interface that will be passed to layers
         self._interface = interface
+
+        # store a reference to the palette manager
+        self._palette_manager = palette_manager
 
         # ensure that a directory exists for layers
         ensure_dirs(self._layers_path)
@@ -114,14 +133,15 @@ class Expression:
 
         # now arrange the layers by index
         self._arrange_layers_by_index()
+        self._recompute_layer_indices()
 
     def _arrange_layers_by_index(self):
         # sort the layers in the stack by index
-        self._layer_stack.sort(key=lambda layer: layer.index)
+        self._layer_stack.sort(key=lambda layer: layer.info.get("index"))
 
     def _recompute_layer_indices(self):
         for idx, layer in enumerate(self._layer_stack):
-            layer.index = idx
+            layer.info.set("index", idx)
 
     def _make_layer(self, id):
         return Layer(self, id, self._interface)
@@ -132,7 +152,7 @@ class Expression:
         id = next(self._layer_id_generator)
         os.mkdir(f"{self._layers_path}/{id}")
         layer = self._make_layer(id)
-        layer.shard = shard
+        layer.info.set("shard", shard)
         self._layer_stack.append(layer)
         self._layer_map[str(id)] = layer
         self._recompute_layer_indices()
@@ -169,11 +189,11 @@ class Expression:
 
 
 class ExpressionManager:
-    def __init__(self, path, interface):
+    def __init__(self, path, palette_manager, interface):
         from cache import Cache
 
-        self._expressionA = Expression(f"{path}/A", interface)
-        self._expressionB = Expression(f"{path}/B", interface)
+        self._expressionA = Expression(f"{path}/A", interface, palette_manager)
+        self._expressionB = Expression(f"{path}/B", interface, palette_manager)
 
         self._active = None
         self._inactive = None
