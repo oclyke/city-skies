@@ -1,6 +1,7 @@
 import uasyncio as asyncio
 from framerate import FramerateHistory
 from singletons import expression_manager
+from board import board_task
 
 
 framerate = FramerateHistory()
@@ -76,34 +77,39 @@ async def run_pipeline():
 
 
 async def serve_api():
-
-    # connect to the network
-    import network
-
-    sta_if = network.WLAN(network.STA_IF)
-    sta_if.active(True)
-    sta_if.connect("magnolia", "maxwellyke1999")
-
-    while not sta_if.isconnected():
-        print("waiting for network...")
-        await asyncio.sleep(1)
-
-    print(sta_if.ifconfig())
+    # configure maximum request size
+    from microdot_asyncio import Request
+    from control_api import app
 
     # set up server
     PORT = 1337
-
-    # configure maximum request size
-    from microdot_asyncio import Request
-
     Request.max_content_length = 32 * 1024  # 32 KB
-
-    from control_api import app
-
     asyncio.create_task(app.start_server(debug=True, port=PORT))
 
 
+async def poll_network_status():
+    from singletons import ble, network_manager
+
+    prev = network_manager.wlan.isconnected()
+    while True:
+        await asyncio.sleep(1)
+        current = network_manager.wlan.isconnected()
+        if prev != current:
+            print("net status changed: ", current, network_manager.wlan.ifconfig())
+
+            ble.write(ble.netcfg_handles["sta_ipaddr"], network_manager.station.ipaddr)
+            ble.notify(ble.netcfg_handles["sta_ipaddr"])
+
+            ble.write(
+                ble.netcfg_handles["ap_ipaddr"], network_manager.access_point.ipaddr
+            )
+            ble.notify(ble.netcfg_handles["ap_ipaddr"])
+        prev = current
+
+
 async def blink():
+    from singletons import network_manager
+
     while True:
         await asyncio.sleep(5)
         print(
@@ -112,14 +118,60 @@ async def blink():
 
 
 async def main():
+    import machine
+
+    # set up watchdog timer
+    wdt = machine.WDT(timeout=2000)
+
     # create async tasks
     asyncio.create_task(run_pipeline())
     asyncio.create_task(serve_api())
+    asyncio.create_task(poll_network_status())
     asyncio.create_task(blink())
+    if board_task is not None:
+        asyncio.create_task(board_task())
+
+    # set up BLE
+    from singletons import ble, network_manager
+    from ble_services import ADV_UUID_CITY_SKIES
+
+    ble.add_write_handler(
+        ble.netcfg_handles["mode"], lambda v: network_manager.set_mode(v.decode())
+    )
+    ble.add_write_handler(
+        ble.netcfg_handles["active"],
+        lambda v: network_manager.set_active(True if v == b"true" else False),
+    )
+
+    ble.add_write_handler(
+        ble.netcfg_handles["sta_ssid"],
+        lambda v: network_manager.station.set_ssid(v.decode()),
+    )
+    ble.add_write_handler(
+        ble.netcfg_handles["sta_pass"],
+        lambda v: network_manager.station.set_password(v.decode()),
+    )
+
+    ble.add_write_handler(
+        ble.netcfg_handles["ap_ssid"],
+        lambda v: network_manager.access_point.set_ssid(v.decode()),
+    )
+    ble.add_write_handler(
+        ble.netcfg_handles["ap_pass"],
+        lambda v: network_manager.access_point.set_password(v.decode()),
+    )
+
+    ble.write(ble.netcfg_handles["sta_ipaddr"], network_manager.station.ipaddr)
+    ble.write(ble.netcfg_handles["ap_ipaddr"], network_manager.access_point.ipaddr)
+
+    ble.advertise([ADV_UUID_CITY_SKIES])
 
     # the main task should not return so that asyncio continues to handle tasks
     while True:
         await asyncio.sleep(1)
+
+        # feed the watchdog
+        wdt.feed()
 
 
 # run asyncio scheduler

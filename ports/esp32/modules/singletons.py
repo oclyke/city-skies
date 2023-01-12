@@ -4,8 +4,13 @@ from speed import SpeedManager
 from shard import ShardManager
 from palette import PaletteManager
 from expression import ExpressionManager
+from netman import NetworkManager
+from csble import CSBLE
 from board import display
 import sicgl
+
+# create the BLE peripheral
+ble = CSBLE()
 
 # memory for the composited output
 memory = sicgl.allocate_memory(display)
@@ -25,6 +30,7 @@ palette_manager = PaletteManager(".cfg/palette")
 audio_manager = AudioManager(".cfg/audio")
 speed_manager = SpeedManager(".cfg/speed")
 shard_manager = ShardManager(".cfg/shards")
+network_manager = NetworkManager(".cfg/network")
 expression_manager = ExpressionManager(
     ".cfg/expressions", palette_manager, layer_interface
 )
