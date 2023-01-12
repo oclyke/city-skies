@@ -1,36 +1,21 @@
-from identity import IdentityInfo
-from audio import AudioManager
-from speed import SpeedManager
-from shard import ShardManager
-from palette import PaletteManager
-from expression import ExpressionManager
-from netman import NetworkManager
-from csble import CSBLE
-from board import display
-import sicgl
+import semver
+import identity
+import audio
+import speed
+import shard
+import netman
+import csble
+
+
+# firmware version
+fw_version = semver.SemanticVersion.from_semver("0.0.0")
 
 # create the BLE peripheral
-ble = CSBLE()
-
-# memory for the composited output
-memory = sicgl.allocate_memory(display)
-canvas_interface = sicgl.Interface(display, memory)
-
-# memory into which to place the gamma corrected output
-gamma_memory = sicgl.allocate_memory(display)
-gamma_interface = sicgl.Interface(display, gamma_memory)
-
-# memory for intermediate layer action
-layer_memory = sicgl.allocate_memory(display)
-layer_interface = sicgl.Interface(display, layer_memory)
+ble = csble.CSBLE()
 
 # data managers
-identity = IdentityInfo(".cfg/identity")
-palette_manager = PaletteManager(".cfg/palette")
-audio_manager = AudioManager(".cfg/audio")
-speed_manager = SpeedManager(".cfg/speed")
-shard_manager = ShardManager(".cfg/shards")
-network_manager = NetworkManager(".cfg/network")
-expression_manager = ExpressionManager(
-    ".cfg/expressions", palette_manager, layer_interface
-)
+identity = identity.IdentityInfo(".cfg/identity")
+audio_manager = audio.AudioManager(".cfg/audio")
+speed_manager = speed.SpeedManager(".cfg/speed")
+shard_manager = shard.ShardManager(".cfg/shards")
+network_manager = netman.NetworkManager(".cfg/network")

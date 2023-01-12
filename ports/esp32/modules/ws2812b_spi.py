@@ -1,30 +1,29 @@
-from ws2812b_utils import sicgl_interface_to_spi_bitstream
+import ws2812b_utils
+import machine
+
+DEFAULT_SPI_HOST = 2  # vspi
 
 
 class WS2812B_SPI:
-    DEFAULT_SPI_HOST = 2  # vspi
-    ORDER = (1, 0, 2, 3)
     RESET_BUF = bytearray(16)
 
-    def __init__(self, pins, screen, spi_host=DEFAULT_SPI_HOST):
-        from machine import SPI, Pin
-
+    def __init__(self, pins, pixels, spi_host=DEFAULT_SPI_HOST):
         (self.sck, self.mosi, self.miso) = pins
-        self.bus = SPI(
+        self.bus = machine.SPI(
             spi_host,
             2500000,
-            sck=Pin(self.sck),
-            mosi=Pin(self.mosi),
-            miso=Pin(self.miso),
+            sck=machine.Pin(self.sck),
+            mosi=machine.Pin(self.mosi),
+            miso=machine.Pin(self.miso),
             polarity=0,
             phase=0,
             bits=8,
             firstbit=0,
         )
-        self.buf = bytearray(9 * screen.pixels)
+        self.buf = bytearray(9 * pixels)
 
     def ingest(self, interface):
-        sicgl_interface_to_spi_bitstream(interface, self.buf)
+        ws2812b_utils.sicgl_interface_to_spi_bitstream(interface, self.buf)
 
     def push(self):
         # NOTE: there is some *actual bullshit* happening between the spi driver and the network interface, somehow

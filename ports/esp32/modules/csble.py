@@ -1,13 +1,10 @@
-from ble import BlePeripheral
-from ble_services import (
-    SVC_IDCFG,
-    SVC_NETCFG,
-)
+import ble
+import ble_services
 
 
-class CSBLE(BlePeripheral):
+class CSBLE(ble.BlePeripheral):
     def __init__(self):
-        super().__init__("litt", (SVC_IDCFG, SVC_NETCFG))
+        super().__init__("litt", (ble_services.SVC_IDCFG, ble_services.SVC_NETCFG))
         idcfg_handles, netcfg_handles = self.get_service_handles()
 
         (self._idcfg_unique_handle, self._idcfg_tag_handle) = idcfg_handles
