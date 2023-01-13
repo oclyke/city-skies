@@ -18,12 +18,22 @@ STATIC inline void expand_byte_into_bitstream(uint8_t b, uint8_t* output) {
     output[2] = (pat_ws2812b(b, 5) << 6) | (pat_ws2812b(b, 6) << 3) | (pat_ws2812b(b, 7) << 0);
 }
 
-STATIC mp_obj_t sicgl_interface_to_spi_bitstream(mp_obj_t interface_obj, mp_obj_t output) {
-  mp_buffer_info_t out;
-  mp_get_buffer_raise(output, &out, MP_BUFFER_WRITE);
-  Interface_obj_t* interface = interface_from_obj(interface_obj);
+/**
+ * @brief Converts sicgl memory (color_t buffer) containing 'pixels' pixels into an output
+ * bitstream compatible with driving WS2812B LEDs at 2.5 MHz.
+ * 
+ * @param memory_obj 
+ * @param output_obj 
+ * @param pixels_obj 
+ * @return STATIC 
+ */
+STATIC mp_obj_t sicgl_memory_to_spi_bitstream(mp_obj_t memory_obj, mp_obj_t output_obj, mp_obj_t pixels_obj) {
+  mp_buffer_info_t memory_info;
+  mp_buffer_info_t output_info;
+  mp_get_buffer_raise(memory_obj, &memory_info, MP_BUFFER_READ);
+  mp_get_buffer_raise(output_obj, &output_info, MP_BUFFER_WRITE);
 
-  color_t* memory = interface->interface.memory;
+  color_t* memory = (color_t*)memory_info.buf;
   if (NULL == memory) {
     mp_raise_OSError(-ENOMEM);
   }
@@ -33,14 +43,15 @@ STATIC mp_obj_t sicgl_interface_to_spi_bitstream(mp_obj_t interface_obj, mp_obj_
   const size_t expansion_factor = 3 * 3;
 
   // determine how many pixels to process
-  size_t interface_pixels = interface->interface.length;
-  size_t pixels = out.len / expansion_factor; 
-  if (interface_pixels < pixels) {
-    pixels = interface_pixels;
+  size_t bpp = bytes_per_pixel();
+  size_t memory_pixels = memory_info.len / bpp;
+  size_t pixels = output_info.len / expansion_factor; 
+  if (memory_pixels < pixels) {
+    pixels = memory_pixels;
   }
 
   // expand the input bytes into the output bitstream
-  uint8_t* pout = (uint8_t*)out.buf;
+  uint8_t* pout = (uint8_t*)output_info.buf;
   for (size_t idx = 0; idx < pixels; idx++) {
     // ws2812b order is GRB
     color_t color = memory[idx];
@@ -51,62 +62,11 @@ STATIC mp_obj_t sicgl_interface_to_spi_bitstream(mp_obj_t interface_obj, mp_obj_
 
   return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(sicgl_interface_to_spi_bitstream_obj, sicgl_interface_to_spi_bitstream);
-
-// STATIC mp_obj_t transform_ws2812b(mp_obj_t in_buf, mp_obj_t out_buf) {
-//   mp_buffer_info_t in;
-//   mp_buffer_info_t out;
-//   mp_get_buffer_raise(in_buf, &in, MP_BUFFER_READ);
-//   mp_get_buffer_raise(out_buf, &out, MP_BUFFER_WRITE);
-
-//   const uint8_t bpb = 3;  // only works for bpb == 3
-
-//   if (out.len != bpb * in.len) {
-//     mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("out.len != bpp*in.len"));
-//     return mp_const_none;
-//   }
-//   if (bpb != 3) {
-//     mp_raise_msg(&mp_type_ValueError, MP_ERROR_TEXT("bpp != 3"));
-//     return mp_const_none;
-//   }
-
-//   uint8_t* pin = (uint8_t*)in.buf;
-//   uint8_t* pout = (uint8_t*)out.buf;
-
-//   // re-order channels (per WS2812B datasheet, the expexted order is GRB but the
-//   // input to this function is RGB)
-//   const uint8_t bpp = 3;  // bytes per pixel of the input... this used to be a
-//                           // nice function that could accept any length input
-//                           // array but now it must be a multiple of bpp
-//   if (in.len % bpp) {
-//     mp_raise_TypeError(MP_ERROR_TEXT("input len must be a multiple of bpp!"));
-//   }
-//   for (size_t idx = 0; idx < in.len / bpp; idx++) {
-//     uint8_t tmp = pin[bpp * idx + 0];         // store index 0
-//     pin[bpp * idx + 0] = pin[bpp * idx + 1];  // move index 1 into index 0
-//     pin[bpp * idx + 1] = tmp;  // store tmp (index 0) into index 1
-//   }
-
-//   for (size_t idx = 0; idx < in.len; idx++) {
-//     uint8_t b = pin[idx];
-//     pout[bpb * idx + 0] = (pat_ws2812b(b, 0) << 5) | (pat_ws2812b(b, 1) << 2) |
-//                           (pat_ws2812b(b, 2) >> 1);
-//     pout[bpb * idx + 1] = (pat_ws2812b(b, 2) << 7) | (pat_ws2812b(b, 3) << 4) |
-//                           (pat_ws2812b(b, 4) << 1) | (pat_ws2812b(b, 5) >> 2);
-//     pout[bpb * idx + 2] = (pat_ws2812b(b, 5) << 6) | (pat_ws2812b(b, 6) << 3) |
-//                           (pat_ws2812b(b, 7) << 0);
-//   }
-
-//   return mp_const_none;
-// }
-// MP_DEFINE_CONST_FUN_OBJ_2(transform_ws2812b_obj, transform_ws2812b);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(sicgl_memory_to_spi_bitstream_obj, sicgl_memory_to_spi_bitstream);
 
 STATIC const mp_rom_map_elem_t globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_ws2812b_utils)},
-    {MP_OBJ_NEW_QSTR(MP_QSTR_sicgl_interface_to_spi_bitstream), (mp_obj_t)&sicgl_interface_to_spi_bitstream_obj},
-
-    
-    // {MP_OBJ_NEW_QSTR(MP_QSTR_xform_rgb), (mp_obj_t)&transform_ws2812b_obj},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_sicgl_memory_to_spi_bitstream), (mp_obj_t)&sicgl_memory_to_spi_bitstream_obj},
 };
 STATIC MP_DEFINE_CONST_DICT(globals, globals_table);
 

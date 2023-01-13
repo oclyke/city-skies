@@ -22,8 +22,8 @@ class WS2812B_SPI:
         )
         self.buf = bytearray(9 * pixels)
 
-    def ingest(self, interface):
-        ws2812b_utils.sicgl_interface_to_spi_bitstream(interface, self.buf)
+    def ingest(self, memory):
+        ws2812b_utils.sicgl_memory_to_spi_bitstream(memory, self.buf)
 
     def push(self):
         # NOTE: there is some *actual bullshit* happening between the spi driver and the network interface, somehow

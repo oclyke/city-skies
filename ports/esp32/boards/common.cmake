@@ -6,4 +6,5 @@ set(USER_C_MODULES ${USER_C_MODULES}
 
   # esp32 c modules
   ${CMAKE_CURRENT_LIST_DIR}/../cmodules/ws2812b_utils/module.cmake
+  ${CMAKE_CURRENT_LIST_DIR}/../cmodules/seasnake/module.cmake
 )
