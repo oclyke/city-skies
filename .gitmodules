@@ -12,7 +12,7 @@
 	url = https://github.com/nanopb/nanopb.git
 [submodule "src/cmodules/sicgl/third-party/sicgl"]
 	path = src/cmodules/sicgl/third-party/sicgl
-	url = https://github.com/oclyke/sicgl.git
+	url = https://github.com/oclyke-dev/sicgl.git
 [submodule "src/packages/microdot"]
 	path = src/packages/microdot
 	url = https://github.com/miguelgrinberg/microdot
