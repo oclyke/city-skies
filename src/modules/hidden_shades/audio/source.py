@@ -1,9 +1,10 @@
+from cache import Cache
+from fft import FftPlan
+from ..variables.manager import VariableManager
+
+
 class AudioSource:
     def __init__(self, manager, name, configuration):
-        from variables import VariableManager
-        from cache import Cache
-        from fft import FftPlan
-
         sample_frequency, sample_length = configuration
         self._sample_frequency = sample_frequency
         self._sample_length = sample_length
@@ -69,21 +70,3 @@ class AudioSource:
     @property
     def fft_stats(self):
         return self._fft_plan.stats()
-
-
-class AudioManager:
-    def __init__(self, path):
-        self._sources = {}
-        self._selected = None
-
-        self._root_path = path
-        self._sources_path = f"{self._root_path}/sources"
-
-    @property
-    def sources(self):
-        return self._sources
-
-    def add_source(self, *args, **kwargs):
-        source = AudioSource(self, *args, **kwargs)
-        self._sources[source.name] = source
-        return source

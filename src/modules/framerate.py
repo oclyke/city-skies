@@ -12,7 +12,6 @@ class FramerateHistory:
         if len(self._period_history) > self._n:
             self._period_history.pop(0)
 
-    @property
     def average(self):
         self._compute_average()
         if self._average_period_ms == 0:

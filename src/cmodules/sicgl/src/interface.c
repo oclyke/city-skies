@@ -164,8 +164,8 @@ STATIC mp_obj_t make_new(
     ARG_memory,
   };
   static const mp_arg_t allowed_args[] = {
-      {MP_QSTR_screen, MP_ARG_OBJ, {.u_obj = NULL}},
-      {MP_QSTR_memory, MP_ARG_OBJ, {.u_obj = NULL}},
+      {MP_QSTR_screen, MP_ARG_OBJ | MP_ARG_REQUIRED, {.u_obj = NULL}},
+      {MP_QSTR_memory, MP_ARG_OBJ | MP_ARG_REQUIRED, {.u_obj = NULL}},
   };
   mp_map_t kw_args;
   mp_map_init_fixed_table(&kw_args, n_kw, all_args + n_args);
@@ -184,14 +184,8 @@ STATIC mp_obj_t make_new(
   mp_obj_t self_obj = MP_OBJ_FROM_PTR(self);
 
   // configure interface
-  mp_obj_t screen = args[ARG_screen].u_obj;
-  mp_obj_t memory = args[ARG_memory].u_obj;
-  if (NULL != screen) {
-    set_screen(self_obj, screen);
-  }
-  if (NULL != memory) {
-    set_memory(self_obj, memory);
-  }
+  set_screen(self_obj, args[ARG_screen].u_obj);
+  set_memory(self_obj, args[ARG_memory].u_obj);
 
   return self_obj;
 }

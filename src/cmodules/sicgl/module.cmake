@@ -1,6 +1,6 @@
-add_library(sicgl INTERFACE)
+add_library(pysicgl INTERFACE)
 
-target_sources(sicgl INTERFACE
+target_sources(pysicgl INTERFACE
   # python bindings
   ${CMAKE_CURRENT_LIST_DIR}/src/module.c
   ${CMAKE_CURRENT_LIST_DIR}/src/utilities.c
@@ -33,14 +33,14 @@ target_sources(sicgl INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/third-party/sicgl/src/private/direct.c 
 )
 
-target_include_directories(sicgl INTERFACE
+target_include_directories(pysicgl INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/include
   ${CMAKE_CURRENT_LIST_DIR}/third-party/sicgl/include
 )
 
-target_compile_options(sicgl INTERFACE
+target_compile_options(pysicgl INTERFACE
   -Wno-unused-label
   -Wno-error=unused-label
 )
 
-target_link_libraries(usermod INTERFACE sicgl)
+target_link_libraries(usermod INTERFACE pysicgl)

@@ -7,6 +7,137 @@ import machine
 import early
 
 
+# import json
+# import uasyncio
+
+# from net.utils import fetch, fetch_stream, HTTPResponse
+# from ota import otainfo
+# from ver import ver, VER
+# from ota import ESP32OTA, otainfo
+# from ble import ble
+# import board
+
+# FIRMWARE = "precious-time"
+
+
+# def set_ota_info(download=None):
+#     info = {
+#         "version": ver.semver,
+#         "available": otainfo.available.semver,
+#         "next": {"version": otainfo.next.semver, "verified": otainfo.next.verified},
+#     }
+#     if download is not None:
+#         info["download"] = download
+#     ble.ota.info = json.dumps(info)
+
+
+# async def init():
+#     def cmd(data):
+#         print("ble ota command: ", data)
+
+#         if data == b"check":
+#             uasyncio.create_task(check())
+
+#         if data == b"download":
+#             uasyncio.create_task(download())
+
+#     ble.ota._register("cmd", cmd)
+
+#     def update_ble_ota_info(value=None):
+#         set_ota_info()
+
+#     otainfo._register(update_ble_ota_info)
+#     update_ble_ota_info()
+
+#     print(f"'{FIRMWARE}' version: {ver.semver}")
+#     if otainfo.next.semver is not None:
+#         if not ver.precedes(otainfo.next.semver):
+#             otainfo.next.semver = None
+#             otainfo.next.verified = False
+
+
+# async def check():
+#     overrides = {
+#         "protocol": "http"
+#     }  # todo: fix ssl error with cloudfront so overrides are no longer needed
+#     resp = await fetch(
+#         f"https://ota.customlitt.com/api/v0/{board.UUID}/index.json", overrides
+#     )
+
+#     fwinfo = resp.json["firmware"][FIRMWARE]
+#     stable = fwinfo["stable"]
+#     if ver.precedes(stable):
+#         print("a firmware update is available to: ", stable)
+#         info = fwinfo["releases"][stable]
+
+#         otainfo.available.semver = stable
+#         otainfo.available.info = info
+
+#         print("completed updating ota data")
+
+
+# async def download():
+#     if (otainfo.available.semver is None) or (
+#         not ver.precedes(otainfo.available.semver)
+#     ):
+#         print("firmware update unavailable - try checking for updates later")
+#         return
+
+#     # check if update already exists
+#     if otainfo.next.semver is not None:
+#         if (
+#             VER.match(otainfo.available.semver, otainfo.next.semver)
+#             and otainfo.next.verified
+#         ):
+#             print(
+#                 "update is already downloaded and verified - you may apply the update now (by rebooting)"
+#             )
+#             return
+
+#     print("proceeding to apply firmware update")
+
+#     # clear out next partition info
+#     otainfo.next.semver = None
+#     otainfo.next.verified = False
+
+#     # get update source info
+#     update = otainfo.available.info
+#     size = update.size
+#     ota = ESP32OTA()
+
+#     def header_handler(data):
+#         print("received header data")
+#         print(data)
+
+#     def body_handler(data):
+#         if not data:
+#             print("finishing ota update with sha256: ", update.sha256)
+#             ota.finish(bytearray(update.sha256))
+
+#             otainfo.next.semver = otainfo.available.semver
+#             otainfo.next.verified = True
+
+#             return
+#         ota.ingest(data)
+#         set_ota_info({"complete": False, "progress": f"{100*ota._processed/size:.2f}%"})
+#         print("update: ", 100 * ota._processed / size, "%")
+
+#     resp = HTTPResponse()
+#     resp.set_header_handler(header_handler)
+#     resp.set_body_handler(body_handler)
+
+#     async def handler(data):
+#         resp.ingest(data)
+
+#     print("downloading update from: ", update.url)
+#     await fetch_stream(
+#         update.url, handler, overrides={"protocol": "http"}
+#     )  # todo: resolve ssl issues so this override to http is not required
+
+#     set_ota_info({"complete": True})
+#     print("update downloaded + verified: reboot to apply")
+
+
 framerate = framerate.FramerateHistory()
 
 

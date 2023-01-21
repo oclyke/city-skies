@@ -1,4 +1,5 @@
 import json
+from pathutils import ensure_parent_dirs
 
 
 class Cache:
@@ -8,8 +9,6 @@ class Cache:
     """
 
     def __init__(self, path, initial_values={}, on_change=None):
-        from pathutils import ensure_parent_dirs
-
         self._path = path
         self._on_change = on_change
         self._cache = initial_values

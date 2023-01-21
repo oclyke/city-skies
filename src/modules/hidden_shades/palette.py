@@ -1,19 +1,17 @@
+import pysicgl
+from cache import Cache
+
+
 class PaletteManager:
     def __init__(self, path):
-        from variables import VariableManager
-        from cache import Cache
 
         # create root path
         self._root_path = path
 
-        # variables which may be dynamically registered for external control
-        self._variables = {}
-        self._variable_responder = VariableManager(f"{self._root_path}/vars")
-
         # info recorded in a cache
         # (this must be done after default values are set because it will automatically enable the module if possible)
         initial_info = {
-            "palette": [
+            "primary": [
                 0xFF0000,
                 0xFF5F00,
                 0xFFBF00,
@@ -39,16 +37,9 @@ class PaletteManager:
         )
 
     def _handle_info_change(self, key, value):
-        pass
+        if key == "primary":
+            self._primary = pysicgl.ColorSequence(value)
 
     @property
-    def info(self):
-        return self._info.cache
-
-    @property
-    def variables(self):
-        return self._variables
-
-    @property
-    def palette(self):
-        return self._info.get("palette")
+    def primary(self):
+        return self._primary

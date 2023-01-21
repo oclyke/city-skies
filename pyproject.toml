@@ -1,6 +1,7 @@
 [tool.black]
 include = '''
 src\/.*\.pyi?$|
+example-shards\/.*\.pyi?$|
 ports\/.*\.pyi?$
 '''
 exclude = '''
