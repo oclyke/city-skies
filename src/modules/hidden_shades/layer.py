@@ -1,6 +1,5 @@
 from cache import Cache
 from .variables.manager import VariableManager
-import pysicgl
 
 
 class Layer:
@@ -37,6 +36,7 @@ class Layer:
             "composition_mode": 0,
             "index": None,
             "active": True,
+            "palette": None,
         }
         self._info = Cache(
             f"{self._root_path}/info",
@@ -49,8 +49,14 @@ class Layer:
             post_init_hook(self)
 
     def _handle_info_change(self, key, value):
+        self.reset_canvas()
         if key == "active":
-            self._ready = bool(value)
+            active = bool(value)
+            self._ready = active
+            return active
+        if key == "palette":
+            if value is not None:
+                return list(int(element) for element in value)
 
     def set_shard(self, shard):
         self._shard = shard
@@ -64,11 +70,20 @@ class Layer:
         if self._ready:
             next(self._frame_generator_obj)
 
+    def reset_canvas(self):
+        self.canvas.interface_fill(0x000000)
+
     def declare_variable(self, variable):
         self._variable_manager.declare_variable(variable)
 
     def set_index(self, idx):
         self._info.set("index", idx)
+
+    def set_active(self, active):
+        self._info.set("active", bool(active))
+
+    def merge_info(self, info):
+        self._info.merge(info)
 
     @property
     def info(self):

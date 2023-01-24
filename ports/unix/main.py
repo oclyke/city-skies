@@ -2,18 +2,40 @@ import uasyncio as asyncio
 import socket
 import time
 import json
+import os
+import sys
 
 import cache
 import pysicgl
 import framerate
 import profiling
 import hardware
+import pathutils
 
 from semver import SemanticVersion
 from stack_manager import StackManager
 from mock_audio import mock_audio_source
 from microdot_asyncio import Microdot, Response, Request
 from hidden_shades.layer import Layer
+
+from logging import log_exception
+
+
+def factory_reset():
+    print("restoring factory defaults...", end="")
+    pathutils.rmdirr("runtime")
+    print("done")
+
+
+def exception_handler(loop, context):
+    exc = context["exception"]
+    log_exception(exc)
+
+    try:
+        raise Exception("NotImplemented")
+    except:
+        factory_reset()
+        sys.exit()
 
 
 # load hardware config
@@ -105,12 +127,14 @@ async def run_pipeline():
             canvas.interface_fill(0x000000)
 
             # run the layer
-            layer.run()
+            try:
+                layer.run()
+            except Exception as e:
+                log_exception(e)
+                layer.set_active(False)
 
             # composite the layer's canvas into the main canvas
-            visualizer.compose(
-                display, canvas_memory, layer.info.get("composition_mode")
-            )
+            visualizer.compose(display, canvas_memory, layer.info["composition_mode"])
 
         # gamma correct the canvas
         pysicgl.gamma_correct(visualizer, corrected)
@@ -138,6 +162,9 @@ async def serve_api():
     app = Microdot()
     asyncio.create_task(app.start_server(debug=True, port=PORT))
 
+    def get_list(l):
+        return "\n".join(l)
+
     # curl -H "Content-Type: text/plain" -X GET http://localhost:1337/info
     @app.get("/info")
     async def get_info(request):
@@ -145,6 +172,21 @@ async def serve_api():
             "hw_version": hardware.hw_version.to_string(),
         }
         return Response(info)
+
+    @app.get("/shards")
+    async def get_shards(request):
+        return get_list(os.listdir("runtime/shards"))
+
+    @app.get("/stacks/<active>/layers")
+    async def get_layers(request, active):
+        stack = stack_manager.get(active)
+        return get_list(layer.id for layer in stack)
+
+    @app.get("/stacks/<active>/layers/<layerid>/variables")
+    async def get_variables(request, active, layerid):
+        stack = stack_manager.get(active)
+        layer = stack.get_layer_by_id(layerid)
+        return get_list(variable.name for variable in layer.variables.values())
 
     # curl -H "Content-Type: text/plain" -X POST http://localhost:1337/stacks/<active>/layer -d '{"shard_uuid": "noise"}'
     @app.post("/stacks/<active>/layer")
@@ -157,9 +199,16 @@ async def serve_api():
         )
         stack.add_layer(layer)
 
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/<layerid>/vars/<varname> -d 'value'
-    @app.put("/stacks/<active>/<layerid>/vars/<varname>")
-    async def put_variable(request, active, layerid, varname):
+    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/layers/<layerid>/info -d '{"composition_mode": 3}'
+    @app.put("/stacks/<active>/layers/<layerid>/info")
+    async def put_layer_info(request, active, layerid):
+        stack = stack_manager.get(active)
+        layer = stack.get_layer_by_id(str(layerid))
+        layer.merge_info(json.loads(request.body.decode()))
+
+    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/layers/<layerid>/vars/<varname> -d 'value'
+    @app.put("/stacks/<active>/layers/<layerid>/vars/<varname>")
+    async def put_layer_variable(request, active, layerid, varname):
         stack = stack_manager.get(active)
         layer = stack.get_layer_by_id(str(layerid))
         layer.variables[varname].value = request.body.decode()
@@ -167,8 +216,14 @@ async def serve_api():
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/shards/<uuid> -d $'def frames(l):\n\twhile True:\n\t\tyield None\n\t\tprint("hello world")\n\n'
     @app.put("/shards/<uuid>")
     async def put_shard(request, uuid):
-        with open(f"runtime/shards/{uuid}", "w") as f:
-            f.write(request.body)
+        # shards are immutable once published, therefore if the specified UUID
+        # exists on the filesystem it does not need to be written again
+        path = f"runtime/shards/{uuid}"
+        try:
+            os.stat(path)
+        except:
+            with open(path, "w") as f:
+                f.write(request.body)
 
 
 async def control_visualizer():
@@ -198,6 +253,8 @@ async def blink():
 
 
 async def main():
+    asyncio.get_event_loop().set_exception_handler(exception_handler)
+
     # create async tasks
     asyncio.create_task(run_pipeline())
     asyncio.create_task(control_visualizer())
