@@ -5,7 +5,9 @@ from .timebase import TimeBase
 from .audio.manager import AudioManager
 from .palette import PaletteManager
 
+import config
+
 version = SemanticVersion.from_semver("0.0.0")
-timebase = TimeBase("runtime/timebase", time.ticks_ms)
-audio = AudioManager("runtime/audio")
-palette = PaletteManager("runtime/palette")
+timebase = TimeBase(f"{config.EPHEMERAL_DIR}/timebase", time.ticks_ms)
+audio = AudioManager(f"{config.EPHEMERAL_DIR}/audio")
+palette = PaletteManager(f"{config.EPHEMERAL_DIR}/palette")

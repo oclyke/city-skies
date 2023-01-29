@@ -11,39 +11,37 @@ import framerate
 import profiling
 import hardware
 import pathutils
+import config
 
 from semver import SemanticVersion
 from stack_manager import StackManager
 from mock_audio import mock_audio_source
 from microdot_asyncio import Microdot, Response, Request
 from hidden_shades.layer import Layer
+from logging import LogManager
 
-from logging import log_exception
 
+
+logger = LogManager(f"{config.PERSISTENT_DIR}/logs")
 
 def factory_reset():
     print("restoring factory defaults...", end="")
-    pathutils.rmdirr("runtime")
+    pathutils.rmdirr(config.EPHEMERAL_DIR)
     print("done")
 
 
 def exception_handler(loop, context):
     exc = context["exception"]
-    log_exception(exc)
-
-    try:
-        raise Exception("NotImplemented")
-    except:
-        factory_reset()
-        sys.exit()
+    logger.log_exception(exc)
+    raise exc
 
 
 # load hardware config
 hw_config = cache.Cache(
-    "runtime/hw_config",
+    f"{config.PERSISTENT_DIR}/hw_config",
     {
-        "width": 23,
-        "height": 13,
+        "width": 33,
+        "height": 32,
     },
 )
 
@@ -62,7 +60,7 @@ canvas, canvas_memory = create_interface(display)
 
 # function to load a given shard uuid and return the module
 def load_shard(uuid):
-    return __import__(f"runtime/shards/{uuid}")
+    return __import__(f"{config.PERSISTENT_DIR}/shards/{uuid}")
 
 
 # a function which sets the shard for a given layer after
@@ -81,7 +79,7 @@ def stack_initializer(id, path):
 
 
 # define stacks
-stack_manager = StackManager("runtime/stacks", stack_initializer)
+stack_manager = StackManager(f"{config.EPHEMERAL_DIR}/stacks", stack_initializer)
 
 
 frate = framerate.FramerateHistory()
@@ -130,7 +128,7 @@ async def run_pipeline():
             try:
                 layer.run()
             except Exception as e:
-                log_exception(e)
+                logger.log_exception(e)
                 layer.set_active(False)
 
             # composite the layer's canvas into the main canvas
@@ -140,7 +138,8 @@ async def run_pipeline():
         pysicgl.gamma_correct(visualizer, corrected)
 
         # output the display data
-        hardware.driver.push(corrected)
+        for driver in hardware.drivers:
+            driver.push(corrected)
 
         # compute framerate
         profiler.mark()
@@ -175,7 +174,7 @@ async def serve_api():
 
     @app.get("/shards")
     async def get_shards(request):
-        return get_list(os.listdir("runtime/shards"))
+        return get_list(os.listdir(f"{config.PERSISTENT_DIR}/shards"))
 
     @app.get("/stacks/<active>/layers")
     async def get_layers(request, active):
@@ -218,7 +217,7 @@ async def serve_api():
     async def put_shard(request, uuid):
         # shards are immutable once published, therefore if the specified UUID
         # exists on the filesystem it does not need to be written again
-        path = f"runtime/shards/{uuid}"
+        path = f"{config.PERSISTENT_DIR}/shards/{uuid}"
         try:
             os.stat(path)
         except:
