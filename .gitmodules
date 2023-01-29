@@ -7,9 +7,6 @@
 [submodule "scripts/third-party/run-clang-format"]
 	path = scripts/third-party/run-clang-format
 	url = https://github.com/Sarcasm/run-clang-format.git
-[submodule "third-party/nanopb"]
-	path = third-party/nanopb
-	url = https://github.com/nanopb/nanopb.git
 [submodule "src/cmodules/sicgl/third-party/sicgl"]
 	path = src/cmodules/sicgl/third-party/sicgl
 	url = https://github.com/oclyke-dev/sicgl.git
