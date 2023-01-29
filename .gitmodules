@@ -13,9 +13,6 @@
 [submodule "src/packages/microdot"]
 	path = src/packages/microdot
 	url = https://github.com/miguelgrinberg/microdot
-[submodule "src/cmodules/chinvat/third-party/chinvat"]
-	path = src/cmodules/chinvat/third-party/chinvat
-	url = https://github.com/custom-litt/chinvat
 [submodule "src/cmodules/ftt/third-party/fakufaku"]
 	path = src/cmodules/ftt/third-party/fakufaku
 	url = https://github.com/fakufaku/esp32-fft
