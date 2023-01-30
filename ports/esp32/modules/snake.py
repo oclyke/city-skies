@@ -1,4 +1,4 @@
-import sicgl
+import pysicgl
 import seasnake
 
 
@@ -9,13 +9,13 @@ class SimpleSnakeArrangement:
 
         # a simple snake arrangement assumes that the screen memory is
         # fully utilized and that every other screen row is reversed.
-        self._memory = sicgl.allocate_memory(self._screen)
+        self._memory = pysicgl.allocate_pixel_memory(self._screen.pixels)
 
         self._reverse_first = reverse_first
 
     def map(self, memory):
         """
-        Map a standard sicgl interface into the memory according to snake rules.
+        Map a standard pysicgl interface into the memory according to snake rules.
         """
         seasnake.map_simple(
             memory, self._memory, self._screen.width, self._reverse_first
@@ -28,7 +28,7 @@ class SimpleSnakeArrangement:
 
 class SnakeDriver:
     def __init__(self, screen, output):
-        # this arrangement is used to remap the sicgl interface to
+        # this arrangement is used to remap the pysicgl interface to
         # match hardware output arrangements
         self._arrangement = SimpleSnakeArrangement(screen, False)
 

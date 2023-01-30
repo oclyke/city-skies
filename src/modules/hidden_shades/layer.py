@@ -11,7 +11,7 @@ class Layer:
         self._vars_path = f"{self._root_path}/vars"
         self._info_path = f"{self._root_path}/info"
 
-        # a sicgl interface will be provided
+        # a pysicgl interface will be provided
         self.canvas = interface
 
         # the shard related items are left uninitialized

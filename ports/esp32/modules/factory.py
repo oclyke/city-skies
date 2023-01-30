@@ -1,4 +1,6 @@
 def factory_reset():
-    from pathutils import rmdirr
-
-    rmdirr(".cfg")
+    import config
+    import pathutils
+    print("Factory Reset... ", end="")
+    pathutils.rmdirr(config.EPHEMERAL_DIR)
+    print("done")
