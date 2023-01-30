@@ -16,7 +16,6 @@ class LogManager:
         except:
             yield path
 
-
     def __init__(self, path):
         self._path = path
 

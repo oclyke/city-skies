@@ -21,8 +21,8 @@ from hidden_shades.layer import Layer
 from logging import LogManager
 
 
-
 logger = LogManager(f"{config.PERSISTENT_DIR}/logs")
+
 
 def factory_reset():
     print("restoring factory defaults...", end="")

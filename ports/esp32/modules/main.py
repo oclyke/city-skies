@@ -151,20 +151,24 @@ network_manager = netman.NetworkManager(f"{config.EPHEMERAL_DIR}/network")
 
 logger = LogManager(f"{config.PERSISTENT_DIR}/logs")
 
+
 def exception_handler(loop, context):
     import factory
     import machine
+
     exc = context["exception"]
     logger.log_exception(exc)
     # factory.factory_reset()
     # machine.reset()
     raise exc
 
+
 # make pysicgl interfaces
 def create_interface(screen):
     mem = pysicgl.allocate_pixel_memory(screen.pixels)
     interface = pysicgl.Interface(screen, mem)
     return (interface, mem)
+
 
 visualizer, visualizer_memory = create_interface(board.display)
 corrected, corrected_memory = create_interface(board.display)
@@ -182,11 +186,13 @@ def layer_post_init_hook(layer):
     shard = load_shard(uuid)
     layer.set_shard(shard)
 
+
 # a function called for each layer in the stack upon creation
 # this allows the program to keep the details of loading shards
 # separate from the job of the Stack class
 def stack_initializer(id, path):
     return Layer(id, path, canvas, post_init_hook=layer_post_init_hook)
+
 
 # define stacks
 stack_manager = StackManager(f"{config.EPHEMERAL_DIR}/stacks", stack_initializer)
@@ -238,8 +244,9 @@ async def run_pipeline():
                 layer.set_active(False)
 
             # composite the layer's canvas into the main canvas
-            visualizer.compose(board.display, canvas_memory, layer.info["composition_mode"])
-
+            visualizer.compose(
+                board.display, canvas_memory, layer.info["composition_mode"]
+            )
 
         # gamma correct the canvas
         pysicgl.gamma_correct(visualizer, corrected)
@@ -338,7 +345,6 @@ async def serve_api():
     asyncio.create_task(app.start_server(debug=True, port=PORT))
 
 
-
 async def poll_network_status():
     prev = network_manager.wlan.isconnected()
     while True:
@@ -360,9 +366,7 @@ async def poll_network_status():
 async def blink():
     while True:
         await asyncio.sleep(5)
-        print(
-            f"{frate.average()} fps, ({len(stack_manager.active)} layers)"
-        )
+        print(f"{frate.average()} fps, ({len(stack_manager.active)} layers)")
 
 
 async def main():
@@ -371,6 +375,7 @@ async def main():
     class FakeWatchdog:
         def feed(self):
             pass
+
     wdt = FakeWatchdog()
     wdt.feed()
 
@@ -391,6 +396,7 @@ async def main():
     # set up BLE
     wdt.feed()
     from ble_services import ADV_UUID_CITY_SKIES
+
     wdt.feed()
 
     wdt.feed()
