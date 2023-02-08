@@ -1,2 +1,0 @@
-# linting / style
-black

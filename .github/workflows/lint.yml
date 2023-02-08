@@ -38,7 +38,7 @@ jobs:
       - name: set up ci tools
         run: |
           . ./scripts/setup.sh
-          pip install -r requirements.ci.txt
+          pip install -r requirements.txt
       
       # lint using pylint
       - name: run black
