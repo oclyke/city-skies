@@ -54,12 +54,21 @@ gamma_correct(mp_obj_t input_interface, mp_obj_t output_interface) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(gamma_correct_obj, gamma_correct);
 
-STATIC mp_obj_t make_color(mp_obj_t red, mp_obj_t green, mp_obj_t blue) {
+STATIC mp_obj_t make_color(size_t n_args, const mp_obj_t* args) {
+  enum {
+    ARG_red,
+    ARG_green,
+    ARG_blue,
+    ARG_alpha,
+  };
   color_t color = color_from_channels(
-      mp_obj_get_int(red), mp_obj_get_int(green), mp_obj_get_int(blue));
+      mp_obj_get_int(args[ARG_red]),
+      mp_obj_get_int(args[ARG_green]),
+      mp_obj_get_int(args[ARG_blue]),
+      mp_obj_get_int(args[ARG_alpha]));
   return mp_obj_new_int(color);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_3(make_color_obj, make_color);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(make_color_obj, 4, 4, make_color);
 
 STATIC mp_obj_t get_color_channels(mp_obj_t color_obj) {
   color_t color = mp_obj_get_int(color_obj);
