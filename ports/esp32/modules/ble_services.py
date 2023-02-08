@@ -25,7 +25,7 @@ SVC_IDCFG = (
 # network configuration service
 CHR_NETCFG_STATE = (
     bluetooth.UUID("dc6e8ace-d2d0-4eb8-801c-4ce30046ee07"),
-    READ,
+    READ | NOTIFY,
 )
 CHR_NETCFG_MODE = (
     bluetooth.UUID("39979325-326d-4d84-9ae0-2a04282cfa68"),

@@ -7,6 +7,7 @@ import semver
 import netman
 import csble
 import config
+import cache
 import board
 
 from stack_manager import StackManager
@@ -390,8 +391,19 @@ async def main():
     asyncio.create_task(serve_api())
     asyncio.create_task(poll_network_status())
     asyncio.create_task(blink())
-    # if board.board_task is not None:
-    #     asyncio.create_task(board.board_task())
+    if board.board_task is not None:
+        asyncio.create_task(board.board_task())
+
+    # set up board identity
+    initial_identity = {
+        "tag": "litt",
+    }
+    def on_change_identity(key, value):
+        if key == "tag":
+            ble.write(ble.idcfg_handles["tag"], value)
+            ble.notify(ble.idcfg_handles["tag"])
+
+    idcfg = cache.Cache(f"{config.EPHEMERAL_DIR}/identity", initial_identity, on_change_identity)
 
     # set up BLE
     wdt.feed()
@@ -431,6 +443,9 @@ async def main():
     wdt.feed()
     ble.write(ble.netcfg_handles["sta_ipaddr"], network_manager.station.ipaddr)
     ble.write(ble.netcfg_handles["ap_ipaddr"], network_manager.access_point.ipaddr)
+
+    wdt.feed()
+    ble.write(ble.idcfg_handles["unique"], network_manager.access_point.wlan.config("mac"))
 
     wdt.feed()
     ble.advertise([ADV_UUID_CITY_SKIES])
