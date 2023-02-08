@@ -398,12 +398,15 @@ async def main():
     initial_identity = {
         "tag": "litt",
     }
+
     def on_change_identity(key, value):
         if key == "tag":
             ble.write(ble.idcfg_handles["tag"], value)
             ble.notify(ble.idcfg_handles["tag"])
 
-    idcfg = cache.Cache(f"{config.EPHEMERAL_DIR}/identity", initial_identity, on_change_identity)
+    idcfg = cache.Cache(
+        f"{config.EPHEMERAL_DIR}/identity", initial_identity, on_change_identity
+    )
 
     # set up BLE
     wdt.feed()
@@ -445,7 +448,9 @@ async def main():
     ble.write(ble.netcfg_handles["ap_ipaddr"], network_manager.access_point.ipaddr)
 
     wdt.feed()
-    ble.write(ble.idcfg_handles["unique"], network_manager.access_point.wlan.config("mac"))
+    ble.write(
+        ble.idcfg_handles["unique"], network_manager.access_point.wlan.config("mac")
+    )
 
     wdt.feed()
     ble.advertise([ADV_UUID_CITY_SKIES])
