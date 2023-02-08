@@ -1,10 +1,45 @@
 #include "pysicgl/drawing/interface.h"
 
+#include <errno.h>
 #include <stdio.h>
 
 #include "pysicgl/interface.h"
 #include "pysicgl/utilities.h"
 #include "sicgl/domain/interface.h"
+
+static inline color_t clamp_u8(color_t channel) {
+  if (channel > 255) {
+    return 255;
+  } else if (channel < 0) {
+    return 0;
+  } else {
+    return channel;
+  }
+}
+
+static color_t color_scale(color_t color, double scale) {
+  return color_from_channels(
+      clamp_u8((color_t)(color_channel_red(color) * scale)),
+      clamp_u8((color_t)(color_channel_green(color) * scale)),
+      clamp_u8((color_t)(color_channel_blue(color) * scale)),
+      clamp_u8((color_t)(color_channel_alpha(color) * scale)));
+}
+
+mp_obj_t interface_scale(size_t n_args, const mp_obj_t* args) {
+  // parse args
+  enum {
+    ARG_interface,
+    ARG_scale,
+  };
+  Interface_obj_t* self = MP_OBJ_TO_PTR(args[ARG_interface]);
+  double scale = mp_obj_float_get(args[ARG_scale]);
+  color_t* memory = self->interface.memory;
+  for (size_t idx = 0; idx < self->interface.length; idx++) {
+    memory[idx] = color_scale(memory[idx], scale);
+  }
+
+  return mp_const_none;
+}
 
 mp_obj_t interface_fill(size_t n_args, const mp_obj_t* args) {
   // parse args

@@ -62,10 +62,8 @@ STATIC mp_obj_t make_color(size_t n_args, const mp_obj_t* args) {
     ARG_alpha,
   };
   color_t color = color_from_channels(
-      mp_obj_get_int(args[ARG_red]),
-      mp_obj_get_int(args[ARG_green]),
-      mp_obj_get_int(args[ARG_blue]),
-      mp_obj_get_int(args[ARG_alpha]));
+      mp_obj_get_int(args[ARG_red]), mp_obj_get_int(args[ARG_green]),
+      mp_obj_get_int(args[ARG_blue]), mp_obj_get_int(args[ARG_alpha]));
   return mp_obj_new_int(color);
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(make_color_obj, 4, 4, make_color);

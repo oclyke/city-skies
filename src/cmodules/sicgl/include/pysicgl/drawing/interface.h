@@ -3,6 +3,7 @@
 #include "py/obj.h"
 #include "py/runtime.h"
 
+mp_obj_t interface_scale(size_t n_args, const mp_obj_t* args);
 mp_obj_t interface_fill(size_t n_args, const mp_obj_t* args);
 mp_obj_t interface_pixel(size_t n_args, const mp_obj_t* args);
 mp_obj_t interface_line(size_t n_args, const mp_obj_t* args);

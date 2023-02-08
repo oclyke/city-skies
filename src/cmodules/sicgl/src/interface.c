@@ -54,6 +54,9 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_screen_obj, set_screen);
 
 // drawing methods
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
+    interface_scale_obj, 2, 2, interface_scale);
+
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
     interface_fill_obj, 2, 2, interface_fill);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
     interface_pixel_obj, 3, 3, interface_pixel);
@@ -104,6 +107,8 @@ STATIC const mp_rom_map_elem_t locals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_set_screen), MP_ROM_PTR(&set_screen_obj)},
 
     // drawing
+    {MP_ROM_QSTR(MP_QSTR_interface_scale), MP_ROM_PTR(&interface_scale_obj)},
+
     {MP_ROM_QSTR(MP_QSTR_interface_fill), MP_ROM_PTR(&interface_fill_obj)},
     {MP_ROM_QSTR(MP_QSTR_interface_pixel), MP_ROM_PTR(&interface_pixel_obj)},
     {MP_ROM_QSTR(MP_QSTR_interface_line), MP_ROM_PTR(&interface_line_obj)},

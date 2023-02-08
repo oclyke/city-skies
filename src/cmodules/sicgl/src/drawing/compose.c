@@ -17,7 +17,8 @@ static inline color_t clamp_u8(color_t channel) {
   }
 }
 
-static void compositor_set(color_t* source, color_t* dest, size_t width, void* args) {
+static void compositor_set(
+    color_t* source, color_t* dest, size_t width, void* args) {
   memcpy(dest, source, width * bytes_per_pixel());
 }
 
@@ -63,7 +64,8 @@ static void compositor_multiply_clamped(
   }
 }
 
-static void compositor_AND(color_t* source, color_t* dest, size_t width, void* args) {
+static void compositor_AND(
+    color_t* source, color_t* dest, size_t width, void* args) {
   for (size_t idx = 0; idx < width; idx++) {
     dest[idx] = color_from_channels(
         color_channel_red(dest[idx]) & color_channel_red(source[idx]),
@@ -73,7 +75,8 @@ static void compositor_AND(color_t* source, color_t* dest, size_t width, void* a
   }
 }
 
-static void compositor_OR(color_t* source, color_t* dest, size_t width, void* args) {
+static void compositor_OR(
+    color_t* source, color_t* dest, size_t width, void* args) {
   for (size_t idx = 0; idx < width; idx++) {
     dest[idx] = color_from_channels(
         color_channel_red(dest[idx]) | color_channel_red(source[idx]),
@@ -83,7 +86,8 @@ static void compositor_OR(color_t* source, color_t* dest, size_t width, void* ar
   }
 }
 
-static void compositor_XOR(color_t* source, color_t* dest, size_t width, void* args) {
+static void compositor_XOR(
+    color_t* source, color_t* dest, size_t width, void* args) {
   for (size_t idx = 0; idx < width; idx++) {
     dest[idx] = color_from_channels(
         color_channel_red(dest[idx]) ^ color_channel_red(source[idx]),
@@ -144,7 +148,8 @@ mp_obj_t compose(size_t n_args, const mp_obj_t* args) {
   }
 
   int ret = sicgl_compose(
-      &self->interface, screen->screen, sprite_info.buf, compositor, compositor_args);
+      &self->interface, screen->screen, sprite_info.buf, compositor,
+      compositor_args);
   if (0 != ret) {
     mp_raise_OSError(ret);
   }

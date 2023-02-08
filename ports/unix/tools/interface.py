@@ -69,6 +69,13 @@ class CitySkiesClient:
             str(value),
         )
 
+    def set_global_variable(self, varname, value):
+        requests.put(
+            _endpoint(
+                self.host, self.port, f"/globals/vars/{varname}"
+            ),
+            str(value),
+        )
 
 if __name__ == "__main__":
     c = CitySkiesClient("localhost", 1337)
