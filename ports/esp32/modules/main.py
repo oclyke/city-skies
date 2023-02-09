@@ -175,6 +175,7 @@ visualizer, visualizer_memory = create_interface(board.display)
 corrected, corrected_memory = create_interface(board.display)
 canvas, canvas_memory = create_interface(board.display)
 
+
 # function to load a given shard uuid and return the module
 def load_shard(uuid):
     return __import__(f"{config.PERSISTENT_DIR}/shards/{uuid}")

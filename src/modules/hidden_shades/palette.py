@@ -4,7 +4,6 @@ from cache import Cache
 
 class PaletteManager:
     def __init__(self, path):
-
         # create root path
         self._root_path = path
 

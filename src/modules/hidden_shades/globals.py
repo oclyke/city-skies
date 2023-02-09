@@ -6,7 +6,6 @@ from .variables.types import FloatingVariable
 
 class GlobalsManager:
     def __init__(self, path):
-
         # create root path
         self._root_path = path
 

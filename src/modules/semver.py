@@ -1,11 +1,11 @@
 # https://semver.org/
 
+
 # compare metadata sets according to semver
 # returns 1 if set_a has precedence over set_b
 # returns 0 if the sets are equal
 # returns -1 if set_b has precedence over set_a
 def compare_meta(set_a, set_b):
-
     # if both sets are empty at the same time they are equal
     if (not len(set_a)) and (not len(set_b)):
         return 0

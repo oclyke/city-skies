@@ -46,6 +46,7 @@ hw_config = cache.Cache(
     },
 )
 
+
 # make pysicgl interfaces
 def create_interface(screen):
     mem = pysicgl.allocate_pixel_memory(screen.pixels)
