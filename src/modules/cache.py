@@ -1,4 +1,5 @@
 import json
+from pathutils import ensure_parent_dirs
 
 
 class Cache:
@@ -8,8 +9,6 @@ class Cache:
     """
 
     def __init__(self, path, initial_values={}, on_change=None):
-        from pathutils import ensure_parent_dirs
-
         self._path = path
         self._on_change = on_change
         self._cache = initial_values
@@ -31,10 +30,14 @@ class Cache:
         """
         if self._on_change is not None:
             if key is not None:
-                self._on_change(key, self._cache[key])
+                corrected = self._on_change(key, self._cache[key])
+                if corrected is not None:
+                    self._cache[key] = corrected
             else:
                 for key in self._cache.keys():
-                    self._on_change(key, self._cache[key])
+                    corrected = self._on_change(key, self._cache[key])
+                    if corrected is not None:
+                        self._cache[key] = corrected
 
     def load(self):
         with open(self._path, "r") as f:
@@ -50,8 +53,14 @@ class Cache:
 
     def set(self, key, value):
         self._cache[key] = value
-        self.store()
         self.notify(key)
+        self.store()
+
+    def merge(self, map):
+        for key, value in map.items():
+            self._cache[key] = value
+        self.notify()
+        self.store()
 
     @property
     def cache(self):

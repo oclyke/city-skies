@@ -1,13 +1,16 @@
-async def mock_audio_source():
-    import math
-    import uasyncio as asyncio
-    from singletons import audio_manager
+import uasyncio as asyncio
+import math
+import hidden_shades
 
+
+async def mock_audio_source():
     sample_frequency = 16000
     sample_length = 256
 
     # add this audio source to the audio manager
-    source = audio_manager.add_source("SineTest", (sample_frequency, sample_length))
+    source = hidden_shades.audio.add_source(
+        "SineTest", (sample_frequency, sample_length)
+    )
 
     def sine_wave(freq, sample_freq):
         # the time period between each step is 1/sample_freq seconds long

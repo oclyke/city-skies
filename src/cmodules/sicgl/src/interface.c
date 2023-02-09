@@ -54,6 +54,9 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_screen_obj, set_screen);
 
 // drawing methods
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
+    interface_scale_obj, 2, 2, interface_scale);
+
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
     interface_fill_obj, 2, 2, interface_fill);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
     interface_pixel_obj, 3, 3, interface_pixel);
@@ -104,6 +107,8 @@ STATIC const mp_rom_map_elem_t locals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_set_screen), MP_ROM_PTR(&set_screen_obj)},
 
     // drawing
+    {MP_ROM_QSTR(MP_QSTR_interface_scale), MP_ROM_PTR(&interface_scale_obj)},
+
     {MP_ROM_QSTR(MP_QSTR_interface_fill), MP_ROM_PTR(&interface_fill_obj)},
     {MP_ROM_QSTR(MP_QSTR_interface_pixel), MP_ROM_PTR(&interface_pixel_obj)},
     {MP_ROM_QSTR(MP_QSTR_interface_line), MP_ROM_PTR(&interface_line_obj)},
@@ -164,8 +169,8 @@ STATIC mp_obj_t make_new(
     ARG_memory,
   };
   static const mp_arg_t allowed_args[] = {
-      {MP_QSTR_screen, MP_ARG_OBJ, {.u_obj = NULL}},
-      {MP_QSTR_memory, MP_ARG_OBJ, {.u_obj = NULL}},
+      {MP_QSTR_screen, MP_ARG_OBJ | MP_ARG_REQUIRED, {.u_obj = NULL}},
+      {MP_QSTR_memory, MP_ARG_OBJ | MP_ARG_REQUIRED, {.u_obj = NULL}},
   };
   mp_map_t kw_args;
   mp_map_init_fixed_table(&kw_args, n_kw, all_args + n_args);
@@ -184,14 +189,8 @@ STATIC mp_obj_t make_new(
   mp_obj_t self_obj = MP_OBJ_FROM_PTR(self);
 
   // configure interface
-  mp_obj_t screen = args[ARG_screen].u_obj;
-  mp_obj_t memory = args[ARG_memory].u_obj;
-  if (NULL != screen) {
-    set_screen(self_obj, screen);
-  }
-  if (NULL != memory) {
-    set_memory(self_obj, memory);
-  }
+  set_screen(self_obj, args[ARG_screen].u_obj);
+  set_memory(self_obj, args[ARG_memory].u_obj);
 
   return self_obj;
 }

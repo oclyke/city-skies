@@ -5,7 +5,7 @@
 #include "sicgl/screen.h"
 
 // declare the type
-const mp_obj_type_t Screen_type;
+extern const mp_obj_type_t Screen_type;
 
 // underlying data comes from sicgl definition
 typedef struct _Screen_obj_t {

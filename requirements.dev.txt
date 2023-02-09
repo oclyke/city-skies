@@ -1,3 +1,0 @@
-# nanopb requirements
-protobuf
-grpcio-tools

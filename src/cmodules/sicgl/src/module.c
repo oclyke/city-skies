@@ -12,7 +12,7 @@
 #include "sicgl/gamma.h"
 
 // module methods
-STATIC mp_obj_t allocate_memory(mp_obj_t obj) {
+STATIC mp_obj_t allocate_pixel_memory(mp_obj_t obj) {
   // allocate memory
   // the amount of memory allocated is determined according to the type of the
   // argument
@@ -20,16 +20,6 @@ STATIC mp_obj_t allocate_memory(mp_obj_t obj) {
   if (mp_obj_is_int(obj)) {
     // allocate the specified number of pixels
     mp_int_t desired = mp_obj_get_int(obj);
-    if (desired <= 0) {
-      mp_raise_ValueError(NULL);
-    }
-    pixels = desired;
-  } else if (mp_obj_get_type(obj) == &Screen_type) {
-    Screen_obj_t* screen = screen_from_obj(obj);
-    if (NULL == screen->screen) {
-      mp_raise_ValueError(NULL);
-    }
-    ext_t desired = screen->screen->width * screen->screen->height;
     if (desired <= 0) {
       mp_raise_ValueError(NULL);
     }
@@ -47,7 +37,8 @@ STATIC mp_obj_t allocate_memory(mp_obj_t obj) {
   memset(mem, 0, len);
   return mp_obj_new_bytearray_by_ref(len, mem);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(allocate_memory_obj, allocate_memory);
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(
+    allocate_pixel_memory_obj, allocate_pixel_memory);
 
 STATIC mp_obj_t
 gamma_correct(mp_obj_t input_interface, mp_obj_t output_interface) {
@@ -63,12 +54,19 @@ gamma_correct(mp_obj_t input_interface, mp_obj_t output_interface) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(gamma_correct_obj, gamma_correct);
 
-STATIC mp_obj_t make_color(mp_obj_t red, mp_obj_t green, mp_obj_t blue) {
+STATIC mp_obj_t make_color(size_t n_args, const mp_obj_t* args) {
+  enum {
+    ARG_red,
+    ARG_green,
+    ARG_blue,
+    ARG_alpha,
+  };
   color_t color = color_from_channels(
-      mp_obj_get_int(red), mp_obj_get_int(green), mp_obj_get_int(blue));
+      mp_obj_get_int(args[ARG_red]), mp_obj_get_int(args[ARG_green]),
+      mp_obj_get_int(args[ARG_blue]), mp_obj_get_int(args[ARG_alpha]));
   return mp_obj_new_int(color);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_3(make_color_obj, make_color);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(make_color_obj, 4, 4, make_color);
 
 STATIC mp_obj_t get_color_channels(mp_obj_t color_obj) {
   color_t color = mp_obj_get_int(color_obj);
@@ -86,12 +84,12 @@ STATIC mp_obj_t get_color_channels(mp_obj_t color_obj) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(get_color_channels_obj, get_color_channels);
 
 // module
-STATIC const mp_map_elem_t sicgl_globals_table[] = {
+STATIC const mp_map_elem_t pysicgl_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR___name__), MP_OBJ_NEW_QSTR(MP_QSTR_sicgl)},
 
     // methods
-    {MP_OBJ_NEW_QSTR(MP_QSTR_allocate_memory),
-     (mp_obj_t)MP_ROM_PTR(&allocate_memory_obj)},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_allocate_pixel_memory),
+     (mp_obj_t)MP_ROM_PTR(&allocate_pixel_memory_obj)},
     {MP_OBJ_NEW_QSTR(MP_QSTR_gamma_correct),
      (mp_obj_t)MP_ROM_PTR(&gamma_correct_obj)},
     {MP_OBJ_NEW_QSTR(MP_QSTR_make_color),
@@ -105,12 +103,12 @@ STATIC const mp_map_elem_t sicgl_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR_Interface), (mp_obj_t)&Interface_type},
     {MP_OBJ_NEW_QSTR(MP_QSTR_ScalarField), (mp_obj_t)&ScalarField_type},
 };
-STATIC MP_DEFINE_CONST_DICT(sicgl_globals, sicgl_globals_table);
+STATIC MP_DEFINE_CONST_DICT(pysicgl_globals, pysicgl_globals_table);
 
-const mp_obj_module_t sicgl_module = {
+const mp_obj_module_t pysicgl_module = {
     .base = {&mp_type_module},
-    .globals = (mp_obj_dict_t*)&sicgl_globals,
+    .globals = (mp_obj_dict_t*)&pysicgl_globals,
 };
 
 // Register the module to make it available in Python.
-MP_REGISTER_MODULE(MP_QSTR_sicgl, sicgl_module);
+MP_REGISTER_MODULE(MP_QSTR_pysicgl, pysicgl_module);

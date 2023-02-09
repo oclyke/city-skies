@@ -14,13 +14,13 @@ typedef struct _map_type_entry_t {
 
 STATIC const map_type_entry_t color_sequence_map_types_table[] = {
     {MP_ROM_QSTR(MP_QSTR_continuous_circular),
-     color_sequence_get_color_continuous_circular},
+     color_sequence_interpolate_color_continuous_circular},
     {MP_ROM_QSTR(MP_QSTR_continuous_linear),
-     color_sequence_get_color_continuous_linear},
+     color_sequence_interpolate_color_continuous_linear},
     {MP_ROM_QSTR(MP_QSTR_discrete_circular),
-     color_sequence_get_color_discrete_circular},
+     color_sequence_interpolate_color_discrete_circular},
     {MP_ROM_QSTR(MP_QSTR_discrete_linear),
-     color_sequence_get_color_discrete_linear},
+     color_sequence_interpolate_color_discrete_linear},
 };
 STATIC const size_t NUM_COLOR_SEQUENCE_MAP_TYPES =
     sizeof(color_sequence_map_types_table) / sizeof(map_type_entry_t);

@@ -5,7 +5,7 @@
 #include "sicgl/color_sequence.h"
 
 // declare the type
-const mp_obj_type_t ColorSequence_type;
+extern const mp_obj_type_t ColorSequence_type;
 
 // underlying data comes from sicgl definition
 typedef struct _ColorSequence_obj_t {

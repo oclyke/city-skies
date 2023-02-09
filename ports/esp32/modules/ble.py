@@ -27,6 +27,7 @@ TYPE_UUID32_MORE = const(0x4)
 TYPE_UUID128_MORE = const(0x6)
 TYPE_APPEARANCE = const(0x19)
 
+
 # Generate a payload to be passed to gap_advertise(adv_data=...).
 def advertising_payload(
     limited_disc=False, br_edr=False, name=None, services=None, appearance=0
@@ -110,7 +111,7 @@ class BlePeripheral:
 
             # call any write handlers which match this attribute
             conn_handle, attr_handle = data
-            for (handle, handler) in self._write_handlers:
+            for handle, handler in self._write_handlers:
                 if handle == attr_handle:
                     handler(self._ble.gatts_read(handle))
 

@@ -1,0 +1,5 @@
+# tools requirements
+requests
+
+# linting / style
+black
