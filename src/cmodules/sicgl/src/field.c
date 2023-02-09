@@ -22,6 +22,23 @@ STATIC mp_obj_t set_scalars(mp_obj_t self_in, mp_obj_t buffer) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_scalars_obj, set_scalars);
 
+// iteration / subscripting
+STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
+  ScalarField_obj_t* self = MP_OBJ_TO_PTR(self_in);
+
+  size_t idx = mp_obj_get_int(index);
+  if (idx >= self->length) {
+    mp_raise_ValueError(NULL);
+  }
+
+  if (value == MP_OBJ_SENTINEL) {
+    return mp_obj_new_float(self->scalars[idx]);
+  } else {
+    self->scalars[idx] = mp_obj_get_float(value);
+  }
+  return mp_const_none;
+}
+
 // locals dict
 STATIC const mp_rom_map_elem_t locals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_set_scalars), MP_ROM_PTR(&set_scalars_obj)},
@@ -77,4 +94,5 @@ const mp_obj_type_t ScalarField_type = {
     .print = print,
     .make_new = make_new,
     .locals_dict = (mp_obj_dict_t*)&locals_dict,
+    .subscr = subscr,
 };
