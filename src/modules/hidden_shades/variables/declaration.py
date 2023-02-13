@@ -1,15 +1,20 @@
 class VariableDeclaration:
-    def __init__(self, type, default, name, description=None, responders=[]):
+    def __init__(self, type, default, name, description=None, responders=None):
         self._name = name
         self._type = type
         self._default = self._type(default)
         self._value = self._default
         self._description = str(description)
 
-        # it is very important to use 'list()' to generate a new
-        # object here - otherwise there is a leak and subsequent
-        # declarations end up duplicating respnders
-        self._responders = list(responders)
+        # using a new empty list is important to avoid a leak which
+        # causes responders from any instance of a VariableDeclaration
+        # to all be called for any change to any instance... this note
+        # exists mostly to serve as a clue in case this behaviour is
+        # observed again
+        self._responders = []
+        if responders is not None:
+            for responder in responders:
+                self.add_responder(responder)
 
     @property
     def name(self):

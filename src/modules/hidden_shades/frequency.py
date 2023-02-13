@@ -15,7 +15,7 @@ class FreqCounter:
         self._prev = 0
 
     def update(self, ms):
-        delta = time.ticks_diff(ms, self._basis)
+        delta = ms - self._basis
         transitions = math.floor(self._freq * (delta / 1000.0))
         self._prev = self._total
         self._total = transitions

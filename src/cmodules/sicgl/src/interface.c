@@ -99,7 +99,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(compose_obj, 4, 4, compose);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(blit_obj, 3, 3, blit);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
-    scalar_field_obj, 4, 4, scalar_field);
+    scalar_field_obj, 4, 5, scalar_field);
 
 // locals dict
 STATIC const mp_rom_map_elem_t locals_table[] = {

@@ -22,3 +22,13 @@ class OptionVariable(VariableDeclaration):
             "options": self._options,
         }
         return dict(**base, **additional)
+
+    def matches(self, value):
+        """
+        returns True if the selected option matches the provided value, else False
+        if the provided value is not a valid option for this variable a ValueError is raised
+        """
+        val = str(value)
+        if not val in self._options:
+            raise ValueError(f"{self} cannot match '{val}'")
+        return self._options[self._value] == val
