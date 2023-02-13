@@ -18,8 +18,10 @@ class FloatingVariable(VariableDeclaration):
     def value(self, value):
         v = self._type(value)
         if self._allowed_range is not None:
-            if not v in range(*self._allowed_range):
+            if v < min(self._allowed_range):
                 raise ValueError
+            if v > max(self._allowed_range):
+                raise ValueErrors
         self._value = v
         self.notify()
 
