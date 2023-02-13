@@ -29,6 +29,8 @@ class LogManager:
         sys.print_exception(e, errbuf)
         errbuf = errbuf.getvalue()
 
+        print(errbuf)
+
         print("logging to path: ", path)
 
         with open(path, "w") as f:
