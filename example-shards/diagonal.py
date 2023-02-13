@@ -1,5 +1,4 @@
 import pysicgl
-import noise
 from pysicgl_utils import Display
 from hidden_shades import timebase, palette
 from hidden_shades.timewarp import TimeWarp
@@ -11,7 +10,6 @@ def frames(layer):
     screen = layer.canvas.screen
     display = Display(screen)
     field = pysicgl.ScalarField(screen.pixels)
-    osn = noise.OpenSimplexNoise()
     timewarp = TimeWarp(timebase.local)
 
     field = pysicgl.ScalarField(screen.pixels)
