@@ -20,7 +20,7 @@ class LogManager:
         self._path = path
 
     def log_exception(self, e):
-        base = f"runtime/logs/exceptions/{time.ticks_ms()}"
+        base = f"{self._path}/exceptions/{time.ticks_ms()}"
         gen = LogManager.logname_generator(base)
         path = next(gen)
         pathutils.ensure_parent_dirs(path)
