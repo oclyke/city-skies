@@ -215,7 +215,7 @@ async def serve_api():
     async def put_layer_variable(request, active, layerid, varname):
         stack = stack_manager.get(active)
         layer = stack.get_layer_by_id(str(layerid))
-        layer.variables[varname].value = request.body.decode()
+        layer.variable_manager.variables[varname].value = request.body.decode()
 
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/globals/vars/<varname> -d 'value'
     @app.put("/globals/vars/<varname>")

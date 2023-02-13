@@ -30,17 +30,24 @@ class VariableManager(VariableResponder):
         self._variables[variable.name] = variable  # register it into the list
         variable.add_responder(self)  # register self as a responder
 
-        # try loading an existing value for the registered variable
-        try:
-            variable.value = self._load_variable_value(variable.name)
-        except:
-            pass
-
-        # finally store the current value
-        self._store_variable_value(variable.name, variable.value)
-        variable.notify()
-
         return variable
+
+    def initialize_variables(self):
+        """
+        This method should be called once all variables have been declared.
+        It is used to load the initial values, if any, from the filesystem and notify
+        responders as needed.
+        """
+        for name, variable in self._variables.items():
+            # try loading an existing value for the registered variable
+            try:
+                variable.value = self._load_variable_value(variable.name)
+            except:
+                pass
+
+            # finally store the current value
+            self._store_variable_value(variable.name, variable.value)
+            variable.notify()
 
     @property
     def variables(self):

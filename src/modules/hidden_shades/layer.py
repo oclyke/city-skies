@@ -73,9 +73,6 @@ class Layer:
     def reset_canvas(self):
         self.canvas.interface_fill(0x000000)
 
-    def declare_variable(self, variable):
-        self._variable_manager.declare_variable(variable)
-
     def set_index(self, idx):
         self._info.set("index", idx)
 
@@ -90,5 +87,5 @@ class Layer:
         return dict(**self._info.cache, **self._static_info)
 
     @property
-    def variables(self):
-        return self._variable_manager.variables
+    def variable_manager(self):
+        return self._variable_manager
