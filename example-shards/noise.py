@@ -59,12 +59,6 @@ def frames(layer):
         if name == "centerY":
             center.y = value
 
-        # use variable values as arguments to the drawig functions
-        # these values are dynamic and may change between frame renders
-        variables = layer.variable_manager.variables
-        scale = (variables["scaleX"].value, variables["scaleY"].value)
-        center = (variables["centerX"].value, variables["centerY"].value)
-
     # a responder which injects the handle_variable_changes()
     # callback into the declared variables (as needed)
     responder = VariableResponder(handle_variable_changes)
@@ -77,10 +71,10 @@ def frames(layer):
     layer.variable_manager.declare_variable(
         FloatingVariable(0.001, "speed", responders=[responder])
     )
-    layer.variable_manager.declare_variable(FloatingVariable(scale.x, "scaleX"))
-    layer.variable_manager.declare_variable(FloatingVariable(scale.y, "scaleY"))
-    layer.variable_manager.declare_variable(FloatingVariable(center.x, "centerX"))
-    layer.variable_manager.declare_variable(FloatingVariable(center.y, "centerY"))
+    layer.variable_manager.declare_variable(FloatingVariable(scale.x, "scaleX", responders=[responder]))
+    layer.variable_manager.declare_variable(FloatingVariable(scale.y, "scaleY", responders=[responder]))
+    layer.variable_manager.declare_variable(FloatingVariable(center.x, "centerX", responders=[responder]))
+    layer.variable_manager.declare_variable(FloatingVariable(center.y, "centerY", responders=[responder]))
     layer.variable_manager.initialize_variables()
 
     # prepare a few static variables
