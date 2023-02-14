@@ -2,7 +2,7 @@ class VariableDeclaration:
     def __init__(self, type, default, name, description=None, responders=None):
         self._name = name
         self._type = type
-        self._default = self._type(default)
+        self._default = self.validate(default)
         self._value = self._default
         self._description = str(description)
 
@@ -15,6 +15,9 @@ class VariableDeclaration:
         if responders is not None:
             for responder in responders:
                 self.add_responder(responder)
+
+    def validate(self, value):
+        return self._type(value)
 
     @property
     def name(self):
@@ -34,7 +37,7 @@ class VariableDeclaration:
 
     @value.setter
     def value(self, val):
-        self._value = self._type(val)
+        self._value = self.validate(val)
         self.notify()
 
     def add_responder(self, responder):

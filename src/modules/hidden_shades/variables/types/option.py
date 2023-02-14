@@ -4,16 +4,14 @@ from .typecodes import TYPECODE_OPTION
 
 class OptionVariable(VariableDeclaration):
     def __init__(self, default, name, options, **kwargs):
-        super().__init__(int, default, name, **kwargs)
         self._options = tuple(str(val) for val in options)
+        super().__init__(int, default, name, **kwargs)
 
-    @VariableDeclaration.value.setter
-    def value(self, value):
+    def validate(self, value):
         v = self._type(value)
         if not v in range(len(self._options)):
             raise ValueError
-        self._value = v
-        self.notify()
+        return v
 
     def get_dict(self):
         base = super().get_dict()

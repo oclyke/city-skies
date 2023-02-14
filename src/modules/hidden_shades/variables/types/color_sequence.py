@@ -6,10 +6,8 @@ class ColorSequenceVariable(VariableDeclaration):
     def __init__(self, default, name, **kwargs):
         super().__init__(tuple, default, name, **kwargs)
 
-    @VariableDeclaration.value.setter
-    def value(self, value):
-        self._value = tuple(int(element) for element in value)
-        self.notify()
+    def validate(self, value):
+        return tuple(int(element) for element in value)
 
     def get_dict(self):
         base = super().get_dict()

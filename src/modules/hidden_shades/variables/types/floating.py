@@ -6,24 +6,22 @@ class FloatingVariable(VariableDeclaration):
     def __init__(
         self, default, name, default_range=(0, 1), allowed_range=None, **kwargs
     ):
-        super().__init__(float, default, name, **kwargs)
         self._default_range = tuple(float(val) for val in default_range)
         self._allowed_range = (
             tuple(float(val) for val in allowed_range)
             if allowed_range is not None
             else None
         )
+        super().__init__(float, default, name, **kwargs)
 
-    @VariableDeclaration.value.setter
-    def value(self, value):
+    def validate(self, value):
         v = self._type(value)
         if self._allowed_range is not None:
             if v < min(self._allowed_range):
                 raise ValueError
             if v > max(self._allowed_range):
-                raise ValueErrors
-        self._value = v
-        self.notify()
+                raise ValueError
+        return v
 
     def get_dict(self):
         base = super().get_dict()
