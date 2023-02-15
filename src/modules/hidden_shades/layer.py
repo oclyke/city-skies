@@ -19,7 +19,6 @@ class Layer:
 
         # a pysicgl interface will be provided
         self.canvas = interface
-        self._composition_mode = 0
 
         # the shard related items are left uninitialized
         # it is possible to set these in the post-init hook
@@ -36,19 +35,15 @@ class Layer:
         self._variable_manager = VariableManager(f"{self._root_path}/vars")
 
         # declare private variables
-        private_responder = VariableResponder(
-            lambda variable: self._handle_private_variable_change(variable)
-        )
         self._private_variable_manager = VariableManager(
             f"{self._root_path}/private_vars"
         )
         self._private_variable_manager.declare_variable(
             IntegerVariable(
                 0,
-                "composition mode",
+                "composition_mode",
                 default_range=Layer.COMPOSITION_MODE_RANGE,
                 allowed_range=Layer.COMPOSITION_MODE_RANGE,
-                responders=[private_responder],
             )
         )
         self._private_variable_manager.declare_variable(
@@ -76,10 +71,6 @@ class Layer:
         # allow for post-init
         if post_init_hook is not None:
             post_init_hook(self)
-
-    def _handle_private_variable_change(self, variable):
-        if variable.name == "composition mode":
-            self._composition_mode = variable.value
 
     def _handle_info_change(self, key, value):
         self.reset_canvas()
@@ -143,4 +134,4 @@ class Layer:
 
     @property
     def composition_mode(self):
-        return self._composition_mode
+        return self.private_variable_manager.variables["composition_mode"].value

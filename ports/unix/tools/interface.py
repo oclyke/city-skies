@@ -34,11 +34,22 @@ class CitySkiesClient:
             requests.get(_endpoint(self.host, self.port, f"/stacks/{stack}/layers"))
         )
 
-    def list_variables(self, stack, layer):
+    def list_layer_variables(self, stack, layer):
         return _to_list(
             requests.get(
                 _endpoint(
                     self.host, self.port, f"/stacks/{stack}/layers/{layer}/variables"
+                )
+            )
+        )
+
+    def list_layer_private_variables(self, stack, layer):
+        return _to_list(
+            requests.get(
+                _endpoint(
+                    self.host,
+                    self.port,
+                    f"/stacks/{stack}/layers/{layer}/private_variables",
                 )
             )
         )

@@ -187,10 +187,21 @@ async def serve_api():
         return get_list(layer.id for layer in stack)
 
     @app.get("/stacks/<active>/layers/<layerid>/variables")
-    async def get_variables(request, active, layerid):
+    async def get_layer_variables(request, active, layerid):
         stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(layerid)
-        return get_list(variable.name for variable in layer.variables.values())
+        layer = stack.get_layer_by_id(str(layerid))
+        return get_list(
+            variable.name for variable in layer.variable_manager.variables.values()
+        )
+
+    @app.get("/stacks/<active>/layers/<layerid>/private_variables")
+    async def get_layer_private_variables(request, active, layerid):
+        stack = stack_manager.get(active)
+        layer = stack.get_layer_by_id(str(layerid))
+        return get_list(
+            variable.name
+            for variable in layer.private_variable_manager.variables.values()
+        )
 
     # curl -H "Content-Type: text/plain" -X POST http://localhost:1337/stacks/<active>/layer -d '{"shard_uuid": "noise"}'
     @app.post("/stacks/<active>/layer")
