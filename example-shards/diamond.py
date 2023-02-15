@@ -128,6 +128,6 @@ def frames(layer):
     while True:
         yield None
 
-        # apply the scalar field to the canvas mapping against the selected palette
+        # apply the scalar field to the canvas by mapping against the layer palette
         offset = timewarp.local()
-        layer.canvas.scalar_field(layer.canvas.screen, field, palette.primary, offset)
+        layer.canvas.scalar_field(layer.canvas.screen, field, layer.palette, offset)

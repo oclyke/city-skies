@@ -1,5 +1,6 @@
 from cache import Cache
 from .variables.manager import VariableManager
+from hidden_shades import palette
 
 
 class Layer:
@@ -89,3 +90,10 @@ class Layer:
     @property
     def variable_manager(self):
         return self._variable_manager
+
+    @property
+    def palette(self):
+        p = self._info.get("palette")
+        if p is None:
+            p = palette.primary
+        return p

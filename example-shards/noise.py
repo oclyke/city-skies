@@ -102,5 +102,5 @@ def frames(layer):
         osn.fill_scalar_field(field, screen, z, scale.vector, center.vector)
 
         # apply the scalar field to the canvas mapping against the
-        # primary color palette
-        layer.canvas.scalar_field(layer.canvas.screen, field, palette.primary)
+        # layer color palette
+        layer.canvas.scalar_field(layer.canvas.screen, field, layer.palette)
