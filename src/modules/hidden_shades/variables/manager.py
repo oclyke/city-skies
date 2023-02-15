@@ -4,23 +4,20 @@ from .responder import VariableResponder
 
 class VariableManager(VariableResponder):
     def __init__(self, path):
-        super().__init__(lambda name, value: self._handle_variable_change(name, value))
+        super().__init__(lambda variable: self._handle_variable_change(variable))
         self._path = path
         self._variables = {}
 
         # ensure filesystem storage exists
         ensure_dirs(self._path)
 
-    def _handle_variable_change(self, name, value):
-        self._store_variable_value(name, value)
+    def _handle_variable_change(self, variable):
+        self._store_variable(variable)
 
-    def _store_variable_value(self, name, value):
-        with open(f"{self._path}/{name}", "w") as f:
-            f.write(str(value))
-
-    def _load_variable_value(self, name):
-        with open(f"{self._path}/{name}", "r") as f:
-            return str(f.read())
+    def _store_variable(self, variable):
+        serialized = variable.serialize(variable.value)
+        with open(f"{self._path}/{variable.name}", "w") as f:
+            f.write(serialized)
 
     def declare_variable(self, variable):
         """
@@ -39,14 +36,20 @@ class VariableManager(VariableResponder):
         responders as needed.
         """
         for name, variable in self._variables.items():
-            # try loading an existing value for the registered variable
+            # try to read the serialized value from memory allowing for it not to exist
+            serialized = None
             try:
-                variable.value = self._load_variable_value(variable.name)
-            except:
+                with open(f"{self._path}/{variable.name}", "r") as f:
+                    serialized = str(f.read())
+            except OSError:
                 pass
 
-            # finally store the current value
-            self._store_variable_value(variable.name, variable.value)
+            # if a serialized value was found use it to set the value of the variable
+            if serialized is not None:
+                variable.value = variable.deserialize(serialized)
+
+            # finally store the current value and notify any responders
+            self._store_variable(variable)
             variable.notify()
 
     @property

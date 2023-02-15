@@ -134,7 +134,7 @@ async def run_pipeline():
                 layer.set_active(False)
 
             # composite the layer's canvas into the main canvas
-            visualizer.compose(display, canvas_memory, layer.info["composition_mode"])
+            visualizer.compose(display, canvas_memory, layer.composition_mode)
 
         # apply global brightness
         visualizer.interface_scale(globals.variables["brightness"].value)
@@ -215,7 +215,16 @@ async def serve_api():
     async def put_layer_variable(request, active, layerid, varname):
         stack = stack_manager.get(active)
         layer = stack.get_layer_by_id(str(layerid))
-        layer.variable_manager.variables[varname].value = request.body.decode()
+        variable = layer.variable_manager.variables[varname]
+        variable.value = variable.deserialize(request.body.decode())
+
+    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/layers/<layerid>/private_vars/<varname> -d 'value'
+    @app.put("/stacks/<active>/layers/<layerid>/private_vars/<varname>")
+    async def put_layer_private_variable(request, active, layerid, varname):
+        stack = stack_manager.get(active)
+        layer = stack.get_layer_by_id(str(layerid))
+        variable = layer.private_variable_manager.variables[varname]
+        variable.value = variable.deserialize(request.body.decode())
 
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/globals/vars/<varname> -d 'value'
     @app.put("/globals/vars/<varname>")

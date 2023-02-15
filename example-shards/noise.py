@@ -1,6 +1,6 @@
 import pysicgl
 import noise
-from hidden_shades import timebase, palette
+from hidden_shades import timebase
 from hidden_shades.timewarp import TimeWarp
 from hidden_shades.variables.responder import VariableResponder
 from hidden_shades.variables.types import FloatingVariable
@@ -47,7 +47,9 @@ def frames(layer):
     center = FloatVec2("center", (0.0, 0.0))
 
     # a callback function to handle changes to declared variables
-    def handle_variable_changes(name, value):
+    def handle_variable_changes(variable):
+        name, value = variable.name, variable.value
+
         if name == "speed":
             timewarp.set_frequency(value)
         if name == "scaleX":

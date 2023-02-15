@@ -1,16 +1,12 @@
-import pysicgl
-import noise
-from hidden_shades import timebase, palette
+from hidden_shades import timebase
 from hidden_shades.timewarp import TimeWarp
 from hidden_shades.frequency import FreqCounter
 from hidden_shades.variables.responder import VariableResponder
 from hidden_shades.variables.types import FloatingVariable
-import random
 
 
 def frames(layer):
     screen = layer.canvas.screen
-    field = pysicgl.ScalarField(screen.pixels)
 
     timewarp = TimeWarp(timebase.local)
 
@@ -19,9 +15,11 @@ def frames(layer):
     advance_counter = FreqCounter(1.0)
 
     # declare variables
-    def handle_variable_changes(name, value):
+    def handle_variable_changes(variable):
+        name = variable.name
+
         if name == "speed":
-            timewarp.set_frequency(value)
+            timewarp.set_frequency(variable.value)
 
     responder = VariableResponder(handle_variable_changes)
 

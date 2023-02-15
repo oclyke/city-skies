@@ -24,14 +24,15 @@ STATIC const map_type_entry_t color_sequence_map_types_table[] = {
 };
 STATIC const size_t NUM_COLOR_SEQUENCE_MAP_TYPES =
     sizeof(color_sequence_map_types_table) / sizeof(map_type_entry_t);
-int find_color_sequence_map_type_entry_index(mp_obj_t key, size_t* index) {
+STATIC int find_color_sequence_map_type_entry_index(
+    mp_obj_t key, size_t* index) {
   int ret = 0;
   if (NULL == index) {
     ret = -EINVAL;
     goto out;
   }
 
-  // try to find the
+  // try to find the corresponding map for this type
   for (size_t idx = 0; idx < NUM_COLOR_SEQUENCE_MAP_TYPES; idx++) {
     if (color_sequence_map_types_table[idx].key == key) {
       *index = idx;
@@ -114,7 +115,7 @@ STATIC mp_obj_t set_colors(mp_obj_t self_in, mp_obj_t colors) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_colors_obj, set_colors);
 
-STATIC mp_obj_t set_type(mp_obj_t self_in, mp_obj_t type_obj) {
+STATIC mp_obj_t set_map_type(mp_obj_t self_in, mp_obj_t type_obj) {
   ColorSequence_obj_t* self = MP_OBJ_TO_PTR(self_in);
 
   size_t type = 0;
@@ -122,12 +123,12 @@ STATIC mp_obj_t set_type(mp_obj_t self_in, mp_obj_t type_obj) {
   if (0 != ret) {
     mp_raise_OSError(ret);
   }
-  self->type = type_obj;
+  self->map_type = type_obj;
   self->map = color_sequence_map_types_table[type].map;
 
   return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_type_obj, set_type);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_map_type_obj, set_map_type);
 
 // iteration / subscripting
 STATIC mp_obj_t unary_op(mp_unary_op_t op, mp_obj_t self_in) {
@@ -205,7 +206,7 @@ STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
 STATIC const mp_rom_map_elem_t locals_table[] = {
     // methods
     {MP_ROM_QSTR(MP_QSTR_set_colors), MP_ROM_PTR(&set_colors_obj)},
-    {MP_ROM_QSTR(MP_QSTR_set_type), MP_ROM_PTR(&set_type_obj)},
+    {MP_ROM_QSTR(MP_QSTR_set_map_type), MP_ROM_PTR(&set_map_type_obj)},
 };
 STATIC MP_DEFINE_CONST_DICT(locals_dict, locals_table);
 
@@ -214,6 +215,10 @@ STATIC void attr(mp_obj_t self_in, qstr attribute, mp_obj_t* destination) {
   switch (attribute) {
     case MP_QSTR_colors:
       destination[0] = ((ColorSequence_obj_t*)MP_OBJ_TO_PTR(self_in))->colors;
+      break;
+
+    case MP_QSTR_map_type:
+      destination[0] = ((ColorSequence_obj_t*)MP_OBJ_TO_PTR(self_in))->map_type;
       break;
 
     default:
@@ -235,7 +240,7 @@ STATIC void print(
   }
 
   mp_print_str(print, "ColorSequence( type: ");
-  mp_obj_print_helper(print, self->type, PRINT_REPR);
+  mp_obj_print_helper(print, self->map_type, PRINT_REPR);
   mp_print_str(print, ", length: ");
   mp_obj_print_helper(print, mp_obj_new_int(length), PRINT_REPR);
   mp_print_str(print, ", colors: ");
@@ -249,11 +254,11 @@ STATIC mp_obj_t make_new(
   // parse args
   enum {
     ARG_colors,
-    ARG_type,
+    ARG_map_type,
   };
   static const mp_arg_t allowed_args[] = {
       {MP_QSTR_colors, MP_ARG_OBJ, {.u_obj = mp_const_none}},
-      {MP_QSTR_type,
+      {MP_QSTR_map_type,
        MP_ARG_OBJ,
        {.u_obj = MP_ROM_QSTR(MP_QSTR_continuous_circular)}},
   };
@@ -270,8 +275,7 @@ STATIC mp_obj_t make_new(
 
   // set colors and type
   set_colors(self_obj, args[ARG_colors].u_obj);
-  // set_type(self_obj, mp_obj_new_int(args[ARG_type].u_int));
-  set_type(self_obj, args[ARG_type].u_obj);
+  set_map_type(self_obj, args[ARG_map_type].u_obj);
 
   return self_obj;
 }

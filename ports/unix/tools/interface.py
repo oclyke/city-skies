@@ -69,6 +69,16 @@ class CitySkiesClient:
             str(value),
         )
 
+    def set_layer_private_variable(self, stack, layerid, varname, value):
+        requests.put(
+            _endpoint(
+                self.host,
+                self.port,
+                f"/stacks/{stack}/layers/{layerid}/private_vars/{varname}",
+            ),
+            str(value),
+        )
+
     def set_global_variable(self, varname, value):
         requests.put(
             _endpoint(self.host, self.port, f"/globals/vars/{varname}"),
@@ -77,4 +87,16 @@ class CitySkiesClient:
 
 
 if __name__ == "__main__":
+    PATRIOT = [0xFF0000, 0xFFFFFF, 0x0000FF]
+    RASTA = [0xFF0000, 0xFFFF00, 0x00FF00]
+    MASK = [0xFF000000]
+
+    def make_color_sequence_var_string(colors, map_type="continuous_circular"):
+        return json.dumps(
+            {
+                "colors": colors,
+                "map_type": map_type,
+            }
+        )
+
     c = CitySkiesClient("localhost", 1337)
