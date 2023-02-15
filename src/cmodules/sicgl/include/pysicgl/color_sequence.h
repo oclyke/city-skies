@@ -10,7 +10,7 @@ extern const mp_obj_type_t ColorSequence_type;
 // underlying data comes from sicgl definition
 typedef struct _ColorSequence_obj_t {
   mp_obj_base_t base;
-  mp_obj_t colors;      // iterable type representing the colors in the sequence
+  mp_obj_t colors;      // integer list representing the colors in the sequence
   mp_obj_t type;        // type of sequence
   sequence_map_fn map;  // scalar to color map function
 } ColorSequence_obj_t;

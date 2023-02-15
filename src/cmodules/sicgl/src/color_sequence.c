@@ -67,61 +67,24 @@ int color_sequence_get(
     goto out;
   }
 
+  mp_obj_t colors = sequence->colors;
+
   // len will be used locally even when user does not request its value
   size_t len = 0;
 
   // check for none
-  if (sequence->colors == mp_const_none) {
+  if (colors == mp_const_none) {
     goto out;
   }
 
-  // check the type of colors
-  mp_obj_t colors = sequence->colors;
-  const mp_obj_type_t* colors_type = mp_obj_get_type(sequence->colors);
-  if (&mp_type_list == colors_type) {
-    // when colors is a list each item is a color
-    mp_obj_t* items;
-    mp_obj_list_get(colors, &len, &items);
+  mp_obj_t* items;
+  mp_obj_list_get(colors, &len, &items);
 
-    if (NULL != colors) {
-      size_t numel = MIN(len, size);
-      for (size_t idx = 0; idx < numel; idx++) {
-        colors_out[idx] = mp_obj_get_int(items[idx]);
-      }
+  if (NULL != colors_out) {
+    size_t numel = MIN(len, size);
+    for (size_t idx = 0; idx < numel; idx++) {
+      colors_out[idx] = mp_obj_get_int(items[idx]);
     }
-
-  } else if (&mp_type_tuple == colors_type) {
-    // when colors is a tuple each item is a color
-    mp_obj_t* items;
-    mp_obj_tuple_get(colors, &len, &items);
-
-    if (NULL != colors) {
-      size_t numel = MIN(len, size);
-      for (size_t idx = 0; idx < numel; idx++) {
-        colors_out[idx] = mp_obj_get_int(items[idx]);
-      }
-    }
-
-  } else if (&mp_type_bytearray == colors_type) {
-    // when colors is a byte array each color is represented by bytes_per_pixel
-    // elements
-    mp_buffer_info_t buffer_info;
-    mp_get_buffer_raise(colors, &buffer_info, MP_BUFFER_READ);
-
-    // determine whole number of colors in the sequence
-    len = buffer_info.len / bytes_per_pixel();
-
-    if (NULL != colors) {
-      size_t numel = MIN(len, size);
-      color_t* source = (color_t*)buffer_info.buf;
-      for (size_t idx = 0; idx < numel; idx++) {
-        colors_out[idx] = source[idx];
-      }
-    }
-
-  } else {
-    ret = -EINVAL;
-    goto out;
   }
 
 out:
@@ -141,9 +104,8 @@ STATIC mp_obj_t set_colors(mp_obj_t self_in, mp_obj_t colors) {
     self->colors = mp_const_none;
   } else {
     const mp_obj_type_t* type = mp_obj_get_type(colors);
-    if ((&mp_type_list != type) && (&mp_type_tuple != type) &&
-        (&mp_type_bytearray != type)) {
-      mp_raise_msg(&mp_type_Exception, NULL);
+    if (&mp_type_list != type) {
+      mp_raise_TypeError(NULL);
     }
     self->colors = colors;
   }
@@ -158,7 +120,7 @@ STATIC mp_obj_t set_type(mp_obj_t self_in, mp_obj_t type_obj) {
   size_t type = 0;
   int ret = find_color_sequence_map_type_entry_index(type_obj, &type);
   if (0 != ret) {
-    mp_raise_ValueError(NULL);
+    mp_raise_OSError(ret);
   }
   self->type = type_obj;
   self->map = color_sequence_map_types_table[type].map;
@@ -166,6 +128,78 @@ STATIC mp_obj_t set_type(mp_obj_t self_in, mp_obj_t type_obj) {
   return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_type_obj, set_type);
+
+// iteration / subscripting
+STATIC mp_obj_t unary_op(mp_unary_op_t op, mp_obj_t self_in) {
+  ColorSequence_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  switch (op) {
+    case MP_UNARY_OP_LEN: {
+      size_t length = 0;
+      int ret = color_sequence_get(self, &length, NULL, 0);
+      if (0 != ret) {
+        mp_raise_OSError(ret);
+      }
+      return mp_obj_new_int(length);
+    } break;
+
+    default:
+      // operator not supported
+      return MP_OBJ_NULL;
+      break;
+  }
+}
+
+STATIC mp_obj_t binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs) {
+  // ColorSequence_obj_t *left_hand_side = MP_OBJ_TO_PTR(lhs);
+  // ColorSequence_obj_t *right_hand_side = MP_OBJ_TO_PTR(rhs);
+  switch (op) {
+    // case MP_BINARY_OP_EQUAL:
+    //   return mp_obj_new_bool((left_hand_side->a == right_hand_side->a) &&
+    //   (left_hand_side->b == right_hand_side->b));
+    // case MP_BINARY_OP_ADD:
+    //   return create_new_myclass(left_hand_side->a + right_hand_side->a,
+    //   left_hand_side->b + right_hand_side->b);
+    // case MP_BINARY_OP_MULTIPLY:
+    //   return create_new_myclass(left_hand_side->a * right_hand_side->a,
+    //   left_hand_side->b * right_hand_side->b);
+    default:
+      // operator not supported
+      return MP_OBJ_NULL;
+  }
+}
+
+STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
+  ColorSequence_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  mp_obj_t colors = self->colors;
+  size_t idx = mp_obj_get_int(index);
+
+  // check for none
+  if (colors == mp_const_none) {
+    mp_raise_ValueError(NULL);
+  }
+
+  // determine length of colors
+  size_t len = 0;
+  mp_obj_t* items;
+  mp_obj_list_get(colors, &len, &items);
+
+  // check bounds
+  if (idx >= len) {
+    mp_raise_ValueError(NULL);
+  }
+
+  if (value == MP_OBJ_SENTINEL) {
+    return items[idx];
+  } else {
+    // check type
+    if (!mp_obj_is_int(value)) {
+      mp_raise_TypeError(NULL);
+    }
+
+    mp_obj_list_store(colors, index, value);
+  }
+  return mp_const_none;
+}
 
 // locals dict
 STATIC const mp_rom_map_elem_t locals_table[] = {
@@ -243,7 +277,9 @@ STATIC mp_obj_t make_new(
 }
 
 const mp_obj_type_t ColorSequence_type = {
-    {&mp_type_type}, .name = MP_QSTR_ColorSequence,
-    .print = print,  .make_new = make_new,
-    .attr = attr,    .locals_dict = (mp_obj_dict_t*)&locals_dict,
+    {&mp_type_type},        .name = MP_QSTR_ColorSequence,
+    .print = print,         .make_new = make_new,
+    .attr = attr,           .locals_dict = (mp_obj_dict_t*)&locals_dict,
+    .subscr = subscr,       .unary_op = unary_op,
+    .binary_op = binary_op,
 };
