@@ -160,4 +160,4 @@ def frames(layer):
         # draw live cells in white
         for idx, cell in enumerate(cells):
             if cell:
-                layer.canvas.interface_pixel(0xFFFFFF, (position(idx)))
+                layer.canvas.interface_pixel(layer.palette[0], (position(idx)))
