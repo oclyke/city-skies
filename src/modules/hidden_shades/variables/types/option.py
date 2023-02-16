@@ -11,7 +11,7 @@ class OptionVariable(VariableDeclaration):
         v = self._type(value)
         if not v in range(len(self._options)):
             raise ValueError
-        return v
+        return True
 
     def get_dict(self):
         base = super().get_dict()

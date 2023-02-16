@@ -2,6 +2,8 @@
 
 #include <errno.h>
 
+#include "py/obj.h"
+#include "py/runtime.h"
 #include "pysicgl/drawing/blit.h"
 #include "pysicgl/interface.h"
 #include "pysicgl/screen.h"
@@ -97,6 +99,54 @@ static void compositor_XOR(
   }
 }
 
+typedef struct _compositor_function_entry_t {
+  mp_obj_t name;
+  compositor_fn compositor;
+} compositor_function_entry_t;
+
+STATIC const compositor_function_entry_t compositor_function_types_table[] = {
+    {MP_ROM_QSTR(MP_QSTR_set), compositor_set},
+    {MP_ROM_QSTR(MP_QSTR_add), compositor_add_clamped},
+    {MP_ROM_QSTR(MP_QSTR_subtract), compositor_subtract_clamped},
+    {MP_ROM_QSTR(MP_QSTR_multiply), compositor_multiply_clamped},
+    {MP_ROM_QSTR(MP_QSTR_AND), compositor_AND},
+    {MP_ROM_QSTR(MP_QSTR_OR), compositor_OR},
+    {MP_ROM_QSTR(MP_QSTR_XOR), compositor_XOR},
+};
+STATIC const size_t NUM_COMPOSITOR_FUNCTION_TYPES =
+    sizeof(compositor_function_types_table) /
+    sizeof(compositor_function_entry_t);
+STATIC int find_compositor_function_type_entry_index(
+    mp_obj_t name, size_t* index) {
+  int ret = 0;
+  if (NULL == index) {
+    ret = -EINVAL;
+    goto out;
+  }
+
+  // try to find the corresponding map for this type
+  for (size_t idx = 0; idx < NUM_COMPOSITOR_FUNCTION_TYPES; idx++) {
+    if (compositor_function_types_table[idx].name == name) {
+      *index = idx;
+      goto out;
+    }
+  }
+
+  ret = -ENOENT;
+
+out:
+  return ret;
+}
+
+mp_obj_t get_composition_types() {
+  mp_obj_t dict = mp_obj_new_dict(NUM_COMPOSITOR_FUNCTION_TYPES);
+  for (size_t idx = 0; idx < NUM_COMPOSITOR_FUNCTION_TYPES; idx++) {
+    mp_obj_dict_store(
+        dict, compositor_function_types_table[idx].name, mp_obj_new_int(idx));
+  }
+  return dict;
+}
+
 mp_obj_t compose(size_t n_args, const mp_obj_t* args) {
   // parse args
   enum {
@@ -111,42 +161,16 @@ mp_obj_t compose(size_t n_args, const mp_obj_t* args) {
   mp_get_buffer_raise(args[ARG_sprite], &sprite_info, MP_BUFFER_READ);
   mp_int_t mode = mp_obj_get_int(args[ARG_mode]);
 
-  compositor_fn compositor = NULL;
-  void* compositor_args = NULL;
-  switch (mode) {
-    case 0:
-      compositor = compositor_set;
-      break;
-
-    case 1:
-      compositor = compositor_add_clamped;
-      break;
-
-    case 2:
-      compositor = compositor_subtract_clamped;
-      break;
-
-    case 3:
-      compositor = compositor_multiply_clamped;
-      break;
-
-    case 4:
-      compositor = compositor_AND;
-      break;
-
-    case 5:
-      compositor = compositor_OR;
-      break;
-
-    case 6:
-      compositor = compositor_XOR;
-      break;
-
-    default:
-      mp_raise_ValueError(NULL);
-      break;
+  // check bounds of mode
+  if ((mode >= NUM_COMPOSITOR_FUNCTION_TYPES) || (mode < 0)) {
+    mp_raise_ValueError(NULL);
   }
 
+  // get the compositor function and args for this mode
+  compositor_fn compositor = compositor_function_types_table[mode].compositor;
+  void* compositor_args = NULL;
+
+  // compose the given screen onto the interface
   int ret = sicgl_compose(
       &self->interface, screen->screen, sprite_info.buf, compositor,
       compositor_args);

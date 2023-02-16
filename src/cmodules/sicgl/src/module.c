@@ -6,6 +6,7 @@
 #include "py/runtime.h"
 #include "pysicgl.h"
 #include "pysicgl/color_sequence.h"
+#include "pysicgl/drawing/compose.h"
 #include "pysicgl/field.h"
 #include "pysicgl/interface.h"
 #include "pysicgl/screen.h"
@@ -83,6 +84,9 @@ STATIC mp_obj_t get_color_channels(mp_obj_t color_obj) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(get_color_channels_obj, get_color_channels);
 
+// methods declared elsewhere
+MP_DEFINE_CONST_FUN_OBJ_0(get_composition_types_obj, get_composition_types);
+
 // module
 STATIC const mp_map_elem_t pysicgl_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR___name__), MP_OBJ_NEW_QSTR(MP_QSTR_sicgl)},
@@ -96,6 +100,9 @@ STATIC const mp_map_elem_t pysicgl_globals_table[] = {
      (mp_obj_t)MP_ROM_PTR(&make_color_obj)},
     {MP_OBJ_NEW_QSTR(MP_QSTR_get_color_channels),
      (mp_obj_t)MP_ROM_PTR(&get_color_channels_obj)},
+
+    {MP_OBJ_NEW_QSTR(MP_QSTR_get_composition_types),
+     (mp_obj_t)MP_ROM_PTR(&get_composition_types_obj)},
 
     // classes
     {MP_OBJ_NEW_QSTR(MP_QSTR_ColorSequence), (mp_obj_t)&ColorSequence_type},

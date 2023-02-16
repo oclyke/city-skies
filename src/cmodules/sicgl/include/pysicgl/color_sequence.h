@@ -11,7 +11,7 @@ extern const mp_obj_type_t ColorSequence_type;
 typedef struct _ColorSequence_obj_t {
   mp_obj_base_t base;
   mp_obj_t colors;      // integer list representing the colors in the sequence
-  mp_obj_t type;        // type of sequence
+  mp_obj_t map_type;    // type of map function
   sequence_map_fn map;  // scalar to color map function
 } ColorSequence_obj_t;
 

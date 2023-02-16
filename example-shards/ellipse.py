@@ -1,10 +1,10 @@
 import math
 import pysicgl
 from pysicgl_utils import Display
-from hidden_shades import timebase, palette
+from hidden_shades import timebase
 from hidden_shades.timewarp import TimeWarp
 from hidden_shades.variables.responder import VariableResponder
-from hidden_shades.variables.types import FloatingVariable, OptionVariable
+from hidden_shades.variables.types import FloatingVariable
 
 
 class FloatVec2:
@@ -103,9 +103,11 @@ def frames(layer):
             )
 
     # a callback function to handle changes to declared variables
-    def handle_variable_changes(name, value):
+    def handle_variable_changes(variable):
+        name = variable.name
+
         if name == "speed":
-            timewarp.set_frequency(value)
+            timewarp.set_frequency(variable.value)
         if name == "scale":
             compute_scalar_field()
         if name == "eccentricity":

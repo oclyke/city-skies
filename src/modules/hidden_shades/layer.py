@@ -1,9 +1,14 @@
+import pysicgl
 from cache import Cache
 from .variables.manager import VariableManager
-from hidden_shades import palette
+from .variables.types import IntegerVariable, ColorSequenceVariable
+from .variables.responder import VariableResponder
+from hidden_shades import globals
 
 
 class Layer:
+    COMPOSITION_MODE_RANGE = (0, len(pysicgl.get_composition_types()) - 1)
+
     def __init__(self, id, path, interface, init_info={}, post_init_hook=None):
         self.id = id
 
@@ -29,15 +34,33 @@ class Layer:
         # variables which may be dynamically registered for external control
         self._variable_manager = VariableManager(f"{self._root_path}/vars")
 
+        # declare private variables
+        self._private_variable_manager = VariableManager(
+            f"{self._root_path}/private_vars"
+        )
+        self._private_variable_manager.declare_variable(
+            IntegerVariable(
+                0,
+                "composition_mode",
+                default_range=Layer.COMPOSITION_MODE_RANGE,
+                allowed_range=Layer.COMPOSITION_MODE_RANGE,
+            )
+        )
+        self._private_variable_manager.declare_variable(
+            ColorSequenceVariable(
+                pysicgl.ColorSequence([0x000000, 0xFFFFFF]), "palette"
+            )
+        )
+        self._private_variable_manager.initialize_variables()
+
         # mutable info recorded in a cache
         # (this must be done after default values are set because it
         # will automatically enable the module if possible)
         initial_info = {
             "shard_uuid": None,
-            "composition_mode": 0,
             "index": None,
             "active": True,
-            "palette": None,
+            "use_local_palette": False,
         }
         self._info = Cache(
             f"{self._root_path}/info",
@@ -56,8 +79,12 @@ class Layer:
             self._ready = active
             return active
         if key == "palette":
-            if value is not None:
-                return list(int(element) for element in value)
+            if value is None:
+                self._palette = None
+            else:
+                l = list(int(element) for element in value)
+                self._palette = pysicgl.ColorSequence(l)
+                return l
 
     def set_shard(self, shard):
         self._shard = shard
@@ -83,6 +110,9 @@ class Layer:
     def merge_info(self, info):
         self._info.merge(info)
 
+    def use_local_palette(self, use_local):
+        self._info.set("use_local_palette", bool(use_local))
+
     @property
     def info(self):
         return dict(**self._info.cache, **self._static_info)
@@ -92,8 +122,16 @@ class Layer:
         return self._variable_manager
 
     @property
+    def private_variable_manager(self):
+        return self._private_variable_manager
+
+    @property
     def palette(self):
-        p = self._info.get("palette")
-        if p is None:
-            p = palette.primary
-        return p
+        if self._info.get("use_local_palette"):
+            return self._private_variable_manager.variables["palette"].value
+        else:
+            return globals.variables["palette"].value
+
+    @property
+    def composition_mode(self):
+        return self.private_variable_manager.variables["composition_mode"].value

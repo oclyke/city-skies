@@ -19,7 +19,7 @@ class IntegerVariable(VariableDeclaration):
         if self._allowed_range is not None:
             if not v in range(*self._allowed_range):
                 raise ValueError
-        return v
+        return True
 
     def get_dict(self):
         base = super().get_dict()

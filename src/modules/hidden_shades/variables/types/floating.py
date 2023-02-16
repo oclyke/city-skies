@@ -21,7 +21,7 @@ class FloatingVariable(VariableDeclaration):
                 raise ValueError
             if v > max(self._allowed_range):
                 raise ValueError
-        return v
+        return True
 
     def get_dict(self):
         base = super().get_dict()
