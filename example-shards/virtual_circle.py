@@ -7,20 +7,25 @@ from hidden_shades.variables.types import FloatingVariable
 import math
 import random
 
+
 def magnitude(vector):
     squares = map(lambda element: math.pow(element, 2), vector)
     return math.sqrt(sum(squares))
+
 
 def direction(vector):
     mag = magnitude(vector)
     return tuple(map(lambda element: element / mag, vector))
 
+
 def vector_add(*vectors):
     dims = len(vectors[0])
     return tuple(map(lambda i: sum(tuple(vec[i] for vec in vectors)), range(dims)))
 
+
 def vector_scale(vector, scalar):
     return tuple(map(lambda element: element * scalar, vector))
+
 
 class FloatVec2:
     def __init__(self, name, initial_values):
@@ -56,7 +61,6 @@ def frames(layer):
     timewarp = TimeWarp(timebase.local)
     (maxx, maxy) = display.shape
 
-
     field = pysicgl.ScalarField(screen.pixels)
 
     location = [0.5, 0.5]
@@ -66,7 +70,6 @@ def frames(layer):
     # values specified here are used as defaults
 
     center = FloatVec2("center", (0.0, 0.0))
-
 
     def compute_scalar_field():
         """
@@ -111,17 +114,17 @@ def frames(layer):
         if (location[0] - radius) < 0:
             dirvec[0] = 1
             bounced = True
-        if (location [0] + radius) > maxx:
+        if (location[0] + radius) > maxx:
             dirvec[0] = -1
             bounced = True
 
         if (location[1] - radius) < 0:
             dirvec[1] = 1
             bounced = True
-        if (location [1] + radius) > maxy:
+        if (location[1] + radius) > maxy:
             dirvec[1] = -1
             bounced = True
-        
+
         if bounced:
             add_wobble()
 
