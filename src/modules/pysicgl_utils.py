@@ -7,6 +7,11 @@ class Display:
         self._dimx = screen.width - 1
         self._dimy = screen.height - 1
 
+        self._extent = (
+            self._numx,
+            self._numy,
+        )
+
         self._dimensions = (
             self._dimx,
             self._dimy,
@@ -17,6 +22,10 @@ class Display:
             self._dimx / self._unity,
             self._dimy / self._unity,
         )  # shape of the display normalized so that the maximum element is 1.0
+
+    @property
+    def extent(self):
+        return self._extent
 
     @property
     def dimensions(self):
