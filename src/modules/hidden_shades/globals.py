@@ -39,7 +39,8 @@ class GlobalsManager:
         self._variable_manager.declare_variable(
             ColorSequenceVariable(DEFAULT_PALETTE, "palette")
         )
+        self._variable_manager.initialize_variables()
 
     @property
-    def variables(self):
-        return self._variable_manager.variables
+    def variable_manager(self):
+        return self._variable_manager

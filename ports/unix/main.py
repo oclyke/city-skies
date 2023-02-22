@@ -137,7 +137,7 @@ async def run_pipeline():
             visualizer.compose(display, canvas_memory, layer.composition_mode)
 
         # apply global brightness
-        visualizer.interface_scale(globals.variables["brightness"].value)
+        visualizer.interface_scale(globals.variable_manager.variables["brightness"].value)
 
         # gamma correct the canvas
         pysicgl.gamma_correct(visualizer, corrected)
@@ -240,7 +240,7 @@ async def serve_api():
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/globals/vars/<varname> -d 'value'
     @app.put("/globals/vars/<varname>")
     async def put_global_variable(request, varname):
-        globals.variables[varname].value = request.body.decode()
+        globals.variable_manager.variables[varname].value = request.body.decode()
 
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/shards/<uuid> -d $'def frames(l):\n\twhile True:\n\t\tyield None\n\t\tprint("hello world")\n\n'
     @app.put("/shards/<uuid>")

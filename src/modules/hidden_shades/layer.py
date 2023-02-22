@@ -130,7 +130,7 @@ class Layer:
         if self._info.get("use_local_palette"):
             return self._private_variable_manager.variables["palette"].value
         else:
-            return globals.variables["palette"].value
+            return globals.variable_manager.variables["palette"].value
 
     @property
     def composition_mode(self):
