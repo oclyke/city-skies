@@ -240,7 +240,8 @@ async def serve_api():
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/globals/vars/<varname> -d 'value'
     @app.put("/globals/vars/<varname>")
     async def put_global_variable(request, varname):
-        globals.variable_manager.variables[varname].value = request.body.decode()
+        variable = globals.variable_manager.variables[varname]
+        variable.value = variable.deserialize(request.body.decode())
 
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/shards/<uuid> -d $'def frames(l):\n\twhile True:\n\t\tyield None\n\t\tprint("hello world")\n\n'
     @app.put("/shards/<uuid>")
