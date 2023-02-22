@@ -30,8 +30,8 @@ const mp_obj_type_t FftPlan_type;
  * @param high high index
  * @return STATIC
  */
-STATIC mp_int_t ear_kernel(mp_int_t factor, size_t low, size_t high) {
-  return (pow(high, factor) - pow(low, factor));
+STATIC double ear_kernel(double factor, size_t low, size_t high) {
+  return pow(high, factor) - pow(low, factor);
 }
 
 /**
@@ -51,7 +51,7 @@ STATIC mp_float_t sum_bin_range(
       return accumulated;
     }
     size_t odx = 2 * idx;
-    mp_float_t entry = input[odx];
+    mp_float_t entry = (mp_float_t)input[odx];
     if (entry >= floor) {
       accumulated += entry;
     }
@@ -94,7 +94,7 @@ STATIC mp_obj_t window(mp_obj_t self_in) {
   float a0 = 25.0 / 46.0;
   for (size_t idx = 0; idx < capacity; idx++) {
     self->config->input[idx] *=
-        a0 - (1 - a0) * (float)cos(2 * M_PI * ((float)idx / capacity));
+        a0 - (1 - a0) * (float)cos(2 * M_PI * ((double)idx / capacity));
   }
 
   return mp_const_none;
@@ -112,7 +112,7 @@ STATIC mp_obj_t execute(mp_obj_t self_in) {
 
   // apply absolute value
   for (int idx = 0; idx < self->config->size; idx += 2) {
-    self->config->output[idx] = fabs(self->config->output[idx]);
+    self->config->output[idx] = fabs((double)self->config->output[idx]);
   }
 
   return mp_const_none;
@@ -129,7 +129,7 @@ STATIC mp_obj_t stats(mp_obj_t self_in) {
   mp_float_t max = 0;
   size_t max_idx = 0;
   for (size_t idx = 0; idx < self->config->size; idx += 2) {
-    mp_float_t val = self->config->output[idx];
+    mp_float_t val = (mp_float_t)self->config->output[idx];
     sum += val;
     if (val > max) {
       max = val;
@@ -177,14 +177,61 @@ STATIC mp_obj_t output(mp_obj_t self_in, mp_obj_t output_obj) {
   // copy items into output
   for (size_t idx = 0; idx < max_bins_out; idx++) {
     size_t odx = 2 * idx;
-    mp_float_t val = self->config->output[odx];
+    mp_float_t val = (mp_float_t)self->config->output[odx];
     output[idx] = mp_obj_new_float(val);
   }
 
-  // return the maximum value to allow for scaling
   return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(output_obj, output);
+
+/**
+ * @brief Interpolates the FFT bins to fit into the number of elements in the
+ * output.
+ * 
+ * @param self_in 
+ * @param output_obj 
+ * @return STATIC 
+ */
+STATIC mp_obj_t align(mp_obj_t self_in, mp_obj_t output_obj) {
+  FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  if (!self->config) {
+    mp_raise_OSError(-ENOMEM);
+  }
+
+  // get the output list
+  size_t numout = 0;
+  mp_obj_t* output = NULL;
+  if (!mp_obj_is_type(output_obj, &mp_type_list)) {
+    mp_raise_TypeError(NULL);
+  }
+  mp_obj_list_get(output_obj, &numout, &output);
+  if (NULL == output) {
+    mp_raise_OSError(-ENOMEM);
+  }
+
+  // get the interpolated value for each element of the output list so that
+  // the first and last elements correspond to the first and last bins of the
+  // fft result
+  int ret = 0;
+  double interpolated = (double)0.0f;
+  for (size_t idx = 0 ; idx < numout; idx++) {
+    // get the phase for this output element
+    double phase = ((double)idx / (numout - 1));
+
+    // interpolate the fft bins to get the value for this element
+    ret = interpolate_real_outputs_linear(self->config, phase, &interpolated);
+    if (0 != ret) {
+      mp_raise_OSError(ret);
+    }
+
+    // store the element in the output list
+    output[idx] = mp_obj_new_float(interpolated);
+  }
+
+  return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(align_obj, align);
 
 STATIC mp_obj_t
 reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
@@ -216,7 +263,7 @@ reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
   size_t input_bins = self->config->size / 2;
 
   // keep track of how many bins have been handled
-  mp_float_t bins_handled = 0.0;
+  double bins_handled = 0.0;
   size_t bins_handled_int = 0;
   size_t bin_low = 0;
   size_t bin_high = 0;
@@ -228,7 +275,7 @@ reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
   do {
     // determine the number of bins that should be accumulated into this output
     // index
-    bins_handled += ear_kernel(factor, idx, idx + 1);
+    bins_handled += ear_kernel((double)factor, idx, idx + 1);
     bins_handled_int = (size_t)bins_handled;
 
     // when this upper limit advances move the entire window and perform the sum
@@ -256,6 +303,7 @@ STATIC const mp_rom_map_elem_t plan_locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_window), MP_ROM_PTR(&window_obj)},
     {MP_ROM_QSTR(MP_QSTR_execute), MP_ROM_PTR(&execute_obj)},
     {MP_ROM_QSTR(MP_QSTR_output), MP_ROM_PTR(&output_obj)},
+    {MP_ROM_QSTR(MP_QSTR_align), MP_ROM_PTR(&align_obj)},
     {MP_ROM_QSTR(MP_QSTR_reshape), MP_ROM_PTR(&reshape_obj)},
     {MP_ROM_QSTR(MP_QSTR_stats), MP_ROM_PTR(&stats_obj)},
 };

@@ -1,6 +1,7 @@
 import uasyncio as asyncio
 import math
 import hidden_shades
+from hidden_shades.audio.source import ManagedAudioSource
 
 
 async def mock_audio_source():
@@ -8,9 +9,13 @@ async def mock_audio_source():
     sample_length = 256
 
     # add this audio source to the audio manager
-    source = hidden_shades.audio.add_source(
-        "SineTest", (sample_frequency, sample_length)
-    )
+    source = ManagedAudioSource(hidden_shades.audio_manager, "SineTest", (sample_frequency, sample_length))
+
+    # select this source for the audio manager
+    hidden_shades.audio_manager.select_source("SineTest")
+
+    # initialize the audio manager once all audio sources have been registered
+    hidden_shades.audio_manager.initialize()
 
     def sine_wave(freq, sample_freq):
         # the time period between each step is 1/sample_freq seconds long
