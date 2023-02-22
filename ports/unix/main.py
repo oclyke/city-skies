@@ -137,7 +137,9 @@ async def run_pipeline():
             visualizer.compose(display, canvas_memory, layer.composition_mode)
 
         # apply global brightness
-        visualizer.interface_scale(globals.variable_manager.variables["brightness"].value)
+        visualizer.interface_scale(
+            globals.variable_manager.variables["brightness"].value
+        )
 
         # gamma correct the canvas
         pysicgl.gamma_correct(visualizer, corrected)
