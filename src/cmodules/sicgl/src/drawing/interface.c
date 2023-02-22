@@ -17,7 +17,7 @@ static inline color_t clamp_u8(color_t channel) {
   }
 }
 
-static color_t color_scale(color_t color, double scale) {
+static inline color_t color_scale(color_t color, double scale) {
   return color_from_channels(
       clamp_u8((color_t)(color_channel_red(color) * scale)),
       clamp_u8((color_t)(color_channel_green(color) * scale)),
