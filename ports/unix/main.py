@@ -15,7 +15,7 @@ import config
 
 from semver import SemanticVersion
 from stack_manager import StackManager
-from mock_audio import mock_audio_source
+from audio_stream_udp import stream_audio_source
 from microdot_asyncio import Microdot, Response, Request
 from hidden_shades.layer import Layer
 from hidden_shades import globals
@@ -310,7 +310,7 @@ async def main():
     # create async tasks
     asyncio.create_task(run_pipeline())
     asyncio.create_task(control_visualizer())
-    asyncio.create_task(mock_audio_source())
+    asyncio.create_task(stream_audio_source())
     asyncio.create_task(serve_api())
     asyncio.create_task(blink())
 
