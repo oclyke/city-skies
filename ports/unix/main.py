@@ -186,7 +186,7 @@ async def serve_api():
     @app.get("/stacks/<active>/layers")
     async def get_layers(request, active):
         stack = stack_manager.get(active)
-        return get_list(layer.id for layer in stack)
+        return get_list(str(layer.id) for layer in stack)
 
     @app.get("/stacks/<active>/layers/<layerid>/variables")
     async def get_layer_variables(request, active, layerid):
