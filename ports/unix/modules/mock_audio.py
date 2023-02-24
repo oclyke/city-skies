@@ -23,10 +23,7 @@ async def mock_audio_source():
         count = 0
         while True:
             phase = count / sample_freq
-            # weird note: I thought this should be 2 * math.pi but no matter what I do
-            # I get a frequency that is double what I expected, so for now let's just
-            # use math.pi
-            yield math.sin(math.pi * freq * phase)
+            yield math.sin(2 * math.pi * freq * phase)
             count += 1
             if count > sample_freq:
                 count = 0

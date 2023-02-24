@@ -128,8 +128,8 @@ STATIC mp_obj_t stats(mp_obj_t self_in) {
   mp_float_t sum = 0;
   mp_float_t max = 0;
   size_t max_idx = 0;
-  for (size_t idx = 0; idx < self->config->size; idx += 2) {
-    mp_float_t val = (mp_float_t)self->config->output[idx];
+  for (size_t idx = 0; idx < self->config->size; idx++) {
+    mp_float_t val = (mp_float_t)self->config->output[idx * 2];
     sum += val;
     if (val > max) {
       max = val;
