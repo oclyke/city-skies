@@ -93,6 +93,7 @@ class Stack:
 
         # remove the layer by its index
         self._layer_stack.pop(layer_index)
+        self._recompute_layer_indices()
 
         # remove the layer from the map
         del self._layer_map[layerid]
