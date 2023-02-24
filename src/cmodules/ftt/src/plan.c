@@ -22,6 +22,43 @@ typedef struct _FftPlan_obj_t {
 const mp_obj_type_t FftPlan_type;
 
 /**
+ * @brief Get info about relevant real output bins for a given FFT config.
+ * 
+ * @return 0 for success, negative errno on failure.
+*/
+STATIC int get_real_output_bins(fft_config_t* config, size_t* len_out, float* real_out, size_t real_len) {
+  int ret = 0;
+
+  if (NULL == config) {
+    ret = -ENOMEM;
+    goto out;
+  }
+
+  // the fft output gives both real and imaginary results interleaved, so
+  // the number of real output bins is half the output size
+  size_t real_bins = config->size / 2;
+
+  // give the user the number of relevant bins
+  if (NULL != len_out) {
+    *len_out = real_bins;
+  }
+
+  // copy out the lesser of [real_len, relevant_bins] real fft results to the real output array
+  if (NULL != real_out) {
+    size_t max_bins = real_bins;
+    if (max_bins > real_len) {
+      max_bins = real_len;
+    }
+    for (size_t idx = 0; idx < max_bins; idx++) {
+      real_out[idx] = config->output[2*idx];
+    }
+  }
+
+out:
+  return ret;
+}
+
+/**
  * @brief Get the scaled distance between two integer locations according
  * to an exponential scale factor to account for human hearing.
  *
@@ -43,15 +80,14 @@ STATIC double ear_kernel(double factor, size_t low, size_t high) {
  * @param floor
  * @return
  */
-STATIC mp_float_t sum_bin_range(
+STATIC double sum_bin_range(
     float* input, size_t size_bins, size_t from, size_t to, mp_float_t floor) {
-  mp_float_t accumulated = 0;
+  double accumulated = 0;
   for (size_t idx = from; idx <= to; idx++) {
     if (idx > size_bins) {
       return accumulated;
     }
-    size_t odx = 2 * idx;
-    mp_float_t entry = (mp_float_t)input[odx];
+    double entry = (double)input[idx];
     if (entry >= floor) {
       accumulated += entry;
     }
@@ -128,8 +164,24 @@ STATIC mp_obj_t stats(mp_obj_t self_in) {
   mp_float_t sum = 0;
   mp_float_t max = 0;
   size_t max_idx = 0;
-  for (size_t idx = 0; idx < self->config->size; idx++) {
-    mp_float_t val = (mp_float_t)self->config->output[idx * 2];
+
+  // get real output bins
+  size_t real_bin_count = 0;
+  int ret = get_real_output_bins(self->config, &real_bin_count, NULL, 0);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+  float real_bins[real_bin_count];
+  ret = get_real_output_bins(self->config, NULL, real_bins, real_bin_count);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+
+  // // intentionally zero the DC component
+  // real_bins[0] = 0.0f;
+
+  for (size_t idx = 0; idx < real_bin_count; idx++) {
+    mp_float_t val = (mp_float_t)real_bins[idx];
     sum += val;
     if (val > max) {
       max = val;
@@ -153,10 +205,6 @@ STATIC mp_obj_t output(mp_obj_t self_in, mp_obj_t output_obj) {
     mp_raise_OSError(-ENOMEM);
   }
 
-  // we only take the real components so the number of outputs is half the size
-  // of the fft
-  size_t num_bins = self->config->size / 2;
-
   // get the output list
   size_t numout = 0;
   mp_obj_t* output = NULL;
@@ -168,17 +216,27 @@ STATIC mp_obj_t output(mp_obj_t self_in, mp_obj_t output_obj) {
     mp_raise_OSError(-ENOMEM);
   }
 
+  // get real output bins
+  size_t real_bin_count = 0;
+  int ret = get_real_output_bins(self->config, &real_bin_count, NULL, 0);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+  float real_bins[real_bin_count];
+  ret = get_real_output_bins(self->config, NULL, real_bins, real_bin_count);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+
   // determine limiting size of output
-  size_t max_bins_out = num_bins;
+  size_t max_bins_out = real_bin_count;
   if (numout < max_bins_out) {
     max_bins_out = numout;
   }
 
   // copy items into output
   for (size_t idx = 0; idx < max_bins_out; idx++) {
-    size_t odx = 2 * idx;
-    mp_float_t val = (mp_float_t)self->config->output[odx];
-    output[idx] = mp_obj_new_float(val);
+    output[idx] = mp_obj_new_float((mp_float_t)real_bins[idx]);
   }
 
   return mp_const_none;
@@ -258,9 +316,17 @@ reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
     mp_raise_OSError(-ENOMEM);
   }
 
-  // get input list, skipping the first (DC) bin (both real and imaginary parts)
-  float* input = &self->config->output[2];
-  size_t input_bins = self->config->size / 2;
+  // get real output bins
+  size_t real_bin_count = 0;
+  ret = get_real_output_bins(self->config, &real_bin_count, NULL, 0);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+  float real_bins[real_bin_count];
+  ret = get_real_output_bins(self->config, NULL, real_bins, real_bin_count);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
 
   // keep track of how many bins have been handled
   double bins_handled = 0.0;
@@ -282,7 +348,7 @@ reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
     if (bins_handled_int > bin_high) {
       bin_low = bin_high;
       bin_high = bins_handled_int;
-      sum = sum_bin_range(input, input_bins, bin_low, bin_high, floor);
+      sum = sum_bin_range(real_bins, real_bin_count, bin_low, bin_high, floor);
     }
 
     // the output at this index will either be a new value or the same value as

@@ -31,6 +31,9 @@ async def stream_audio_source():
     buffer_length = 512
     buffer = bytearray(buffer_length)
 
+    # preallocate memory to store the strengths in
+    strengths = [0.0] * 32
+
     while True:
         # wait for some amount of time
         # (to allow other tasks to operate)
@@ -50,7 +53,7 @@ async def stream_audio_source():
 
         # read the samples into the audio source
         for idx in range(sample_length):
-            sample = int.from_bytes(buffer[2*(idx):2*(idx+1)], 'little')
+            sample = int.from_bytes(buffer[2*(idx):2*(idx+1)], 'big')
             source._samples[idx] = sample
 
         # now that the audio source is filled with data compute the fft
@@ -61,7 +64,10 @@ async def stream_audio_source():
         _, _, max_idx = stats
         bin_width = source.fft_bin_width
         strongest_freq = max_idx * source.fft_bin_width
-        # source.get_fft_strengths(strengths)
+        source.get_fft_strengths(strengths)
+    
+        # formatted = tuple(f"{s:.1f}" for s in strengths)
+        # print(f"strongest: {strongest_freq} hz, bin_width: {bin_width}, strengths: {formatted}")
         # print(strengths)
         # print('')
-        # print(stats, bin_width, strongest_freq)
+        # print(f"bin_width: {bin_width:.2f}, strongest: {strongest_freq} hz [{max_idx}]", stats, strongest_freq)
