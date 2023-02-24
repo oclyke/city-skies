@@ -171,6 +171,9 @@ async def serve_api():
     def get_list(l):
         return "\n".join(l)
 
+    def get_dict(d):
+        return json.dumps(d)
+
     # curl -H "Content-Type: text/plain" -X GET http://localhost:1337/info
     @app.get("/info")
     async def get_info(request):
@@ -187,6 +190,12 @@ async def serve_api():
     async def get_layers(request, active):
         stack = stack_manager.get(active)
         return get_list(str(layer.id) for layer in stack)
+
+    @app.get("/stacks/<active>/layers/<layerid>/info")
+    async def get_layer_info(request, active, layerid):
+        stack = stack_manager.get(active)
+        layer = stack.get_layer_by_id(str(layerid))
+        return get_dict(layer.info)
 
     @app.get("/stacks/<active>/layers/<layerid>/variables")
     async def get_layer_variables(request, active, layerid):
@@ -216,6 +225,11 @@ async def serve_api():
         )
         stack.add_layer(layer)
 
+    @app.delete("/stacks/<active>/layers/<layerid>")
+    async def delete_stack_layer(request, active, layerid):
+        stack = stack_manager.get(active)
+        stack.remove_layer_by_id(str(layerid))
+
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/layers/<layerid>/info -d '{"composition_mode": 3}'
     @app.put("/stacks/<active>/layers/<layerid>/info")
     async def put_layer_info(request, active, layerid):
@@ -244,6 +258,12 @@ async def serve_api():
     async def put_global_variable(request, varname):
         variable = globals.variable_manager.variables[varname]
         variable.value = variable.deserialize(request.body.decode())
+
+    @app.get("/globals/variables")
+    async def get_global_variables(request):
+        return get_list(
+            variable.name for variable in globals.variable_manager.variables.values()
+        )
 
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/shards/<uuid> -d $'def frames(l):\n\twhile True:\n\t\tyield None\n\t\tprint("hello world")\n\n'
     @app.put("/shards/<uuid>")

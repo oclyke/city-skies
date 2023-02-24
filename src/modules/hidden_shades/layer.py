@@ -4,6 +4,7 @@ from .variables.manager import VariableManager
 from .variables.types import IntegerVariable, ColorSequenceVariable
 from .variables.responder import VariableResponder
 from hidden_shades import globals
+from pathutils import rmdirr
 
 
 class Layer:
@@ -85,6 +86,12 @@ class Layer:
                 l = list(int(element) for element in value)
                 self._palette = pysicgl.ColorSequence(l)
                 return l
+
+    def destroy_storage(self):
+        """
+        Removes the layer information from storage
+        """
+        rmdirr(self._root_path)
 
     def set_shard(self, shard):
         self._shard = shard
