@@ -4,104 +4,146 @@ Paul Stoffregen's excellent OctoWS2811 library: https://www.pjrc.com/teensy/td_l
 This example may be copied under the terms of the MIT license, see the LICENSE file for details
 */
 
-#include <Artnet.h>
 #include <NativeEthernet.h>
 #include <NativeEthernetUdp.h>
 #include <SPI.h>
 #include <OctoWS2811.h>
 
-#define DISP_WIDTH (33)
-#define DISP_HEIGHT (32)
-#define TOTAL_LEDS (DISP_WIDTH * DISP_HEIGHT)
+// display info
+const size_t DISPLAY_WIDTH = 33;
+const size_t DISPLAY_HEIGHT = 32;
+const size_t ledsPerStrip = (2*(4*DISPLAY_WIDTH)); // use the largest number of all strips
 
-// strip length (choose size of the largest strip)
-const int ledsPerStrip = (2*4*DISP_WIDTH);
-
-// pins for the individual strips
+// pin mapping for strips, as well as calculation of number of strips
 uint8_t pinList[8] = {2, 5, 6, 14};
-const size_t numStrips = sizeof(pinList) / sizeof(uint8_t);
-
-// OctoWS2811 settings
-const size_t pixelExpansionFactor = 6; // this is the number of ints that should be reserved for each pixel when using OctoWS2811
+size_t numStrips = sizeof(pinList) / sizeof(uint8_t);
 const int numLeds = ledsPerStrip * numStrips;
-const int numberOfChannels = numLeds * 3; // Total number of channels you want to receive (1 led = 3 channels)
-DMAMEM int displayMemory[ledsPerStrip*pixelExpansionFactor];
-int drawingMemory[ledsPerStrip*pixelExpansionFactor];
+
+// display and drawing memory
+const size_t octoWS2811IntsPerPixel = 6; // the required number of ints per pixel when using octoWS2811
+DMAMEM int displayMemory[ledsPerStrip*octoWS2811IntsPerPixel];
+int drawingMemory[ledsPerStrip*octoWS2811IntsPerPixel];
+
+// the octoWS2811 manager
 const int config = WS2811_GRB | WS2811_800kHz;
 OctoWS2811 octo_leds(ledsPerStrip, displayMemory, drawingMemory, config, numStrips, pinList);
 
-// Artnet settings
-Artnet artnet;
-const int startUniverse = 0; // CHANGE FOR YOUR SETUP most software this is 1, some software send out artnet first universe as 0.
-
-// Check if we got all universes
-const int maxUniverses = numberOfChannels / 512 + ((numberOfChannels % 512) ? 1 : 0);
-bool universesReceived[maxUniverses];
-bool sendFrame = 1;
-int previousDataLength = 0;
-
-// Change ip and mac address for your setup
+// IP Address
 byte mac[] = {
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
 };
 IPAddress ip(192, 168, 4, 177);
+unsigned int localPort = 6454; // Standard Art-Net port
+
+
+// buffers for receiving and sending data
+const size_t ARTNET_MAX_BUFFER_LEN = 18 + 512;
+char rx_buffer[ARTNET_MAX_BUFFER_LEN];
+
+// An EthernetUDP instance to let us send and receive packets over UDP
+EthernetUDP Udp;
+
+// an incoming pixel data buffer
+#define NUM_LEDS (DISPLAY_WIDTH * DISPLAY_HEIGHT)
+int pixels[NUM_LEDS];
+const size_t start_universe = 0;
+const size_t pixel_len_bytes = sizeof(pixels);
+
+// a very crude way to signal a full frame reception:
+// compare the number of packets received against the number expected
+const size_t universes_expected = (pixel_len_bytes / 512) + 1;
+size_t universes_received = 0;
 
 void setup()
 {
   Serial.begin(115200);
-  artnet.begin(mac, ip);
+
+  // start the Ethernet
+  Ethernet.begin(mac, ip);
+
   octo_leds.begin();
-  initTest();
+  // initTest();
 
-  // this will be called for each packet received
-  artnet.setArtDmxCallback(onDmxFrame);
-}
-
-void loop()
-{
-  // we call the read function inside the loop
-  artnet.read();
-}
-
-void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data)
-{
-  Serial.println("HEY! We got an artnet frame!");
-
-  
-  sendFrame = 1;
-
-  // Store which universe has got in
-  if ((universe - startUniverse) < maxUniverses)
-    universesReceived[universe - startUniverse] = 1;
-
-  for (int i = 0 ; i < maxUniverses ; i++)
-  {
-    if (universesReceived[i] == 0)
-    {
-      sendFrame = 0;
-      break;
+  // Check for Ethernet hardware present
+  if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+    Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+    while (true) {
+      delay(1); // do nothing, no point running without Ethernet hardware
     }
   }
-
-  // read universe and put into the right part of the display buffer
-  for (int i = 0; i < length / 3; i++)
-  {
-    int led = i + (universe - startUniverse) * (previousDataLength / 3);
-    if (led < numLeds)
-      octo_leds.setPixel(led, data[i * 3], data[i * 3 + 1], data[i * 3 + 2]);
+  if (Ethernet.linkStatus() == LinkOFF) {
+    Serial.println("Ethernet cable is not connected.");
   }
-  previousDataLength = length;      
-  
-  if (sendFrame)
-  {
-    octo_leds.show();
-    // Reset universeReceived to 0
-    memset(universesReceived, 0, maxUniverses);
+
+  // start UDP
+  Udp.begin(localPort);
+}
+
+void loop() {
+  int packetSize = Udp.parsePacket();
+  if (packetSize) {
+    showPacketInfo(packetSize);
+    Udp.read(rx_buffer, ARTNET_MAX_BUFFER_LEN);
+
+    uint8_t sequence = rx_buffer[12];
+    size_t length = (((uint16_t)rx_buffer[16]) << 8) | (((uint16_t)rx_buffer[17]) << 0);
+    size_t universe = ((((uint16_t)rx_buffer[15]) << 8) | (((uint16_t)rx_buffer[14]) << 0)) & 0x7fff;
+
+    Serial.printf("sequence: %d, length: %d, universe: %d\n", sequence, length, universe);
+
+    size_t universe_offset = universe - start_universe;
+    size_t start_index = 512 * universe_offset; // any universe offset is assumed to have been caused by a full artnet packet
+    size_t final_index = start_index + length - 1;
+    if (final_index < pixel_len_bytes) {
+      uint8_t* pixel_buffer_start = ((uint8_t*)pixels) + start_index;
+      memcpy(pixel_buffer_start, &rx_buffer[18], length);
+
+      universes_received++; // mark this universe as received
+      if (universes_received >= universes_expected) {
+        universes_received = 0;
+
+        // Now push the pixel data into the output driver
+        copyPixelsToOutput();
+      }
+    } else {
+      Serial.printf("DATA TOO LONG. got %d bytes, can absorb up to %d bytes\n", final_index, pixel_len_bytes);
+    }
   }
 }
 
-void initTest()
-{
+void copyPixelsToOutput() {
+  for (size_t v = 0; v < DISPLAY_HEIGHT; v++) {
+    if(v & 0x01) {
+      // odd rows are backward
+      for (size_t u = 0; u < DISPLAY_WIDTH; u++) {
+        octo_leds.setPixel(v * DISPLAY_WIDTH + u, pixels[((v + 1) * DISPLAY_WIDTH) - u - 1]);
+      }
+    } else {
+      // even rows are forward
+      for (size_t u = 0; u < DISPLAY_WIDTH; u++) {
+        octo_leds.setPixel(v * DISPLAY_WIDTH + u, pixels[v * DISPLAY_WIDTH + u]);
+      }
+    }
+  }
+  octo_leds.show();
+}
+
+void showPacketInfo(int packetSize) {
+  Serial.print("Received packet of size ");
+  Serial.println(packetSize);
+  Serial.print("From ");
+  IPAddress remote = Udp.remoteIP();
+  for (int i=0; i < 4; i++) {
+    Serial.print(remote[i], DEC);
+    if (i < 3) {
+      Serial.print(".");
+    }
+  }
+  Serial.print(", port ");
+  Serial.println(Udp.remotePort());
+}
+
+void initTest(){
   for (int i = 0 ; i < numLeds ; i++)
     octo_leds.setPixel(i, 127, 0, 0);
   octo_leds.show();
