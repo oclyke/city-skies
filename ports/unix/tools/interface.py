@@ -1,9 +1,6 @@
 import requests
 import json
-
-
-def _endpoint(host, port, path):
-    return f"http://{host}{':' if port is not None else ''}{port}{path}"
+from collections import namedtuple
 
 
 def _to_dict(response):
@@ -18,83 +15,130 @@ def _to_list(response):
     return response.content.decode("utf-8").split("\n")
 
 
-class CitySkiesClient:
+class HttpClient:
     def __init__(self, host, port=None):
         self.host = host
         self.port = port
 
-    def get_info(self):
-        return _to_dict(requests.get(_endpoint(self.host, self.port, "/info")))
 
-    def list_shards(self):
-        return _to_list(requests.get(_endpoint(self.host, self.port, "/shards")))
+class RestNode:
+    @classmethod
+    def fromBase(cls, base_node, extension):
+        return cls(base_node.client, f"{base_node.root}{extension}")
 
-    def list_layers(self, stack):
-        return _to_list(
-            requests.get(_endpoint(self.host, self.port, f"/stacks/{stack}/layers"))
+    def __init__(self, client, root_path):
+        self._client = client
+        self._root_path = root_path
+
+    def _endpoint(self, path):
+        return f"http://{self._client.host}{':' if self._client.port is not None else ''}{self._client.port}{self._root_path}{path}"
+
+    @property
+    def root(self):
+        return self._root_path
+
+    @property
+    def client(self):
+        return self._client
+
+    def get(self, path):
+        return requests.get(self._endpoint(path))
+
+    def put(self, path, value):
+        return requests.put(self._endpoint(path), str(value))
+
+    def post(self, path, value):
+        return requests.post(self._endpoint(path), str(value))
+
+    def delete(self, path):
+        return requests.delete(self._endpoint(path))
+
+
+class CitySkiesClient:
+    def __init__(self, host, port=None):
+        self._client = HttpClient(host, port)
+        self._node = RestNode(self._client, "")
+
+        Stacks = namedtuple("Stacks", ["active", "inactive"])
+        self._stacks = Stacks(
+            Stack(self._node, "active"),
+            Stack(self._node, "inactive"),
         )
 
-    def list_layer_variables(self, stack, layer):
-        return _to_list(
-            requests.get(
-                _endpoint(
-                    self.host, self.port, f"/stacks/{stack}/layers/{layer}/variables"
-                )
-            )
-        )
+    @property
+    def stacks(self):
+        return self._stacks
 
-    def list_layer_private_variables(self, stack, layer):
-        return _to_list(
-            requests.get(
-                _endpoint(
-                    self.host,
-                    self.port,
-                    f"/stacks/{stack}/layers/{layer}/private_variables",
-                )
-            )
-        )
+    @property
+    def global_variables(self):
+        return _to_list(self._node.get(f"/globals/variables"))
 
     def add_shard_from_string(self, uuid, value):
-        requests.put(_endpoint(self.host, self.port, f"/shards/{uuid}"), value)
+        self._node.put(f"/shards/{uuid}", value)
 
-    def add_layer(self, stack, uuid):
+    def set_global_variable(self, varname, value):
+        self._node.put(f"/globals/vars/{varname}", value)
+
+
+class Stack:
+    def __init__(self, base_node, stack_id):
+        self._node = RestNode.fromBase(base_node, f"/stacks/{stack_id}")
+        self._stack_id = stack_id
+
+    @property
+    def name(self):
+        return self._stack_id
+
+    @property
+    def layers(self):
+        return _to_list(self._node.get(f"/layers"))
+
+    def get_layer(self, layer_id):
+        return Layer(self._node, layer_id)
+
+    def add_layer(self, uuid):
         init_info = {
             "shard_uuid": uuid,
         }
-        requests.post(
-            _endpoint(self.host, self.port, f"/stacks/{stack}/layer"),
-            _from_dict(init_info),
-        )
+        self._node.post(f"/layer", _from_dict(init_info))
 
-    def set_layer_info(self, stack, layerid, info):
-        requests.put(
-            _endpoint(self.host, self.port, f"/stacks/{stack}/layers/{layerid}/info"),
-            _from_dict(info),
-        )
+    def remove_layer(self, layer_id):
+        self._node.delete(f"/layers/{layer_id}")
 
-    def set_layer_variable(self, stack, layerid, varname, value):
-        requests.put(
-            _endpoint(
-                self.host, self.port, f"/stacks/{stack}/layers/{layerid}/vars/{varname}"
-            ),
-            str(value),
-        )
 
-    def set_layer_private_variable(self, stack, layerid, varname, value):
-        requests.put(
-            _endpoint(
-                self.host,
-                self.port,
-                f"/stacks/{stack}/layers/{layerid}/private_vars/{varname}",
-            ),
-            str(value),
-        )
+class Layer:
+    def __init__(self, base_node, layer_id):
+        self._node = RestNode.fromBase(base_node, f"/layers/{layer_id}")
+        self._layer_id = str(layer_id)
 
-    def set_global_variable(self, varname, value):
-        requests.put(
-            _endpoint(self.host, self.port, f"/globals/vars/{varname}"),
-            str(value),
-        )
+    @property
+    def name(self):
+        return self._layer_id
+
+    @property
+    def info(self):
+        return _to_dict(self._node.get(f"/info"))
+
+    @property
+    def shards(self):
+        return _to_list(self._node.get(f"/shards"))
+
+    @property
+    def variables(self):
+        return _to_list(self._node.get(f"/variables"))
+
+    @property
+    def private_variables(self):
+        return _to_list(self._node.get(f"/private_variables"))
+
+    def update_info(self, value):
+        self._node.put(f"/info", value)
+
+    def set_variable(self, varname, value):
+        self._node.put(f"/vars/{varname}", value)
+
+    def set_private_variable(self, varname, value):
+        self._node.put(f"/private_vars/{varname}", value)
 
 
 if __name__ == "__main__":

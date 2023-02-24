@@ -86,3 +86,16 @@ class Stack:
         self._layer_map = {}
         rmdirr(self._layers_path)
         os.mkdir(self._layers_path)
+
+    def remove_layer_by_id(self, layerid):
+        layer = self.get_layer_by_id(layerid)
+        layer_index = layer.info.get("index")
+
+        # remove the layer by its index
+        self._layer_stack.pop(layer_index)
+
+        # remove the layer from the map
+        del self._layer_map[layerid]
+
+        # remove storage
+        layer.destroy_storage()
