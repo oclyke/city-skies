@@ -22,3 +22,6 @@
 [submodule "ports/unix/audio_streaming/wav_stream/third-party/libsndfile"]
 	path = ports/unix/audio_streaming/wav_stream/third-party/libsndfile
 	url = https://github.com/libsndfile/libsndfile.git
+[submodule "ports/unix/audio_streaming/wav_stream/third-party/libsoundio"]
+	path = ports/unix/audio_streaming/wav_stream/third-party/libsoundio
+	url = https://github.com/andrewrk/libsoundio.git
