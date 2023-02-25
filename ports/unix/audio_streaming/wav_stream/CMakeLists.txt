@@ -47,19 +47,16 @@ find_package(SndFile REQUIRED)
 set(WAVESTREAM_TARGET_NAME ${CMAKE_PROJECT_NAME})
 add_executable(${WAVESTREAM_TARGET_NAME})
 target_sources(${WAVESTREAM_TARGET_NAME} PRIVATE
-${CMAKE_CURRENT_LIST_DIR}/stream_wav.c
+  ${CMAKE_CURRENT_LIST_DIR}/wavestream.c
 )
 target_include_directories(${WAVESTREAM_TARGET_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
 	${CMAKE_CURRENT_LIST_DIR}/include
 )
 target_link_libraries(${WAVESTREAM_TARGET_NAME} PRIVATE
-  SndFile::sndfile
   ${SOUNDIO_LIBRARY}
+  SndFile::sndfile
 )
-
-# a demo client to connect to the wavstream server
-add_executable(client ${CMAKE_CURRENT_LIST_DIR}/client.c)
 
 # a demo for soundio sine output
 add_executable(sine sine.c)
@@ -71,17 +68,4 @@ target_include_directories(sine PRIVATE
 )
 target_link_libraries(sine PRIVATE
   ${SOUNDIO_LIBRARY}
-)
-
-# a temporary place to just test wave file playing
-add_executable(play play_wav.c)
-set_target_properties(play PROPERTIES
-    LINKER_LANGUAGE C
-    COMPILE_FLAGS "-std=c99 -Wall")
-target_include_directories(play PRIVATE
-  ${SOUNDIO_INCLUDE_DIR}
-)
-target_link_libraries(play PRIVATE
-  ${SOUNDIO_LIBRARY}
-  SndFile::sndfile
 )
