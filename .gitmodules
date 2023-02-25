@@ -19,3 +19,6 @@
 [submodule "src/cmodules/noise/third-party/open-simplex-noise-in-c"]
 	path = src/cmodules/noise/third-party/open-simplex-noise-in-c
 	url = https://github.com/smcameron/open-simplex-noise-in-c
+[submodule "ports/unix/audio_streaming/wav_stream/third-party/libsndfile"]
+	path = ports/unix/audio_streaming/wav_stream/third-party/libsndfile
+	url = https://github.com/libsndfile/libsndfile.git
