@@ -4,6 +4,15 @@
 #include <ctype.h>
 #include <float.h>
 
+#include <stdbool.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
+
 #include <sndfile.h>
 
 #define	BLOCK_SIZE 4096
@@ -18,9 +27,14 @@
 	#endif
 #endif
 
+void error(char *msg) {
+	perror(msg);
+	exit(0);
+}
+
 static void
 print_usage (char *progname)
-{	printf ("\nUsage : %s [--full-precision] <input file> <output file>\n", progname) ;
+{	printf ("\nUsage : %s <input file>\n", progname) ;
 	puts ("\n"
 		"    Where the output file will contain a line for each frame\n"
 		"    and a column for each channel.\n"
@@ -29,12 +43,12 @@ print_usage (char *progname)
 } /* print_usage */
 
 static int
-convert_to_text (SNDFILE * infile, FILE * outfile, int channels, int full_precision)
-{	float *buf ;
+stream_out (SNDFILE * infile, int sockfd, int channels, int full_precision)
+{	int *buf ;
 	sf_count_t frames ;
 	int k, m, readcount ;
 
-	buf = malloc (BLOCK_SIZE * sizeof (float)) ;
+	buf = malloc (BLOCK_SIZE * sizeof (int)) ;
 	if (buf == NULL)
 	{	printf ("Error : Out of memory.\n\n") ;
 		return 1 ;
@@ -42,16 +56,17 @@ convert_to_text (SNDFILE * infile, FILE * outfile, int channels, int full_precis
 
 	frames = BLOCK_SIZE / channels ;
 
-	while ((readcount = (int) sf_readf_float (infile, buf, frames)) > 0)
-	{	for (k = 0 ; k < readcount ; k++)
-		{	for (m = 0 ; m < channels ; m++)
-				if (full_precision)
-					fprintf (outfile, " %.*e", OP_DBL_Digs - 1, buf [k * channels + m]) ;
-				else
-					fprintf (outfile, " % 12.10f", buf [k * channels + m]) ;
-			fprintf (outfile, "\n") ;
-			} ;
-		} ;
+	while (true) {
+		while ((readcount = (int) sf_readf_int (infile, buf, frames)) > 0) {
+			int n = write(sockfd, buf, readcount * sizeof(int)/sizeof(char));
+			if (n < 0) {
+				error("ERROR writing to socket");
+			}
+		};
+
+		// reset to beginning of the soundfile
+		sf_seek(infile, 0, SEEK_SET);
+	}
 
 	free (buf) ;
 
@@ -62,7 +77,6 @@ int
 main (int argc, char * argv [])
 {	char 		*progname, *infilename, *outfilename ;
 	SNDFILE		*infile = NULL ;
-	FILE		*outfile = NULL ;
 	SF_INFO		sfinfo ;
 	int		full_precision = 0 ;
 	int 	ret = 1 ;
@@ -70,38 +84,16 @@ main (int argc, char * argv [])
 	progname = strrchr (argv [0], '/') ;
 	progname = progname ? progname + 1 : argv [0] ;
 
-	switch (argc)
-	{	case 4 :
-			if (!strcmp ("--full-precision", argv [3]))
-			{	print_usage (progname) ;
-				goto cleanup ;
-				} ;
-			full_precision = 1 ;
-			argv++ ;
-		case 3 :
-			break ;
-		default:
-			print_usage (progname) ;
-			goto cleanup ;
-		} ;
-
-	infilename = argv [1] ;
-	outfilename = argv [2] ;
-
-	if (strcmp (infilename, outfilename) == 0)
-	{	printf ("Error : Input and output filenames are the same.\n\n") ;
+	if (2 != argc) {
+		printf("Unexpected number of arguments\n");
 		print_usage (progname) ;
 		goto cleanup ;
-		} ;
+	}
+
+	infilename = argv [1] ;
 
 	if (infilename [0] == '-')
 	{	printf ("Error : Input filename (%s) looks like an option.\n\n", infilename) ;
-		print_usage (progname) ;
-		goto cleanup ;
-		} ;
-
-	if (outfilename [0] == '-')
-	{	printf ("Error : Output filename (%s) looks like an option.\n\n", outfilename) ;
 		print_usage (progname) ;
 		goto cleanup ;
 		} ;
@@ -114,22 +106,36 @@ main (int argc, char * argv [])
 		goto cleanup ;
 		} ;
 
-	/* Open the output file. */
-	if ((outfile = fopen (outfilename, "w")) == NULL)
-	{	printf ("Not able to open output file %s : %s\n", outfilename, sf_strerror (NULL)) ;
-		goto cleanup ;
-		} ;
+	// open a socket 
+	int portno = 42310; // serve audio stream on port 42310
+	int sockfd, newsockfd, clilen;
+	struct sockaddr_in serv_addr, cli_addr;
+	int n;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0) {
+		error("ERROR opening socket");
+	}
+	bzero((char *) &serv_addr, sizeof(serv_addr));
 
-	fprintf (outfile, "# Converted from file %s.\n", infilename) ;
-	fprintf (outfile, "# Channels %d, Sample rate %d\n", sfinfo.channels, sfinfo.samplerate) ;
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(portno);
+	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+		error("ERROR on binding");
+	}
+	listen(sockfd,5);
+	clilen = sizeof(cli_addr);
+	newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+	if (newsockfd < 0) {
+		error("ERROR on accept");
+	}
 
-	ret = convert_to_text (infile, outfile, sfinfo.channels, full_precision) ;
+	// use that socket to stream out
+	ret = stream_out (infile, newsockfd, sfinfo.channels, full_precision) ;
 
-cleanup :
+cleanup:
 
 	sf_close (infile) ;
-	if (outfile != NULL)
-		fclose (outfile) ;
 
 	return ret ;
 } /* main */

@@ -60,7 +60,6 @@ target_link_libraries(${WAVESTREAM_TARGET_NAME} PRIVATE
 
 # a demo client to connect to the wavstream server
 add_executable(client ${CMAKE_CURRENT_LIST_DIR}/client.c)
-add_executable(server ${CMAKE_CURRENT_LIST_DIR}/server.c)
 
 # a demo for soundio sine output
 add_executable(sine sine.c)
