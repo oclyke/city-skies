@@ -44,3 +44,7 @@ target_include_directories(${TARGET_NAME} PRIVATE
 target_link_libraries(${TARGET_NAME} PRIVATE
   SndFile::sndfile
 )
+
+
+add_executable(client ${CMAKE_CURRENT_LIST_DIR}/client.c)
+add_executable(server ${CMAKE_CURRENT_LIST_DIR}/server.c)
