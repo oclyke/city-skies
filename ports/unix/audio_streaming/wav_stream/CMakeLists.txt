@@ -69,3 +69,5 @@ target_include_directories(sine PRIVATE
 target_link_libraries(sine PRIVATE
   ${SOUNDIO_LIBRARY}
 )
+
+add_executable(client ${CMAKE_CURRENT_SOURCE_DIR}/client.c)
