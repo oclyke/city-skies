@@ -22,6 +22,63 @@ typedef struct _FftPlan_obj_t {
 const mp_obj_type_t FftPlan_type;
 
 /**
+ * @brief Set the real and imaginary components of a given frequency bin in the output
+ * 
+ * @param idx 
+ * @param real 
+ * @param imaginary 
+ * @return int 
+ */
+static inline int set_output_bin(fft_config_t* config, size_t idx, double real, double imaginary) {
+  int ret = 0;
+
+  // check input config
+  if (NULL == config) {
+    ret = -ENOMEM;
+    goto out;
+  }
+
+  // set the values
+  config->output[(2 * idx) + 0] = real;
+  config->output[(2 * idx) + 1] = imaginary;
+
+out:
+  return ret;
+}
+
+/**
+ * @brief Optionally get the real and or imaginary components of the output bin.
+ * 
+ * @param config 
+ * @param idx 
+ * @param real 
+ * @param imaginary 
+ * @return int 
+ */
+static inline int get_output_bin(fft_config_t* config, size_t idx, double* real, double* imaginary) {
+  int ret = 0;
+
+  // check input config
+  if (NULL == config) {
+    ret = -ENOMEM;
+    goto out;
+  }
+
+  // optionally give the real output
+  if (NULL != real) {
+    *real = config->output[(2 * idx) + 0];
+  }
+
+  // optionally give the imaginary output
+  if (NULL != imaginary) {
+    *imaginary = config->output[(2 * idx) + 1];
+  }
+
+out:
+  return ret;
+}
+
+/**
  * @brief Get info about relevant real output bins for a given FFT config.
  * 
  * @return 0 for success, negative errno on failure.
@@ -199,6 +256,30 @@ STATIC mp_obj_t stats(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(stats_obj, stats);
 
+/**
+ * @brief This function will zero the DC component of the fft output.
+ * This needs to be called once for each fft computation as the output
+ * is re-set each time.
+ * 
+ * @param self_in 
+ * @return STATIC 
+ */
+STATIC mp_obj_t zero_dc(mp_obj_t self_in) {
+  FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  if (!self->config) {
+    mp_raise_OSError(-ENOMEM);
+  }
+
+  // zero the 0th (DC) bin
+  int ret = set_output_bin(self->config, 0, 0, 0);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+
+  return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_1(zero_dc_obj, zero_dc);
+
 STATIC mp_obj_t output(mp_obj_t self_in, mp_obj_t output_obj) {
   FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
   if (!self->config) {
@@ -368,6 +449,7 @@ STATIC const mp_rom_map_elem_t plan_locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_feed), MP_ROM_PTR(&feed_obj)},
     {MP_ROM_QSTR(MP_QSTR_window), MP_ROM_PTR(&window_obj)},
     {MP_ROM_QSTR(MP_QSTR_execute), MP_ROM_PTR(&execute_obj)},
+    {MP_ROM_QSTR(MP_QSTR_zero_dc), MP_ROM_PTR(&zero_dc_obj)},
     {MP_ROM_QSTR(MP_QSTR_output), MP_ROM_PTR(&output_obj)},
     {MP_ROM_QSTR(MP_QSTR_align), MP_ROM_PTR(&align_obj)},
     {MP_ROM_QSTR(MP_QSTR_reshape), MP_ROM_PTR(&reshape_obj)},

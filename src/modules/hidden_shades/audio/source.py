@@ -21,6 +21,9 @@ class AudioSource:
         self._fft_plan.window()
         self._fft_plan.execute()
 
+    def zero_fft_dc(self):
+        self._fft_plan.zero_dc()
+
     def get_fft_strengths(self, target):
         return self._fft_plan.output(target)
     
