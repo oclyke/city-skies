@@ -48,11 +48,13 @@ out:
 }
 
 /**
- * @brief Small utility to aid in interpolating a floating point value between two others.
- * 
+ * @brief Small utility to aid in interpolating a floating point value between
+ * two others.
+ *
  * @param lower the value returned when phase is 0
  * @param upper the value returned when phase is 1
- * @param phase the ratio of upper to lower - e.g. phase 0.5 means half way between lower and upper. [0.0, 1.0]
+ * @param phase the ratio of upper to lower - e.g. phase 0.5 means half way
+ * between lower and upper. [0.0, 1.0]
  * @param output the resulting value
  * @return int 0 on success, else negative error number
  */
@@ -73,19 +75,18 @@ out:
 /**
  * @brief Returns the index of the nth real element in an fft config output.
  * Assumes that n a contiguous integer in the range [0, (config->size/2) - 1]
- * 
- * @param idx 
- * @return size_t 
+ *
+ * @param idx
+ * @return size_t
  */
-static inline size_t real_index(size_t n) {
-  return 2 * n;
-}
+static inline size_t real_index(size_t n) { return 2 * n; }
 
 /**
- * @brief 
- * 
+ * @brief
+ *
  * @param config the fft_config_t object containing the bins to interpolate
- * @param phase the fractional completion from the DC bin to the high frequency bin at which to get the output
+ * @param phase the fractional completion from the DC bin to the high frequency
+ * bin at which to get the output
  * @param output the resulting interpolated value
  * @return int 0 on success, negative errno on failure
  */
@@ -151,10 +152,7 @@ int interpolate_real_outputs_linear(
   // interpolate between these two bins
   ret = interpolate_double_between(
       config->output[real_index(lower_idx)],
-      config->output[real_index(upper_idx)],
-      delta,
-      output
-  );
+      config->output[real_index(upper_idx)], delta, output);
   if (0 != ret) {
     goto out;
   }

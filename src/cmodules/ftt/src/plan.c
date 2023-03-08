@@ -21,15 +21,25 @@ typedef struct _FftPlan_obj_t {
 
 const mp_obj_type_t FftPlan_type;
 
+typedef struct _fft_plan_iter_t {
+  mp_obj_base_t base;
+  mp_fun_1_t iternext;
+  FftPlan_obj_t* plan;
+  int size;
+  int idx;
+} fft_plan_iter_t;
+
 /**
- * @brief Set the real and imaginary components of a given frequency bin in the output
- * 
- * @param idx 
- * @param real 
- * @param imaginary 
- * @return int 
+ * @brief Set the real and imaginary components of a given frequency bin in the
+ * output
+ *
+ * @param idx
+ * @param real
+ * @param imaginary
+ * @return int
  */
-static inline int set_output_bin(fft_config_t* config, size_t idx, double real, double imaginary) {
+static inline int set_output_bin(
+    fft_config_t* config, size_t idx, double real, double imaginary) {
   int ret = 0;
 
   // check input config
@@ -48,14 +58,15 @@ out:
 
 /**
  * @brief Optionally get the real and or imaginary components of the output bin.
- * 
- * @param config 
- * @param idx 
- * @param real 
- * @param imaginary 
- * @return int 
+ *
+ * @param config
+ * @param idx
+ * @param real
+ * @param imaginary
+ * @return int
  */
-static inline int get_output_bin(fft_config_t* config, size_t idx, double* real, double* imaginary) {
+static inline int get_output_bin(
+    fft_config_t* config, size_t idx, double* real, double* imaginary) {
   int ret = 0;
 
   // check input config
@@ -80,10 +91,11 @@ out:
 
 /**
  * @brief Get info about relevant real output bins for a given FFT config.
- * 
+ *
  * @return 0 for success, negative errno on failure.
-*/
-STATIC int get_real_output_bins(fft_config_t* config, size_t* len_out, float* real_out, size_t real_len) {
+ */
+STATIC int get_real_output_bins(
+    fft_config_t* config, size_t* len_out, float* real_out, size_t real_len) {
   int ret = 0;
 
   if (NULL == config) {
@@ -100,14 +112,15 @@ STATIC int get_real_output_bins(fft_config_t* config, size_t* len_out, float* re
     *len_out = real_bins;
   }
 
-  // copy out the lesser of [real_len, relevant_bins] real fft results to the real output array
+  // copy out the lesser of [real_len, relevant_bins] real fft results to the
+  // real output array
   if (NULL != real_out) {
     size_t max_bins = real_bins;
     if (max_bins > real_len) {
       max_bins = real_len;
     }
     for (size_t idx = 0; idx < max_bins; idx++) {
-      real_out[idx] = config->output[2*idx];
+      real_out[idx] = config->output[2 * idx];
     }
   }
 
@@ -260,9 +273,9 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(stats_obj, stats);
  * @brief This function will zero the DC component of the fft output.
  * This needs to be called once for each fft computation as the output
  * is re-set each time.
- * 
- * @param self_in 
- * @return STATIC 
+ *
+ * @param self_in
+ * @return STATIC
  */
 STATIC mp_obj_t zero_dc(mp_obj_t self_in) {
   FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
@@ -327,10 +340,10 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_2(output_obj, output);
 /**
  * @brief Interpolates the FFT bins to fit into the number of elements in the
  * output.
- * 
- * @param self_in 
- * @param output_obj 
- * @return STATIC 
+ *
+ * @param self_in
+ * @param output_obj
+ * @return STATIC
  */
 STATIC mp_obj_t align(mp_obj_t self_in, mp_obj_t output_obj) {
   FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
@@ -354,7 +367,7 @@ STATIC mp_obj_t align(mp_obj_t self_in, mp_obj_t output_obj) {
   // fft result
   int ret = 0;
   double interpolated = (double)0.0f;
-  for (size_t idx = 0 ; idx < numout; idx++) {
+  for (size_t idx = 0; idx < numout; idx++) {
     // get the phase for this output element
     double phase = ((double)idx / (numout - 1));
 
@@ -445,6 +458,144 @@ reshape(mp_obj_t self_in, mp_obj_t output_obj, mp_obj_t config_obj) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(reshape_obj, reshape);
 
+// binary / unary operations
+STATIC mp_obj_t unary_op(mp_unary_op_t op, mp_obj_t self_in) {
+  FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  switch (op) {
+    case MP_UNARY_OP_LEN: {
+      size_t length = 0;
+      int ret = get_real_output_bins(self->config, &length, NULL, 0);
+      if (0 != ret) {
+        mp_raise_OSError(ret);
+      }
+      return mp_obj_new_int(length);
+    } break;
+
+    default:
+      // operator not supported
+      return MP_OBJ_NULL;
+      break;
+  }
+}
+
+STATIC mp_obj_t binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs) {
+  // ColorSequence_obj_t *left_hand_side = MP_OBJ_TO_PTR(lhs);
+  // ColorSequence_obj_t *right_hand_side = MP_OBJ_TO_PTR(rhs);
+  switch (op) {
+    // case MP_BINARY_OP_EQUAL:
+    //   return mp_obj_new_bool((left_hand_side->a == right_hand_side->a) &&
+    //   (left_hand_side->b == right_hand_side->b));
+    // case MP_BINARY_OP_ADD:
+    //   return create_new_myclass(left_hand_side->a + right_hand_side->a,
+    //   left_hand_side->b + right_hand_side->b);
+    // case MP_BINARY_OP_MULTIPLY:
+    //   return create_new_myclass(left_hand_side->a * right_hand_side->a,
+    //   left_hand_side->b * right_hand_side->b);
+    default:
+      // operator not supported
+      return MP_OBJ_NULL;
+  }
+}
+
+// iteration / subscripting
+STATIC mp_obj_t iternext(mp_obj_t self_in) {
+  fft_plan_iter_t* self = MP_OBJ_TO_PTR(self_in);
+  FftPlan_obj_t* plan = MP_OBJ_TO_PTR(self->plan);
+  int ret = 0;
+
+  // check plan existence
+  if (NULL == plan) {
+    mp_raise_OSError(-ENOMEM);
+  }
+
+  // get number of bins
+  size_t num_real_bins = 0;
+  ret = get_real_output_bins(plan->config, &num_real_bins, NULL, 0);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+
+  if (self->idx < num_real_bins) {
+    double real;
+    ret = get_output_bin(plan->config, self->idx, &real, NULL);
+    if (0 != ret) {
+      mp_raise_OSError(ret);
+    }
+
+    // increment the current index of this iterable
+    self->idx++;
+
+    // return the real component of the output at this index
+    return mp_obj_new_float(real);
+  } else {
+    // signal to stop iteration
+    return MP_OBJ_STOP_ITERATION;
+  }
+}
+
+STATIC mp_obj_t getiter(mp_obj_t self_in, mp_obj_iter_buf_t* iter_buf) {
+  FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
+
+  // get the iterbuf that is provided by the interpreter
+  assert(sizeof(fft_plan_iter_t) <= sizeof(mp_obj_iter_buf_t));
+  fft_plan_iter_t* iter = (fft_plan_iter_t*)iter_buf;
+
+  // set the type as an iterable
+  iter->base.type = &mp_type_polymorph_iter;
+
+  // assign the custom fields
+  iter->iternext = iternext;
+  iter->plan = self;
+  iter->idx = 0;
+
+  // return the iterator object
+  return MP_OBJ_FROM_PTR(iter);
+}
+
+STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
+  FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
+
+  size_t idx = mp_obj_get_int(index);
+
+  // get length
+  size_t len = 0;
+  int ret = get_real_output_bins(self->config, &len, NULL, 0);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+
+  // check bounds
+  if (idx >= len) {
+    mp_raise_ValueError(NULL);
+  }
+
+  if (value == MP_OBJ_SENTINEL) {
+    // get the real component at this index
+    double real;
+    ret = get_output_bin(self->config, idx, &real, NULL);
+    if (0 != ret) {
+      mp_raise_OSError(ret);
+    }
+    return mp_obj_new_float(real);
+  } else {
+    // set the real component at this index
+    double real;
+    if (mp_obj_is_float(value)) {
+      real = (double)mp_obj_get_float(value);
+    } else if (mp_obj_is_int(value)) {
+      real = (double)mp_obj_get_int(value);
+    } else {
+      mp_raise_TypeError(NULL);
+    }
+
+    ret = set_output_bin(self->config, idx, real, 0);
+    if (0 != ret) {
+      mp_raise_OSError(ret);
+    }
+    return mp_const_none;
+  }
+}
+
 STATIC const mp_rom_map_elem_t plan_locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_feed), MP_ROM_PTR(&feed_obj)},
     {MP_ROM_QSTR(MP_QSTR_window), MP_ROM_PTR(&window_obj)},
@@ -504,4 +655,8 @@ const mp_obj_type_t FftPlan_type = {
     .print = print,
     .make_new = make_new,
     .locals_dict = (mp_obj_dict_t*)&plan_locals_dict,
+    .getiter = getiter,
+    .subscr = subscr,
+    .unary_op = unary_op,
+    .binary_op = binary_op,
 };
