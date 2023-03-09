@@ -101,6 +101,20 @@ class Audio:
     def select_source(self, source_name):
         self._node.put(f"/source/{source_name}", None)
 
+    def get_source(self, source_name):
+        return AudioSource(self._node, source_name)
+
+class AudioSource:
+    def __init__(self, base_node, source_name):
+        self._node = RestNode.fromBase(base_node, f"/sources/{source_name}")
+        self._source_name = source_name
+
+    def set_variable(self, varname, value):
+        self._node.put(f"/vars/{varname}", value)
+
+    def set_private_variable(self, varname, value):
+        self._node.put(f"/private_vars/{varname}", value)
+
 
 class Stack:
     def __init__(self, base_node, stack_id):

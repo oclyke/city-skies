@@ -291,6 +291,19 @@ async def serve_api():
     async def put_audio_source(request, source_name):
         hidden_shades.audio_manager.select_source(source_name)
 
+    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/audio/sources/<source_name>/private_vars/<varname> -d 'value'
+    @app.put("/audio/sources/<source_name>/vars/<varname>")
+    async def put_audio_source_variable(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.variable_manager.variables[varname]
+        variable.value = variable.deserialize(request.body.decode())
+
+    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/audio/sources/<source_name>/private_vars/<varname> -d 'value'
+    @app.put("/audio/sources/<source_name>/private_vars/<varname>")
+    async def put_audio_source_private_variable(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.private_variable_manager.variables[varname]
+        variable.value = variable.deserialize(request.body.decode())
 
 async def control_visualizer():
     # information about visualizer control server
