@@ -65,6 +65,12 @@ class CitySkiesClient:
             Stack(self._node, "inactive"),
         )
 
+        self._audio = Audio(self._node)
+
+    @property
+    def audio(self):
+        return self._audio
+
     @property
     def stacks(self):
         return self._stacks
@@ -78,6 +84,22 @@ class CitySkiesClient:
 
     def set_global_variable(self, varname, value):
         self._node.put(f"/globals/vars/{varname}", value)
+
+
+class Audio:
+    def __init__(self, base_node):
+        self._node = RestNode.fromBase(base_node, f"/audio")
+
+    @property
+    def info(self):
+        return _to_dict(self._node.get(f"/info"))
+
+    @property
+    def sources(self):
+        return _to_list(self._node.get(f"/sources"))
+
+    def select_source(self, source_name):
+        self._node.put(f"/source/{source_name}", None)
 
 
 class Stack:

@@ -10,12 +10,12 @@ import pysicgl
 import framerate
 import profiling
 import hardware
+import hidden_shades
 import pathutils
 import config
 
 from semver import SemanticVersion
 from stack_manager import StackManager
-from audio_stream_udp import stream_audio_source
 from microdot_asyncio import Microdot, Response, Request
 from hidden_shades.layer import Layer
 from hidden_shades import globals
@@ -214,6 +214,15 @@ async def serve_api():
             for variable in layer.private_variable_manager.variables.values()
         )
 
+    @app.get("/audio/info")
+    async def get_audio_info(request):
+        hidden_shades.audio_manager.info
+        return get_dict(hidden_shades.audio_manager.info)
+
+    @app.get("/audio/sources")
+    async def get_audio_sources(request):
+        return get_list(hidden_shades.audio_manager.sources.keys())
+
     # curl -H "Content-Type: text/plain" -X POST http://localhost:1337/stacks/<active>/layer -d '{"shard_uuid": "noise"}'
     @app.post("/stacks/<active>/layer")
     async def put_stack_layer(request, active):
@@ -277,6 +286,11 @@ async def serve_api():
             with open(path, "w") as f:
                 f.write(request.body)
 
+    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/audio/source/<source_name> -d 'MockAudio'
+    @app.put("/audio/source/<source_name>")
+    async def put_audio_source(request, source_name):
+        hidden_shades.audio_manager.select_source(source_name)
+
 
 async def control_visualizer():
     # information about visualizer control server
@@ -310,9 +324,17 @@ async def main():
     # create async tasks
     asyncio.create_task(run_pipeline())
     asyncio.create_task(control_visualizer())
-    asyncio.create_task(stream_audio_source())
     asyncio.create_task(serve_api())
     asyncio.create_task(blink())
+
+    # start audio sources
+    for source in hardware.audio_sources:
+        print("Initializing audio source: ", source)
+        hidden_shades.audio_manager.add_source(source)
+        asyncio.create_task(source.run())
+
+    # initialize the audio manager once all audio sources have been registered
+    hidden_shades.audio_manager.initialize()
 
     # the main task should not return so that asyncio continues to handle tasks
     while True:

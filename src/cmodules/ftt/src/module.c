@@ -1,5 +1,6 @@
 #include <math.h>
 
+#include "buffer.h"
 #include "plan.h"
 #include "py/runtime.h"
 
@@ -13,6 +14,7 @@
 STATIC const mp_rom_map_elem_t module_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_fft)},
     {MP_OBJ_NEW_QSTR(MP_QSTR_FftPlan), (mp_obj_t)&FftPlan_type},
+    {MP_OBJ_NEW_QSTR(MP_QSTR_AudioBuffer), (mp_obj_t)&AudioBuffer_type},
 };
 STATIC MP_DEFINE_CONST_DICT(module_globals, module_globals_table);
 

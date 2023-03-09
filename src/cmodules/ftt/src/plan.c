@@ -17,6 +17,8 @@
 typedef struct _FftPlan_obj_t {
   mp_obj_base_t base;
   fft_config_t* config;
+  double sample_frequency;
+  double bin_width;
 } FftPlan_obj_t;
 
 const mp_obj_type_t FftPlan_type;
@@ -28,6 +30,18 @@ typedef struct _fft_plan_iter_t {
   int size;
   int idx;
 } fft_plan_iter_t;
+
+/**
+ * @brief Get the width of the output frequency bins for a given sample
+ * frequency and sample length
+ *
+ * @param sample_frequency in hz
+ * @param num_samples
+ * @return bin width in hz
+ */
+STATIC double get_bin_width(double sample_frequency, size_t num_samples) {
+  return sample_frequency / num_samples;
+}
 
 /**
  * @brief Set the real and imaginary components of a given frequency bin in the
@@ -207,6 +221,26 @@ STATIC mp_obj_t window(mp_obj_t self_in) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(window_obj, window);
 
+/**
+ * @brief This function scales the input data by the constant scalar factor
+ *
+ * @param self_in
+ * @param factor
+ * @return STATIC
+ */
+STATIC mp_obj_t scale(mp_obj_t self_in, mp_obj_t factor_obj) {
+  FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  double factor = mp_obj_get_float(factor_obj);
+
+  size_t capacity = self->config->size;
+  for (size_t idx = 0; idx < capacity; idx++) {
+    self->config->input[idx] *= factor;
+  }
+
+  return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(scale_obj, scale);
+
 STATIC mp_obj_t execute(mp_obj_t self_in) {
   FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
   if (!self->config) {
@@ -362,17 +396,28 @@ STATIC mp_obj_t align(mp_obj_t self_in, mp_obj_t output_obj) {
     mp_raise_OSError(-ENOMEM);
   }
 
+  // get real output bins
+  size_t real_bin_count = 0;
+  int ret = get_real_output_bins(self->config, &real_bin_count, NULL, 0);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+  float real_bins[real_bin_count];
+  ret = get_real_output_bins(self->config, NULL, real_bins, real_bin_count);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+
   // get the interpolated value for each element of the output list so that
   // the first and last elements correspond to the first and last bins of the
   // fft result
-  int ret = 0;
   double interpolated = (double)0.0f;
   for (size_t idx = 0; idx < numout; idx++) {
     // get the phase for this output element
     double phase = ((double)idx / (numout - 1));
 
     // interpolate the fft bins to get the value for this element
-    ret = interpolate_real_outputs_linear(self->config, phase, &interpolated);
+    ret = interpolate_linear(real_bins, real_bin_count, phase, &interpolated);
     if (0 != ret) {
       mp_raise_OSError(ret);
     }
@@ -598,6 +643,7 @@ STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
 
 STATIC const mp_rom_map_elem_t plan_locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_feed), MP_ROM_PTR(&feed_obj)},
+    {MP_ROM_QSTR(MP_QSTR_scale), MP_ROM_PTR(&scale_obj)},
     {MP_ROM_QSTR(MP_QSTR_window), MP_ROM_PTR(&window_obj)},
     {MP_ROM_QSTR(MP_QSTR_execute), MP_ROM_PTR(&execute_obj)},
     {MP_ROM_QSTR(MP_QSTR_zero_dc), MP_ROM_PTR(&zero_dc_obj)},
@@ -607,6 +653,21 @@ STATIC const mp_rom_map_elem_t plan_locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_stats), MP_ROM_PTR(&stats_obj)},
 };
 STATIC MP_DEFINE_CONST_DICT(plan_locals_dict, plan_locals_dict_table);
+
+// attributes
+STATIC void attr(mp_obj_t self_in, qstr attribute, mp_obj_t* destination) {
+  switch (attribute) {
+    case MP_QSTR_bin_width:
+      destination[0] =
+          mp_obj_new_float(((FftPlan_obj_t*)MP_OBJ_TO_PTR(self_in))->bin_width);
+      break;
+
+    default:
+      // No attribute found, continue lookup in locals dict.
+      destination[1] = MP_OBJ_SENTINEL;
+      break;
+  }
+}
 
 STATIC void print(
     const mp_print_t* print, mp_obj_t self_in, mp_print_kind_t kind) {
@@ -623,9 +684,13 @@ STATIC mp_obj_t make_new(
   // parse args
   enum {
     ARG_size,
+    ARG_sample_freq,
   };
   static const mp_arg_t allowed_args[] = {
       {MP_QSTR_size, MP_ARG_REQUIRED | MP_ARG_INT, {.u_int = 0}},
+      {MP_QSTR_sample_frequency,
+       MP_ARG_REQUIRED | MP_ARG_OBJ,
+       {.u_obj = mp_const_none}},
   };
   mp_map_t kw_args;
   mp_map_init_fixed_table(&kw_args, n_kw, all_args + n_args);
@@ -639,6 +704,21 @@ STATIC mp_obj_t make_new(
 
   // get the size
   mp_int_t size = args[ARG_size].u_int;
+
+  // get the sample frequency
+  mp_obj_t sample_freq_obj = args[ARG_sample_freq].u_obj;
+  double sample_frequency = 1.0;
+  if (mp_obj_is_float(sample_freq_obj)) {
+    sample_frequency = mp_obj_get_float(sample_freq_obj);
+  } else if (mp_obj_is_int(sample_freq_obj)) {
+    sample_frequency = mp_obj_get_int(sample_freq_obj);
+  } else {
+    mp_raise_TypeError(NULL);
+  }
+  self->sample_frequency = sample_frequency;
+
+  // compute the bin width
+  self->bin_width = get_bin_width(sample_frequency, size);
 
   // init the plan
   self->config = fft_init(size, FFT_REAL, FFT_FORWARD, NULL, NULL);
@@ -659,4 +739,5 @@ const mp_obj_type_t FftPlan_type = {
     .subscr = subscr,
     .unary_op = unary_op,
     .binary_op = binary_op,
+    .attr = attr,
 };

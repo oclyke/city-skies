@@ -4,50 +4,48 @@ import hidden_shades
 from hidden_shades.audio.source import ManagedAudioSource
 
 
-async def mock_audio_source():
-    sample_frequency = 16000
-    sample_length = 256
+class MockAudioSource(ManagedAudioSource):
+    def __init__(self, path, name, freq, fft_config):
+        super().__init__(path, name, fft_config)
 
-    # add this audio source to the audio manager
-    source = ManagedAudioSource(hidden_shades.audio_manager, "SineTest", (sample_frequency, sample_length))
+        self._sample_frequency, self._sample_length = fft_config
+        self._freq = freq
 
-    # select this source for the audio manager
-    hidden_shades.audio_manager.select_source("SineTest")
+    async def run(self):
+        def sine_wave(freq, sample_freq):
+            # the time period between each step is 1/sample_freq seconds long
+            # one full cycle should take 1/freq seconds
+            count = 0
+            while True:
+                phase = count / sample_freq
+                yield math.sin(2 * math.pi * freq * phase)
+                count += 1
+                if count > sample_freq:
+                    count = 0
 
-    # initialize the audio manager once all audio sources have been registered
-    hidden_shades.audio_manager.initialize()
+        # make the test signal
+        sine_generator = sine_wave(self._freq, self._sample_frequency)
 
-    def sine_wave(freq, sample_freq):
-        # the time period between each step is 1/sample_freq seconds long
-        # one full cycle should take 1/freq seconds
-        count = 0
+        # output to view the fft strengths
+        strengths = [0.0] * 32
+
         while True:
-            phase = count / sample_freq
-            yield math.sin(2 * math.pi * freq * phase)
-            count += 1
-            if count > sample_freq:
-                count = 0
+            # simulate waiting for a real audio source to fill the buffer
+            for idx in range(self._sample_length):
+                self._buffer[idx] = next(sine_generator)
+            await asyncio.sleep(self._sample_length / self._sample_frequency)
 
-    # make the test signal
-    sine_400hz = sine_wave(8000, sample_frequency)
+            # scale the audio data by the volume
+            self.apply_volume()
 
-    # output to view the fft strengths
-    strengths = [0.0] * 32
+            # feed the audio data to the fft
+            self.fft.plan.feed(self._buffer)
 
-    while True:
-        # simulate waiting for a real audio source to fill the buffer
-        for idx in range(sample_length):
-            source._samples[idx] = next(sine_400hz)
-        await asyncio.sleep(sample_length / sample_frequency)
+            # now that the audio source is filled with data compute the fft
+            self.fft.compute()
 
-        # now that the audio source is filled with data compute the fft
-        source.compute_fft()
-        stats = source.fft_stats
-        _, _, max_idx = stats
-        bin_width = source.fft_bin_width
-        strongest_freq = max_idx * source.fft_bin_width
-        source.get_fft_strengths(strengths)
+            # zero out low frequency fft bins
+            self.zero_low_fft_bins()
 
-        # print(strengths)
-        # print('')
-        # print(stats, bin_width, strongest_freq)
+            # run postprocessing on the fft results
+            self.fft.postprocess()

@@ -2,7 +2,7 @@ from cache import Cache
 from .source import AudioSource
 
 
-NULL_AUDIO_SOURCE = AudioSource((16000, 1))
+NULL_AUDIO_SOURCE = AudioSource("NULL", (16000, 1))
 
 
 class AudioManager:
@@ -11,7 +11,6 @@ class AudioManager:
         self._selected = NULL_AUDIO_SOURCE
 
         self._root_path = path
-        self._sources_path = f"{self._root_path}/sources"
 
         initial_info = {
             "selected": None,
@@ -43,14 +42,25 @@ class AudioManager:
         external method of synchronization that prevents initialization from ocurring too early (perhaps
         some kind of mutex)
         """
-        self._info.set_change_handler(lambda key, value: self._handle_info_change(key, value))
+        self._info.set_change_handler(
+            lambda key, value: self._handle_info_change(key, value)
+        )
         self._info.notify()
 
     def add_source(self, source):
         self._sources[source.name] = source
 
     def select_source(self, name):
+        print("selecting audio source: ", name)
         self._info.set("selected", name)
+
+    @property
+    def info(self):
+        return dict(**self._info.cache)
+
+    @property
+    def sources(self):
+        return self._sources
 
     @property
     def audio_source(self):
