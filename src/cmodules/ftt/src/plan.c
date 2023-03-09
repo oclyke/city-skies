@@ -40,7 +40,7 @@ typedef struct _fft_plan_iter_t {
  * @return bin width in hz
  */
 STATIC double get_bin_width(double sample_frequency, size_t num_samples) {
-  return sample_frequency / num_samples;
+  return (sample_frequency / num_samples) / 2;
 }
 
 /**
