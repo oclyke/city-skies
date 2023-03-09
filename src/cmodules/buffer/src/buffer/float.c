@@ -315,7 +315,7 @@ STATIC void print(
     const mp_print_t* print, mp_obj_t self_in, mp_print_kind_t kind) {
   (void)kind;
   FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
-  mp_print_str(print, "FftBuffer(");
+  mp_print_str(print, "FloatBuffer(");
   mp_obj_print_helper(print, mp_obj_new_int(self->length), PRINT_REPR);
   mp_print_str(print, ")");
 }
