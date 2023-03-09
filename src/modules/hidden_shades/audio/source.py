@@ -20,8 +20,9 @@ class AudioSourceFFT:
         sum, max, max_idx = self._plan.stats()
 
         # now normalize the fft results
-        scale_factor = 1.0 if max != 0.00 else 1.0 / max
-        self._plan.scale(scale_factor)
+        if abs(max) < 0.000001:
+            return
+        self._plan.scale(1/max)
 
     @property
     def plan(self):
