@@ -21,7 +21,7 @@ def frames(layer):
         # # reformat the fft bins to make them easier to display
         # audio_source.fft.plan.output(strengths)
         # audio_source.fft.plan.align(strengths)
-        reshape_config = (1.0, 0)  # (factor, floor)
+        reshape_config = (1.5, 0)  # (factor, floor)
         audio_source.fft.plan.reshape(strengths, reshape_config)
 
         sum, max, max_idx = audio_source.fft.plan.stats()
