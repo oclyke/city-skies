@@ -2,6 +2,7 @@ from semver import SemanticVersion
 from udpdriver import UDPDriver
 from artnetdriver import ArtnetDriver
 from audio_stream_udp import UDPAudioSource
+from audio_stream_udp_mic import UDPAudioSourceMic
 from audio_mock import MockAudioSource
 import config
 import pysicgl
@@ -18,6 +19,7 @@ drivers = [
 # audio sources
 audio_source_root_path = f"{config.EPHEMERAL_DIR}/audio/sources"
 audio_sources = [
+    UDPAudioSourceMic(audio_source_root_path, "MicStreamUDP", ("0.0.0.0", "42311"), (48000, 1024)),
     UDPAudioSource(
         audio_source_root_path, "AudioStreamUDP", ("0.0.0.0", "42310"), (44100, 1024)
     ),
