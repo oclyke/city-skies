@@ -14,7 +14,7 @@
 
 typedef struct _FloatBuffer_obj_t {
   mp_obj_base_t base;
-  float* memory;
+  float* elements;
   size_t length;
 } FloatBuffer_obj_t;
 
@@ -28,9 +28,9 @@ typedef struct _fft_buffer_iter_t {
 } fft_buffer_iter_t;
 
 STATIC FloatBuffer_obj_t* create_new_float_buffer(size_t size) {
-  // attempt to allocate memory
-  float* memory = (float*)malloc(size * sizeof(float));
-  if (NULL == memory) {
+  // attempt to allocate elements
+  float* elements = (float*)malloc(size * sizeof(float));
+  if (NULL == elements) {
     mp_raise_OSError(-ENOMEM);
   }
 
@@ -38,7 +38,7 @@ STATIC FloatBuffer_obj_t* create_new_float_buffer(size_t size) {
   FloatBuffer_obj_t* self = m_new_obj(FloatBuffer_obj_t);
   self->base.type = &FloatBuffer_type;
   self->length = size;
-  self->memory = memory;
+  self->elements = elements;
 
   return self;
 }
@@ -60,7 +60,7 @@ STATIC mp_obj_t scale(mp_obj_t self_in, mp_obj_t factor_obj) {
   }
 
   for (size_t idx = 0; idx < self->length; idx++) {
-    self->memory[idx] *= factor;
+    self->elements[idx] *= factor;
   }
 
   return mp_const_none;
@@ -89,7 +89,7 @@ STATIC mp_obj_t output(mp_obj_t self_in, mp_obj_t output_obj) {
 
   // copy items into output
   for (size_t idx = 0; idx < max_bins_out; idx++) {
-    output[idx] = mp_obj_new_float((mp_float_t)self->memory[idx]);
+    output[idx] = mp_obj_new_float((mp_float_t)self->elements[idx]);
   }
 
   return mp_const_none;
@@ -129,7 +129,7 @@ STATIC mp_obj_t align(mp_obj_t self_in, mp_obj_t output_obj) {
 
     // interpolate the fft bins to get the value for this element
     ret = interpolate_float_array_linear(
-        self->memory, self->length, phase, &interpolated);
+        self->elements, self->length, phase, &interpolated);
     if (0 != ret) {
       mp_raise_OSError(ret);
     }
@@ -187,7 +187,7 @@ STATIC mp_obj_t iternext(mp_obj_t iter_in) {
   }
 
   if (iter->idx < self->length) {
-    float value = self->memory[iter->idx];
+    float value = self->elements[iter->idx];
     iter->idx++;
     return mp_obj_new_float((mp_float_t)value);
   } else {
@@ -236,7 +236,7 @@ STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
         if (element_index >= self->length) {
           break;
         }
-        res->memory[idx] = self->memory[element_index];
+        res->elements[idx] = self->elements[element_index];
       }
       return MP_OBJ_FROM_PTR(res);
     }
@@ -248,7 +248,7 @@ STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
       mp_raise_ValueError(NULL);
     }
 
-    return mp_obj_new_float((mp_float_t)self->memory[idx]);
+    return mp_obj_new_float((mp_float_t)self->elements[idx]);
   } else {
     // setting elements
 #if MICROPY_PY_BUILTINS_SLICE
@@ -278,7 +278,7 @@ STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
         if (true != result) {
           mp_raise_TypeError(NULL);
         }
-        self->memory[element_index] = val;
+        self->elements[element_index] = val;
         idx++;
       }
 
@@ -298,7 +298,7 @@ STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
     if (true != result) {
       mp_raise_TypeError(NULL);
     }
-    self->memory[idx] = val;
+    self->elements[idx] = val;
 
     return mp_const_none;
   }
