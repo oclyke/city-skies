@@ -1,4 +1,5 @@
-from fft import FftPlan, AudioBuffer
+from fft import FftPlan
+from buffer import FloatBuffer
 from ..variables.manager import VariableManager
 from ..variables.types import FloatingVariable
 
@@ -27,9 +28,9 @@ class AudioSource:
         self._sample_frequency = sample_frequency
         self._sample_length = sample_length
 
-        # create an AudioBuffer that will hold the samples
+        # create an FloatBuffer that will hold the samples
         # (this is a faster object to use to store floating point values)
-        self._buffer = AudioBuffer(sample_length)
+        self._buffer = FloatBuffer(sample_length)
 
         # create an AudioSourceFFT for the source
         self._fft = AudioSourceFFT((sample_frequency, sample_length))

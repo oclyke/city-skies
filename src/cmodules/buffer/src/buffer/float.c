@@ -10,32 +10,32 @@
 #include "py/objstr.h"
 #include "py/runtime.h"
 #include "py/stream.h"
-#include "utilities.h"
+#include "buffer/utilities.h"
 
-typedef struct _FftBuffer_obj_t {
+typedef struct _FloatBuffer_obj_t {
   mp_obj_base_t base;
   float* memory;
   size_t length;
-} FftBuffer_obj_t;
+} FloatBuffer_obj_t;
 
-const mp_obj_type_t AudioBuffer_type;
+const mp_obj_type_t FloatBuffer_type;
 
 typedef struct _fft_buffer_iter_t {
   mp_obj_base_t base;
   mp_fun_1_t iternext;
-  FftBuffer_obj_t* buffer;
+  FloatBuffer_obj_t* buffer;
   size_t idx;
 } fft_buffer_iter_t;
 
 /**
- * @brief This function scales the buffer
+ * @brief This function scales the buffer in place
  *
  * @param self_in
  * @param factor
  * @return STATIC
  */
 STATIC mp_obj_t scale(mp_obj_t self_in, mp_obj_t factor_obj) {
-  FftBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
   double factor = mp_obj_get_float(factor_obj);
 
   for (size_t idx = 0; idx < self->length; idx++) {
@@ -47,7 +47,7 @@ STATIC mp_obj_t scale(mp_obj_t self_in, mp_obj_t factor_obj) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(scale_obj, scale);
 
 STATIC mp_obj_t output(mp_obj_t self_in, mp_obj_t output_obj) {
-  FftBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
 
   // get the output list
   size_t numout = 0;
@@ -84,7 +84,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_2(output_obj, output);
  * @return STATIC
  */
 STATIC mp_obj_t align(mp_obj_t self_in, mp_obj_t output_obj) {
-  FftBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
 
   // get the output list
   size_t numout = 0;
@@ -107,7 +107,7 @@ STATIC mp_obj_t align(mp_obj_t self_in, mp_obj_t output_obj) {
     double phase = ((double)idx / (numout - 1));
 
     // interpolate the fft bins to get the value for this element
-    ret = interpolate_linear(self->memory, self->length, phase, &interpolated);
+    ret = interpolate_float_array_linear(self->memory, self->length, phase, &interpolated);
     if (0 != ret) {
       mp_raise_OSError(ret);
     }
@@ -122,7 +122,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_2(align_obj, align);
 
 // binary / unary operations
 STATIC mp_obj_t unary_op(mp_unary_op_t op, mp_obj_t self_in) {
-  FftBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
   switch (op) {
     case MP_UNARY_OP_LEN:
       return mp_obj_new_int(self->length);
@@ -157,7 +157,7 @@ STATIC mp_obj_t binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs) {
 // iteration / subscripting
 STATIC mp_obj_t iternext(mp_obj_t iter_in) {
   fft_buffer_iter_t* iter = MP_OBJ_TO_PTR(iter_in);
-  FftBuffer_obj_t* self = MP_OBJ_TO_PTR(iter->buffer);
+  FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(iter->buffer);
 
   // check buffer existence
   if (NULL == self) {
@@ -175,7 +175,7 @@ STATIC mp_obj_t iternext(mp_obj_t iter_in) {
 }
 
 STATIC mp_obj_t getiter(mp_obj_t self_in, mp_obj_iter_buf_t* iter_buf) {
-  FftBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
 
   // get the iterbuf that is provided by the interpreter
   assert(sizeof(fft_buffer_iter_t) <= sizeof(mp_obj_iter_buf_t));
@@ -194,7 +194,7 @@ STATIC mp_obj_t getiter(mp_obj_t self_in, mp_obj_iter_buf_t* iter_buf) {
 }
 
 STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
-  FftBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
   size_t idx = mp_obj_get_int(index);
 
   // check bounds
@@ -230,7 +230,7 @@ STATIC MP_DEFINE_CONST_DICT(buffer_locals_dict, locals_dict_table);
 STATIC void print(
     const mp_print_t* print, mp_obj_t self_in, mp_print_kind_t kind) {
   (void)kind;
-  FftBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
+  FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
   mp_print_str(print, "FftBuffer(");
   mp_obj_print_helper(print, mp_obj_new_int(self->length), PRINT_REPR);
   mp_print_str(print, ")");
@@ -262,15 +262,15 @@ STATIC mp_obj_t make_new(
   }
 
   // instantiate the object
-  FftBuffer_obj_t* self = m_new_obj(FftBuffer_obj_t);
-  self->base.type = &AudioBuffer_type;
+  FloatBuffer_obj_t* self = m_new_obj(FloatBuffer_obj_t);
+  self->base.type = &FloatBuffer_type;
   self->length = size;
   self->memory = memory;
 
   return MP_OBJ_FROM_PTR(self);
 }
 
-const mp_obj_type_t AudioBuffer_type = {
+const mp_obj_type_t FloatBuffer_type = {
     {&mp_type_type},
     .name = MP_QSTR_AudioBuffer,
     .print = print,
