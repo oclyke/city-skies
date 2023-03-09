@@ -222,7 +222,7 @@ STATIC mp_obj_t window(mp_obj_t self_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_1(window_obj, window);
 
 /**
- * @brief This function scales the input data by the constant scalar factor
+ * @brief This function scales the output bins by a constant scaling factor
  *
  * @param self_in
  * @param factor
@@ -232,9 +232,31 @@ STATIC mp_obj_t scale(mp_obj_t self_in, mp_obj_t factor_obj) {
   FftPlan_obj_t* self = MP_OBJ_TO_PTR(self_in);
   double factor = mp_obj_get_float(factor_obj);
 
-  size_t capacity = self->config->size;
-  for (size_t idx = 0; idx < capacity; idx++) {
-    self->config->input[idx] *= factor;
+  // get real output bins
+  size_t length;
+  int ret = get_real_output_bins(self->config, &length, NULL, 0);
+  if (0 != ret) {
+    mp_raise_OSError(ret);
+  }
+
+  for (size_t idx = 0; idx < length; idx++) {
+    double real, imaginary;
+
+    // get the output values
+    ret = get_output_bin(self->config, idx, &real, &imaginary);
+    if (0 != ret) {
+      mp_raise_OSError(ret);
+    }
+
+    // apply scaling
+    real *= factor;
+    imaginary *= factor;
+
+    // set the output values
+    ret = set_output_bin(self->config, idx, real, imaginary);
+    if (0 != ret) {
+      mp_raise_OSError(ret);
+    }
   }
 
   return mp_const_none;
