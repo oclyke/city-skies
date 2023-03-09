@@ -38,7 +38,7 @@ class UDPAudioSource(ManagedAudioSource):
                     sock.connect(sockaddr)
                 except OSError as error:
                     sock = None
-                    timeout_secs = 10
+                    timeout_secs = 3
                     if error.args[0] == 61:
                         print(
                             f"FAILED: connect to UDP audio source. retrying in {timeout_secs} seconds..."
@@ -56,6 +56,7 @@ class UDPAudioSource(ManagedAudioSource):
                 read_fail_count += 1
                 if read_fail_count > 5:
                     print("ERROR: UDP audio connection broken, resetting...")
+                    sock.close()
                     sock = None
                     continue
 
