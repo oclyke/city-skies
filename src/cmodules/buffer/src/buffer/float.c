@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "buffer/utilities.h"
 #include "fft.h"
 #include "plan.h"
 #include "py/misc.h"
@@ -10,7 +11,6 @@
 #include "py/objstr.h"
 #include "py/runtime.h"
 #include "py/stream.h"
-#include "buffer/utilities.h"
 
 typedef struct _FloatBuffer_obj_t {
   mp_obj_base_t base;
@@ -27,6 +27,22 @@ typedef struct _fft_buffer_iter_t {
   size_t idx;
 } fft_buffer_iter_t;
 
+STATIC FloatBuffer_obj_t* create_new_float_buffer(size_t size) {
+  // attempt to allocate memory
+  float* memory = (float*)malloc(size * sizeof(float));
+  if (NULL == memory) {
+    mp_raise_OSError(-ENOMEM);
+  }
+
+  // instantiate the object
+  FloatBuffer_obj_t* self = m_new_obj(FloatBuffer_obj_t);
+  self->base.type = &FloatBuffer_type;
+  self->length = size;
+  self->memory = memory;
+
+  return self;
+}
+
 /**
  * @brief This function scales the buffer in place
  *
@@ -36,7 +52,12 @@ typedef struct _fft_buffer_iter_t {
  */
 STATIC mp_obj_t scale(mp_obj_t self_in, mp_obj_t factor_obj) {
   FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
-  double factor = mp_obj_get_float(factor_obj);
+  double factor;
+  bool result = mp_obj_get_float_maybe(factor_obj, &factor);
+  if (true != result) {
+    mp_raise_TypeError(NULL);
+    return mp_const_none;
+  }
 
   for (size_t idx = 0; idx < self->length; idx++) {
     self->memory[idx] *= factor;
@@ -107,7 +128,8 @@ STATIC mp_obj_t align(mp_obj_t self_in, mp_obj_t output_obj) {
     double phase = ((double)idx / (numout - 1));
 
     // interpolate the fft bins to get the value for this element
-    ret = interpolate_float_array_linear(self->memory, self->length, phase, &interpolated);
+    ret = interpolate_float_array_linear(
+        self->memory, self->length, phase, &interpolated);
     if (0 != ret) {
       mp_raise_OSError(ret);
     }
@@ -195,23 +217,85 @@ STATIC mp_obj_t getiter(mp_obj_t self_in, mp_obj_iter_buf_t* iter_buf) {
 
 STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
   FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
-  size_t idx = mp_obj_get_int(index);
-
-  // check bounds
-  if (idx >= self->length) {
-    mp_raise_ValueError(NULL);
-  }
 
   if (value == MP_OBJ_SENTINEL) {
+    // getting elements
+#if MICROPY_PY_BUILTINS_SLICE
+    if (mp_obj_is_type(index, &mp_type_slice)) {
+      mp_bound_slice_t slice;
+      mp_seq_get_fast_slice_indexes(self->length, index, &slice);
+      uint16_t slice_len = (slice.stop - slice.start) / slice.step;
+
+      if (slice_len < 0) {
+        mp_raise_ValueError(NULL);
+      }
+
+      FloatBuffer_obj_t* res = create_new_float_buffer(slice_len);
+      for (size_t idx = 0; idx < slice_len; idx++) {
+        size_t element_index = slice.start + idx * slice.step;
+        if (element_index >= self->length) {
+          break;
+        }
+        res->memory[idx] = self->memory[element_index];
+      }
+      return MP_OBJ_FROM_PTR(res);
+    }
+#endif
+
+    // check bounds
+    size_t idx = mp_obj_get_int(index);
+    if (idx >= self->length) {
+      mp_raise_ValueError(NULL);
+    }
+
     return mp_obj_new_float((mp_float_t)self->memory[idx]);
   } else {
+    // setting elements
+#if MICROPY_PY_BUILTINS_SLICE
+    if (mp_obj_is_type(index, &mp_type_slice)) {
+      mp_bound_slice_t slice;
+      mp_seq_get_fast_slice_indexes(self->length, index, &slice);
+      uint16_t slice_len = (slice.stop - slice.start) / slice.step;
+
+      // assume that the value is iterable
+      mp_obj_iter_buf_t iter_buf;
+      mp_obj_t iterable = mp_getiter(value, &iter_buf);
+      mp_obj_t item;
+
+      // iterate over the value setting slice elements until:
+      // - all slices are filled
+      // - the iterable empties
+      // - there is no more space in the buffer
+      size_t idx = 0;
+      while (((item = mp_iternext(iterable)) != MP_OBJ_STOP_ITERATION) &&
+             (idx < slice_len)) {
+        size_t element_index = slice.start + idx * slice.step;
+        if (element_index >= self->length) {
+          break;
+        }
+        mp_float_t val;
+        bool result = mp_obj_get_float_maybe(item, &val);
+        if (true != result) {
+          mp_raise_TypeError(NULL);
+        }
+        self->memory[element_index] = val;
+        idx++;
+      }
+
+      return mp_const_none;
+    }
+#endif
+
+    // check bounds
+    size_t idx = mp_obj_get_int(index);
+    if (idx >= self->length) {
+      mp_raise_ValueError(NULL);
+    }
+
     // set the real component at this index
-    float val;
-    if (mp_obj_is_float(value)) {
-      val = (double)mp_obj_get_float(value);
-    } else if (mp_obj_is_int(value)) {
-      val = (double)mp_obj_get_int(value);
-    } else {
+    mp_float_t val;
+    bool result = mp_obj_get_float_maybe(value, &val);
+    if (true != result) {
       mp_raise_TypeError(NULL);
     }
     self->memory[idx] = val;
@@ -255,17 +339,8 @@ STATIC mp_obj_t make_new(
   // get the size
   mp_int_t size = args[ARG_size].u_int;
 
-  // attempt to allocate memory
-  float* memory = (float*)malloc(size * sizeof(float));
-  if (NULL == memory) {
-    mp_raise_OSError(-ENOMEM);
-  }
-
-  // instantiate the object
-  FloatBuffer_obj_t* self = m_new_obj(FloatBuffer_obj_t);
-  self->base.type = &FloatBuffer_type;
-  self->length = size;
-  self->memory = memory;
+  // create the buffer
+  FloatBuffer_obj_t* self = create_new_float_buffer(size);
 
   return MP_OBJ_FROM_PTR(self);
 }
