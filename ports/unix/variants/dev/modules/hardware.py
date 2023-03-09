@@ -2,7 +2,7 @@ from semver import SemanticVersion
 from udpdriver import UDPDriver
 from artnetdriver import ArtnetDriver
 from audio_stream_udp import UDPAudioSource
-from mock_audio import MockAudioSource
+from audio_mock import MockAudioSource
 import config
 import pysicgl
 
