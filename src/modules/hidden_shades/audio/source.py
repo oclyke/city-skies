@@ -15,15 +15,6 @@ class AudioSourceFFT:
         self._plan.window()
         self._plan.execute()
 
-    def postprocess(self):
-        # compute some stats about the fft results
-        sum, max, max_idx = self._plan.stats()
-
-        # now normalize the fft results
-        if abs(max) < 0.000001:
-            return
-        self._plan.scale(1/max)
-
     @property
     def plan(self):
         return self._plan

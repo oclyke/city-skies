@@ -46,6 +46,3 @@ class MockAudioSource(ManagedAudioSource):
 
             # zero out low frequency fft bins
             self.zero_low_fft_bins()
-
-            # run postprocessing on the fft results
-            self.fft.postprocess()
