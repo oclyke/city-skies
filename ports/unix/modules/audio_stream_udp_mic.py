@@ -86,14 +86,5 @@ class UDPAudioSourceMic(ManagedAudioSource):
             for idx in range(self._sample_length):
                 self._buffer[idx] = self._queue.popleft()
 
-            # scale the audio data by the volume
             self.apply_volume()
-
-            # feed the audio data to the fft plan
-            self.fft.plan.feed(self._buffer)
-
-            # now compute the fft
             self.fft.compute()
-
-            # zero out low frequency fft bins
-            self.zero_low_fft_bins()

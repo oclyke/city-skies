@@ -26,23 +26,11 @@ class MockAudioSource(ManagedAudioSource):
         # make the test signal
         sine_generator = sine_wave(self._freq, self._sample_frequency)
 
-        # output to view the fft strengths
-        strengths = [0.0] * 32
-
         while True:
             # simulate waiting for a real audio source to fill the buffer
             for idx in range(self._sample_length):
                 self._buffer[idx] = next(sine_generator)
             await asyncio.sleep(self._sample_length / self._sample_frequency)
 
-            # scale the audio data by the volume
             self.apply_volume()
-
-            # feed the audio data to the fft
-            self.fft.plan.feed(self._buffer)
-
-            # now that the audio source is filled with data compute the fft
             self.fft.compute()
-
-            # zero out low frequency fft bins
-            self.zero_low_fft_bins()

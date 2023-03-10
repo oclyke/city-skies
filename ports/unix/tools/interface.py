@@ -104,6 +104,7 @@ class Audio:
     def get_source(self, source_name):
         return AudioSource(self._node, source_name)
 
+
 class AudioSource:
     def __init__(self, base_node, source_name):
         self._node = RestNode.fromBase(base_node, f"/sources/{source_name}")

@@ -19,7 +19,9 @@ drivers = [
 # audio sources
 audio_source_root_path = f"{config.EPHEMERAL_DIR}/audio/sources"
 audio_sources = [
-    UDPAudioSourceMic(audio_source_root_path, "MicStreamUDP", ("0.0.0.0", "42311"), (48000, 1024)),
+    UDPAudioSourceMic(
+        audio_source_root_path, "MicStreamUDP", ("0.0.0.0", "42311"), (48000, 1024)
+    ),
     UDPAudioSource(
         audio_source_root_path, "AudioStreamUDP", ("0.0.0.0", "42310"), (44100, 1024)
     ),

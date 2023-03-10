@@ -305,6 +305,7 @@ async def serve_api():
         variable = source.private_variable_manager.variables[varname]
         variable.value = variable.deserialize(request.body.decode())
 
+
 async def control_visualizer():
     # information about visualizer control server
     CONTROL_HOST = "0.0.0.0"
