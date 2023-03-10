@@ -33,10 +33,11 @@ class AudioSourceFFT:
     @property
     def output(self):
         return self._output_buffer
-    
+
     @property
     def reshaped(self):
         return self._reshaped_output_buffer
+
 
 class AudioSource:
     def __init__(self, name, configuration):
