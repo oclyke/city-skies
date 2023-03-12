@@ -88,3 +88,4 @@ class UDPAudioSourceMic(ManagedAudioSource):
 
             self.apply_volume()
             self.fft.compute()
+            self.fft_postprocess()

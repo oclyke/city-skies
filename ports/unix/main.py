@@ -223,6 +223,45 @@ async def serve_api():
     async def get_audio_sources(request):
         return get_list(hidden_shades.audio_manager.sources.keys())
 
+    @app.get("/audio/sources/<source_name>/variables")
+    async def get_audio_source_variables(request, source_name):
+        source = hidden_shades.audio_manager.sources[source_name]
+        return get_list(
+            variable.name for variable in source.variable_manager.variables.values()
+        )
+
+    @app.get("/audio/sources/<source_name>/private_variables")
+    async def get_audio_source_private_variables(request, source_name):
+        source = hidden_shades.audio_manager.sources[source_name]
+        return get_list(
+            variable.name
+            for variable in source.private_variable_manager.variables.values()
+        )
+
+    @app.get("/audio/sources/<source_name>/variables/<varname>")
+    async def get_audio_source_variable_value(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.variable_manager.variables[varname]
+        return variable.value
+
+    @app.get("/audio/sources/<source_name>/variables/<varname>/info")
+    async def get_audio_source_variable_info(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.variable_manager.variables[varname]
+        return variable.info
+
+    @app.get("/audio/sources/<source_name>/private_variables/<varname>")
+    async def get_audio_source_private_variable_value(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.private_variable_manager.variables[varname]
+        return variable.value
+
+    @app.get("/audio/sources/<source_name>/private_variables/<varname>/info")
+    async def get_audio_source_private_variable_info(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.private_variable_manager.variables[varname]
+        return variable.info
+
     # curl -H "Content-Type: text/plain" -X POST http://localhost:1337/stacks/<active>/layer -d '{"shard_uuid": "noise"}'
     @app.post("/stacks/<active>/layer")
     async def put_stack_layer(request, active):

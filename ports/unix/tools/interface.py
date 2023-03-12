@@ -116,6 +116,14 @@ class AudioSource:
     def set_private_variable(self, varname, value):
         self._node.put(f"/private_vars/{varname}", value)
 
+    @property
+    def variables(self):
+        return _to_list(self._node.get(f"/variables"))
+
+    @property
+    def private_variables(self):
+        return _to_list(self._node.get(f"/private_variables"))
+
 
 class Stack:
     def __init__(self, base_node, stack_id):
@@ -176,6 +184,13 @@ class Layer:
 
     def set_private_variable(self, varname, value):
         self._node.put(f"/private_vars/{varname}", value)
+
+
+class Variable:
+    def __init__(self, base_node, name):
+        self._node = RestNode.fromBase(base_node, f"/{name}")
+
+    # def
 
 
 if __name__ == "__main__":

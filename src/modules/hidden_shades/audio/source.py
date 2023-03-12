@@ -3,6 +3,7 @@ from reshape import reshape
 from buffer import FloatBuffer
 from ..variables.manager import VariableManager
 from ..variables.types import FloatingVariable
+from ..variables.responder import VariableResponder
 
 
 class AudioSourceFFT:
@@ -16,15 +17,9 @@ class AudioSourceFFT:
             (self._input_buffer, self._output_buffer), sample_frequency
         )
 
-        # create an output meant to hold nonlinear-corrected fft results
-        self._reshape_factor = 1.3
-        bins_required = reshape(self._reshape_factor, self._output_buffer, None)
-        self._reshaped_output_buffer = FloatBuffer(bins_required)
-
     def compute(self):
         self._plan.window()
         self._plan.execute()
-        reshape(self._reshape_factor, self._output_buffer, self._reshaped_output_buffer)
 
     @property
     def plan(self):
@@ -33,10 +28,6 @@ class AudioSourceFFT:
     @property
     def output(self):
         return self._output_buffer
-
-    @property
-    def reshaped(self):
-        return self._reshaped_output_buffer
 
 
 class AudioSource:
@@ -77,15 +68,24 @@ class ManagedAudioSource(AudioSource):
     def __init__(self, path, name, configuration):
         super().__init__(name, configuration)
 
-        self._root_path = path
+        # create an output meant to hold nonlinear-corrected fft results
+        # this buffer will have equal length to the output buffer despite that the number of bins required may be substantially more or substantially fewer depending on the chosen fft reshape factor.
+        self._reshaped_fft_output_buffer = FloatBuffer(len(self._fft._output_buffer))
+        self._reshaped_fft_output = self._reshaped_fft_output_buffer.reference()
+
+        self._floor = None
+        self._factor = None
 
         # create root path
-        self._root_path = f"{self._root_path}/{self._name}"
+        self._root_path = f"{path}/{self._name}"
 
         # variables which may be dynamically registered for external control
         self._variable_manager = VariableManager(f"{self._root_path}/vars")
 
         # declare private variables
+        self._private_variable_responder = VariableResponder(
+            lambda variable: self._handle_private_variable_change(variable)
+        )
         self._private_variable_manager = VariableManager(
             f"{self._root_path}/private_vars"
         )
@@ -94,14 +94,56 @@ class ManagedAudioSource(AudioSource):
                 0.5,
                 "volume",
                 default_range=(0.0, 1.0),
+                responders=[self._private_variable_responder],
+            )
+        )
+        self._private_variable_manager.declare_variable(
+            FloatingVariable(
+                1.5,
+                "fft_reshape_factor",
+                default_range=(1.5, 2.0),
+                allowed_range=(0.5, 3.0),
+                responders=[self._private_variable_responder],
+            )
+        )
+        self._private_variable_manager.declare_variable(
+            FloatingVariable(
+                500.0,
+                "fft_reshape_floor",
+                default_range=(0.0, 1000.0),
+                responders=[self._private_variable_responder],
             )
         )
         self._private_variable_manager.initialize_variables()
+
+    def _handle_private_variable_change(self, variable):
+        if variable.name == "fft_reshape_factor":
+            # create a reference to the reshaped fft output buffer which is sized according to the number of bins actually required
+            reshape_factor = self.private_variable_manager.variables[
+                "fft_reshape_factor"
+            ].value
+            bins_required = reshape((reshape_factor, 0), self._fft._output_buffer, None)
+            bins_available = len(self._reshaped_fft_output_buffer)
+            if bins_required > bins_available:
+                bins_required = bins_available
+            self._reshaped_fft_output = self._reshaped_fft_output_buffer.reference(
+                window=(0, bins_required)
+            )
 
     def apply_volume(self):
         # scale the audio data by the volume
         volume = self.private_variable_manager.variables["volume"].value
         self._buffer.scale(volume)
+
+    def fft_postprocess(self):
+        reshape_factor = self.private_variable_manager.variables[
+            "fft_reshape_factor"
+        ].value
+        reshape_floor = self.private_variable_manager.variables[
+            "fft_reshape_floor"
+        ].value
+        reshape_config = (reshape_factor, reshape_floor)
+        reshape(reshape_config, self._fft._output_buffer, self._reshaped_fft_output)
 
     @property
     def variable_manager(self):
@@ -110,3 +152,7 @@ class ManagedAudioSource(AudioSource):
     @property
     def private_variable_manager(self):
         return self._private_variable_manager
+
+    @property
+    def reshaped_fft_output(self):
+        return self._reshaped_fft_output

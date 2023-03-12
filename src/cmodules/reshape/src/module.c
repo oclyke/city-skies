@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdio.h>
 
 #include "buffer/float.h"
 #include "plan.h"
@@ -36,14 +37,20 @@ STATIC double ear_kernel(double factor, double location, double start) {
  * factor
  */
 STATIC mp_obj_t
-reshape(mp_obj_t factor_obj, mp_obj_t input_obj, mp_obj_t output_obj) {
+reshape(mp_obj_t config_obj, mp_obj_t input_obj, mp_obj_t output_obj) {
   // reshapes input samples into output samples to compensate for nonlinearity
   // of the human ear https://www.audiocheck.net/soundtests_nonlinear.php
 
   // get the exponential factor
   mp_float_t factor;
-  bool result = mp_obj_get_float_maybe(factor_obj, &factor);
-  if (true != result) {
+  mp_float_t floor;
+
+  if (!mp_obj_is_type(config_obj, &mp_type_tuple)) {
+    mp_raise_TypeError(NULL);
+  }
+  mp_obj_tuple_t* config_tuple = MP_OBJ_TO_PTR(config_obj);
+  if ((!mp_obj_get_float_maybe(config_tuple->items[0], &factor)) ||
+      (!mp_obj_get_float_maybe(config_tuple->items[1], &floor))) {
     mp_raise_TypeError(NULL);
   }
 
@@ -91,7 +98,13 @@ reshape(mp_obj_t factor_obj, mp_obj_t input_obj, mp_obj_t output_obj) {
           if (sum_idx > input->length) {
             break;
           }
-          sum += (double)input->elements[sum_idx];
+          double value = (double)input->elements[sum_idx];
+
+          // only add to the sum if the input bin value is greater than the
+          // noise floor cutoff
+          if (value > floor) {
+            sum += value;
+          }
         }
       }
 

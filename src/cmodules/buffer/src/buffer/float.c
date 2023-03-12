@@ -27,9 +27,8 @@ typedef struct _fft_buffer_iter_t {
   size_t idx;
 } fft_buffer_iter_t;
 
-STATIC FloatBuffer_obj_t* create_new_float_buffer(size_t size) {
-  // attempt to allocate elements
-  float* elements = (float*)malloc(size * sizeof(float));
+STATIC FloatBuffer_obj_t* create_new_float_buffer_reference(
+    size_t size, float* elements) {
   if (NULL == elements) {
     mp_raise_OSError(-ENOMEM);
   }
@@ -41,6 +40,11 @@ STATIC FloatBuffer_obj_t* create_new_float_buffer(size_t size) {
   self->elements = elements;
 
   return self;
+}
+
+STATIC FloatBuffer_obj_t* create_new_float_buffer(size_t size) {
+  float* elements = (float*)malloc(size * sizeof(float));
+  return create_new_float_buffer_reference(size, elements);
 }
 
 /**
@@ -141,6 +145,59 @@ STATIC mp_obj_t align(mp_obj_t self_in, mp_obj_t output_obj) {
   return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(align_obj, align);
+
+/**
+ * @brief Make a reference to this buffer.
+ * It is illegal to destroy the memory allocated for a buffer, as there is no
+ * mechanism to inform refrences that this memory is no longer valid.
+ *
+ * @param n_args
+ * @param pos_args
+ * @param kw_args
+ * @return STATIC
+ */
+STATIC mp_obj_t
+reference(size_t n_args, const mp_obj_t* pos_args, mp_map_t* kw_args) {
+  FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(pos_args[0]);
+
+  enum { ARG_window };
+  const mp_arg_t allowed_args[] = {
+      {MP_QSTR_window, MP_ARG_OBJ | MP_ARG_KW_ONLY, {.u_obj = mp_const_none}},
+  };
+  mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+  mp_arg_parse_all(
+      n_args - 1, &pos_args[1], kw_args, MP_ARRAY_SIZE(allowed_args),
+      allowed_args, args);
+
+  // prepare the window bounds
+  mp_int_t low = 0;
+  mp_int_t high = self->length;
+  mp_obj_t window_obj = args[ARG_window].u_obj;
+  if (window_obj != mp_const_none) {
+    if (!mp_obj_is_type(window_obj, &mp_type_tuple)) {
+      mp_raise_TypeError(NULL);
+    }
+    mp_obj_tuple_t* window_tuple = MP_OBJ_TO_PTR(window_obj);
+    if ((!mp_obj_get_int_maybe(window_tuple->items[0], &low)) ||
+        (!mp_obj_get_int_maybe(window_tuple->items[1], &high))) {
+      mp_raise_TypeError(NULL);
+    }
+    if ((low < 0) || (high < 0)) {
+      mp_raise_ValueError(NULL);
+    }
+  }
+  mp_int_t size = high - low;
+  if (size > self->length) {
+    mp_raise_ValueError(NULL);
+  }
+
+  // create the reference
+  FloatBuffer_obj_t* reference =
+      create_new_float_buffer_reference((size_t)size, &self->elements[low]);
+
+  return MP_OBJ_FROM_PTR(reference);
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_KW(reference_obj, 1, reference);
 
 // binary / unary operations
 STATIC mp_obj_t unary_op(mp_unary_op_t op, mp_obj_t self_in) {
@@ -305,6 +362,7 @@ STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
 }
 
 STATIC const mp_rom_map_elem_t locals_dict_table[] = {
+    {MP_ROM_QSTR(MP_QSTR_reference), MP_ROM_PTR(&reference_obj)},
     {MP_ROM_QSTR(MP_QSTR_scale), MP_ROM_PTR(&scale_obj)},
     {MP_ROM_QSTR(MP_QSTR_output), MP_ROM_PTR(&output_obj)},
     {MP_ROM_QSTR(MP_QSTR_align), MP_ROM_PTR(&align_obj)},
@@ -320,6 +378,17 @@ STATIC void print(
   mp_print_str(print, ")");
 }
 
+/**
+ * @brief Creates a new FLoatBuffer backed by an array of sufficient size.
+ * It is illegal to destroy a FloatBuffer or free its memory, due to there
+ * being no mechanism for informing references that this change has occurred.
+ *
+ * @param type
+ * @param n_args
+ * @param n_kw
+ * @param all_args
+ * @return STATIC
+ */
 STATIC mp_obj_t make_new(
     const mp_obj_type_t* type, size_t n_args, size_t n_kw,
     const mp_obj_t* all_args) {

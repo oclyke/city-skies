@@ -1,7 +1,5 @@
 import hidden_shades
 from pysicgl_utils import Display
-from fft import bin_stats
-import reshape
 
 
 def frames(layer):
@@ -22,7 +20,7 @@ def frames(layer):
 
         # # choose an fft output to view
         # bins = audio_source.fft.output
-        bins = audio_source.fft.reshaped
+        bins = bins = audio_source.reshaped_fft_output
 
         # align the bins to the strenths (interpolate)
         bins.align(strengths)
