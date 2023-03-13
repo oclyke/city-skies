@@ -2,7 +2,7 @@ from fft import FftPlan, bin_stats
 from reshape import reshape
 from buffer import FloatBuffer
 from ..variables.manager import VariableManager
-from ..variables.types import FloatingVariable
+from ..variables.types import FloatingVariable, IntegerVariable
 from ..variables.responder import VariableResponder
 
 
@@ -70,7 +70,10 @@ class ManagedAudioSource(AudioSource):
 
         # create an output meant to hold nonlinear-corrected fft results
         # this buffer will have equal length to the output buffer despite that the number of bins required may be substantially more or substantially fewer depending on the chosen fft reshape factor.
-        self._reshaped_fft_output_buffer = FloatBuffer(len(self._fft._output_buffer))
+        self._reshaped_fft_bins_available = len(self._fft._output_buffer)
+        self._reshaped_fft_output_buffer = FloatBuffer(
+            self._reshaped_fft_bins_available
+        )
         self._reshaped_fft_output = self._reshaped_fft_output_buffer.reference()
 
         self._floor = None
@@ -108,26 +111,63 @@ class ManagedAudioSource(AudioSource):
         )
         self._private_variable_manager.declare_variable(
             FloatingVariable(
-                500.0,
+                0.1,
                 "fft_reshape_floor",
-                default_range=(0.0, 1000.0),
+                default_range=(0.0, 1.0),
+                responders=[self._private_variable_responder],
+            )
+        )
+        self._private_variable_manager.declare_variable(
+            IntegerVariable(
+                0,
+                "fft_min_bin",
+                default_range=(0, self._reshaped_fft_bins_available),
+                responders=[self._private_variable_responder],
+            )
+        )
+        self._private_variable_manager.declare_variable(
+            IntegerVariable(
+                self._reshaped_fft_bins_available,
+                "fft_max_bin",
+                default_range=(0.0, self._reshaped_fft_bins_available),
                 responders=[self._private_variable_responder],
             )
         )
         self._private_variable_manager.initialize_variables()
 
     def _handle_private_variable_change(self, variable):
-        if variable.name == "fft_reshape_factor":
-            # create a reference to the reshaped fft output buffer which is sized according to the number of bins actually required
+        if variable.name in ("fft_reshape_factor", "fft_min_bin", "fft_max_bin"):
+            """
+            handle changes in variables which affect the fft output buffer reference
+            """
+
+            # get variable values
             reshape_factor = self.private_variable_manager.variables[
                 "fft_reshape_factor"
             ].value
-            bins_required = reshape((reshape_factor, 0), self._fft._output_buffer, None)
-            bins_available = len(self._reshaped_fft_output_buffer)
-            if bins_required > bins_available:
-                bins_required = bins_available
+            min_bin = self.private_variable_manager.variables["fft_min_bin"].value
+            max_bin = self.private_variable_manager.variables["fft_max_bin"].value
+
+            # determine the number of valid bins from the reshaped output
+            # (this value could be lower or higher than the number of bins allocated for the output buffer)
+            bins_available = reshape(
+                (reshape_factor, 0), self._fft._output_buffer, None
+            )
+            bins_available = self._reshaped_fft_bins_available
+            if bins_available > self._reshaped_fft_bins_available:
+                bins_available = self._reshaped_fft_bins_available
+
+            # set up the window limits, and clamp them to the
+            window_min = min_bin
+            window_max = max_bin
+            if window_min > (bins_available - 1):
+                window_min = bins_available - 1
+            if window_max > bins_available:
+                window_max = bins_available
+
+            # create a new reference to the output bins that selects the desired window
             self._reshaped_fft_output = self._reshaped_fft_output_buffer.reference(
-                window=(0, bins_required)
+                window=(window_min, window_max)
             )
 
     def apply_volume(self):
@@ -143,7 +183,9 @@ class ManagedAudioSource(AudioSource):
             "fft_reshape_floor"
         ].value
         reshape_config = (reshape_factor, reshape_floor)
-        reshape(reshape_config, self._fft._output_buffer, self._reshaped_fft_output)
+        reshape(
+            reshape_config, self._fft._output_buffer, self._reshaped_fft_output_buffer
+        )
 
     @property
     def variable_manager(self):
