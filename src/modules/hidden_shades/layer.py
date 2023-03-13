@@ -110,7 +110,9 @@ class Layer:
         """
         if self._ready:
             next(self._frame_generator_obj)
-            self.canvas.interface_scale(self._private_variable_manager.variables["brightness"].value)
+            self.canvas.interface_scale(
+                self._private_variable_manager.variables["brightness"].value
+            )
 
     def reset_canvas(self):
         self.canvas.interface_fill(0x000000)
