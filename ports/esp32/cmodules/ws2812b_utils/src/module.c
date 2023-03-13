@@ -62,7 +62,7 @@ STATIC mp_obj_t sicgl_memory_to_spi_bitstream(mp_obj_t memory_obj, mp_obj_t outp
 
   return mp_const_none;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_2(sicgl_memory_to_spi_bitstream_obj, sicgl_memory_to_spi_bitstream);
+STATIC MP_DEFINE_CONST_FUN_OBJ_3(sicgl_memory_to_spi_bitstream_obj, sicgl_memory_to_spi_bitstream);
 
 STATIC const mp_rom_map_elem_t globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_ws2812b_utils)},
