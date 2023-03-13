@@ -10,6 +10,7 @@ target_sources(fft INTERFACE
 target_include_directories(fft INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/include
   ${CMAKE_CURRENT_LIST_DIR}/third-party/fakufaku/components/fft/include
+  ${CMAKE_CURRENT_LIST_DIR}/../buffer/include
 )
 
 target_link_libraries(usermod INTERFACE fft)

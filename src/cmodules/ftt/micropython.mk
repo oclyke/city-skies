@@ -10,3 +10,4 @@ SRC_USERMOD += $(MOD_DIR)/third-party/fakufaku/components/fft/fft.c
 CFLAGS_USERMOD += -I$(MOD_DIR)
 CFLAGS_USERMOD += -I$(MOD_DIR)/include
 CFLAGS_USERMOD += -I$(MOD_DIR)/third-party/fakufaku/components/fft/include
+CFLAGS_USERMOD += -I$(MOD_DIR)/../buffer/include
