@@ -24,6 +24,12 @@ class Cache:
         # store initial values
         self.store()
 
+    def set_change_handler(self, on_change):
+        """
+        Used to set the change handler after object construction.
+        """
+        self._on_change = on_change
+
     def notify(self, key=None):
         """
         Notify the registered change handler, if any, of the value of one or all keys in the cache.

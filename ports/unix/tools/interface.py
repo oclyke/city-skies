@@ -65,6 +65,12 @@ class CitySkiesClient:
             Stack(self._node, "inactive"),
         )
 
+        self._audio = Audio(self._node)
+
+    @property
+    def audio(self):
+        return self._audio
+
     @property
     def stacks(self):
         return self._stacks
@@ -78,6 +84,45 @@ class CitySkiesClient:
 
     def set_global_variable(self, varname, value):
         self._node.put(f"/globals/vars/{varname}", value)
+
+
+class Audio:
+    def __init__(self, base_node):
+        self._node = RestNode.fromBase(base_node, f"/audio")
+
+    @property
+    def info(self):
+        return _to_dict(self._node.get(f"/info"))
+
+    @property
+    def sources(self):
+        return _to_list(self._node.get(f"/sources"))
+
+    def select_source(self, source_name):
+        self._node.put(f"/source/{source_name}", None)
+
+    def get_source(self, source_name):
+        return AudioSource(self._node, source_name)
+
+
+class AudioSource:
+    def __init__(self, base_node, source_name):
+        self._node = RestNode.fromBase(base_node, f"/sources/{source_name}")
+        self._source_name = source_name
+
+    def set_variable(self, varname, value):
+        self._node.put(f"/vars/{varname}", value)
+
+    def set_private_variable(self, varname, value):
+        self._node.put(f"/private_vars/{varname}", value)
+
+    @property
+    def variables(self):
+        return _to_list(self._node.get(f"/variables"))
+
+    @property
+    def private_variables(self):
+        return _to_list(self._node.get(f"/private_variables"))
 
 
 class Stack:
@@ -139,6 +184,13 @@ class Layer:
 
     def set_private_variable(self, varname, value):
         self._node.put(f"/private_vars/{varname}", value)
+
+
+class Variable:
+    def __init__(self, base_node, name):
+        self._node = RestNode.fromBase(base_node, f"/{name}")
+
+    # def
 
 
 if __name__ == "__main__":

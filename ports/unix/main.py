@@ -10,12 +10,12 @@ import pysicgl
 import framerate
 import profiling
 import hardware
+import hidden_shades
 import pathutils
 import config
 
 from semver import SemanticVersion
 from stack_manager import StackManager
-from mock_audio import mock_audio_source
 from microdot_asyncio import Microdot, Response, Request
 from hidden_shades.layer import Layer
 from hidden_shades import globals
@@ -214,6 +214,54 @@ async def serve_api():
             for variable in layer.private_variable_manager.variables.values()
         )
 
+    @app.get("/audio/info")
+    async def get_audio_info(request):
+        hidden_shades.audio_manager.info
+        return get_dict(hidden_shades.audio_manager.info)
+
+    @app.get("/audio/sources")
+    async def get_audio_sources(request):
+        return get_list(hidden_shades.audio_manager.sources.keys())
+
+    @app.get("/audio/sources/<source_name>/variables")
+    async def get_audio_source_variables(request, source_name):
+        source = hidden_shades.audio_manager.sources[source_name]
+        return get_list(
+            variable.name for variable in source.variable_manager.variables.values()
+        )
+
+    @app.get("/audio/sources/<source_name>/private_variables")
+    async def get_audio_source_private_variables(request, source_name):
+        source = hidden_shades.audio_manager.sources[source_name]
+        return get_list(
+            variable.name
+            for variable in source.private_variable_manager.variables.values()
+        )
+
+    @app.get("/audio/sources/<source_name>/variables/<varname>")
+    async def get_audio_source_variable_value(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.variable_manager.variables[varname]
+        return variable.value
+
+    @app.get("/audio/sources/<source_name>/variables/<varname>/info")
+    async def get_audio_source_variable_info(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.variable_manager.variables[varname]
+        return variable.info
+
+    @app.get("/audio/sources/<source_name>/private_variables/<varname>")
+    async def get_audio_source_private_variable_value(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.private_variable_manager.variables[varname]
+        return variable.value
+
+    @app.get("/audio/sources/<source_name>/private_variables/<varname>/info")
+    async def get_audio_source_private_variable_info(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.private_variable_manager.variables[varname]
+        return variable.info
+
     # curl -H "Content-Type: text/plain" -X POST http://localhost:1337/stacks/<active>/layer -d '{"shard_uuid": "noise"}'
     @app.post("/stacks/<active>/layer")
     async def put_stack_layer(request, active):
@@ -277,6 +325,25 @@ async def serve_api():
             with open(path, "w") as f:
                 f.write(request.body)
 
+    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/audio/source/<source_name> -d 'MockAudio'
+    @app.put("/audio/source/<source_name>")
+    async def put_audio_source(request, source_name):
+        hidden_shades.audio_manager.select_source(source_name)
+
+    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/audio/sources/<source_name>/private_vars/<varname> -d 'value'
+    @app.put("/audio/sources/<source_name>/vars/<varname>")
+    async def put_audio_source_variable(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.variable_manager.variables[varname]
+        variable.value = variable.deserialize(request.body.decode())
+
+    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/audio/sources/<source_name>/private_vars/<varname> -d 'value'
+    @app.put("/audio/sources/<source_name>/private_vars/<varname>")
+    async def put_audio_source_private_variable(request, source_name, varname):
+        source = hidden_shades.audio_manager.sources[source_name]
+        variable = source.private_variable_manager.variables[varname]
+        variable.value = variable.deserialize(request.body.decode())
+
 
 async def control_visualizer():
     # information about visualizer control server
@@ -310,9 +377,17 @@ async def main():
     # create async tasks
     asyncio.create_task(run_pipeline())
     asyncio.create_task(control_visualizer())
-    asyncio.create_task(mock_audio_source())
     asyncio.create_task(serve_api())
     asyncio.create_task(blink())
+
+    # start audio sources
+    for source in hardware.audio_sources:
+        print("Initializing audio source: ", source)
+        hidden_shades.audio_manager.add_source(source)
+        asyncio.create_task(source.run())
+
+    # initialize the audio manager once all audio sources have been registered
+    hidden_shades.audio_manager.initialize()
 
     # the main task should not return so that asyncio continues to handle tasks
     while True:

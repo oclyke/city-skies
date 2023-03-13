@@ -130,7 +130,7 @@ STATIC mp_obj_t set_map_type(mp_obj_t self_in, mp_obj_t type_obj) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_map_type_obj, set_map_type);
 
-// iteration / subscripting
+// binary / unary operations
 STATIC mp_obj_t unary_op(mp_unary_op_t op, mp_obj_t self_in) {
   ColorSequence_obj_t* self = MP_OBJ_TO_PTR(self_in);
   switch (op) {
@@ -169,6 +169,7 @@ STATIC mp_obj_t binary_op(mp_binary_op_t op, mp_obj_t lhs, mp_obj_t rhs) {
   }
 }
 
+// iteration / subscripting
 STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
   ColorSequence_obj_t* self = MP_OBJ_TO_PTR(self_in);
   mp_obj_t colors = self->colors;

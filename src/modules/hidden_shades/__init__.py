@@ -9,5 +9,5 @@ import config
 
 version = SemanticVersion.from_semver("0.0.0")
 timebase = TimeBase(f"{config.EPHEMERAL_DIR}/timebase", time.ticks_ms)
-audio = AudioManager(f"{config.EPHEMERAL_DIR}/audio")
+audio_manager = AudioManager(f"{config.EPHEMERAL_DIR}/audio")
 globals = GlobalsManager(f"{config.EPHEMERAL_DIR}/globals")

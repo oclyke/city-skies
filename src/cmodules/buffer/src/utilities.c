@@ -4,36 +4,6 @@
 #include "fft.h"
 #include "py/runtime.h"
 
-int unpack_float_tuple2(mp_obj_t obj, mp_float_t* u, mp_float_t* v) {
-  int ret = 0;
-  if (!mp_obj_is_type(obj, &mp_type_tuple)) {
-    ret = -EINVAL;
-    goto out;
-  }
-  mp_obj_tuple_t* tuple = MP_OBJ_TO_PTR(obj);
-  if (2 != tuple->len) {
-    ret = -EINVAL;
-    goto out;
-  }
-  if (NULL != u) {
-    bool result = mp_obj_get_float_maybe(tuple->items[0], u);
-    if (true != result) {
-      ret = -EINVAL;
-      goto out;
-    }
-  }
-  if (NULL != v) {
-    bool result = mp_obj_get_float_maybe(tuple->items[1], v);
-    if (true != result) {
-      ret = -EINVAL;
-      goto out;
-    }
-  }
-
-out:
-  return ret;
-}
-
 /**
  * @brief Small utility to aid in interpolating a floating point value between
  * two others.
@@ -68,7 +38,7 @@ out:
  * @param output the resulting interpolated value
  * @return int 0 on success, negative errno on failure
  */
-int interpolate_linear(
+int interpolate_float_array_linear(
     float* array, size_t length, double phase, double* output) {
   int ret = 0;
   // user does not need result
