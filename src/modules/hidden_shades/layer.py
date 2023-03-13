@@ -1,7 +1,7 @@
 import pysicgl
 from cache import Cache
 from .variables.manager import VariableManager
-from .variables.types import IntegerVariable, ColorSequenceVariable
+from .variables.types import IntegerVariable, ColorSequenceVariable, FloatingVariable
 from .variables.responder import VariableResponder
 from hidden_shades import globals
 from pathutils import rmdirr
@@ -50,6 +50,12 @@ class Layer:
         self._private_variable_manager.declare_variable(
             ColorSequenceVariable(
                 pysicgl.ColorSequence([0x000000, 0xFFFFFF]), "palette"
+            )
+        )
+        self._private_variable_manager.declare_variable(
+            FloatingVariable(
+                1.0,
+                "brightness",
             )
         )
         self._private_variable_manager.initialize_variables()
@@ -104,6 +110,7 @@ class Layer:
         """
         if self._ready:
             next(self._frame_generator_obj)
+            self.canvas.interface_scale(self._private_variable_manager.variables["brightness"].value)
 
     def reset_canvas(self):
         self.canvas.interface_fill(0x000000)
