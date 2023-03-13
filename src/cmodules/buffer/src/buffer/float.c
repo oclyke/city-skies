@@ -282,11 +282,6 @@ STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
       mp_bound_slice_t slice;
       mp_seq_get_fast_slice_indexes(self->length, index, &slice);
       uint16_t slice_len = (slice.stop - slice.start) / slice.step;
-
-      if (slice_len < 0) {
-        mp_raise_ValueError(NULL);
-      }
-
       FloatBuffer_obj_t* res = create_new_float_buffer(slice_len);
       for (size_t idx = 0; idx < slice_len; idx++) {
         size_t element_index = slice.start + idx * slice.step;
