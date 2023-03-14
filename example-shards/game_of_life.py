@@ -25,8 +25,8 @@ def frames(layer):
 
     layer.variable_manager.declare_variable(
         FloatingVariable(
-            1.0,
             "speed",
+            1.0,
             default_range=(0, 5),
             allowed_range=(0, 50),
             responders=[responder],

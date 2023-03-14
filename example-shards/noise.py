@@ -74,22 +74,22 @@ def frames(layer):
     # and ColorSequence)
     # note: only the "speed" variable is assinged the responder
     layer.variable_manager.declare_variable(
-        FloatingVariable(0.001, "speed", responders=[responder])
+        FloatingVariable("speed", 0.001, responders=[responder])
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(offset, "offset", responders=[responder])
+        FloatingVariable("offset", offset, responders=[responder])
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(scale.x, "scaleX", responders=[responder])
+        FloatingVariable("scaleX", scale.x, responders=[responder])
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(scale.y, "scaleY", responders=[responder])
+        FloatingVariable("scaleY", scale.y, responders=[responder])
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(center.x, "centerX", responders=[responder])
+        FloatingVariable("centerX", center.x, responders=[responder])
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(center.y, "centerY", responders=[responder])
+        FloatingVariable("centerY", center.y, responders=[responder])
     )
     layer.variable_manager.initialize_variables()
 

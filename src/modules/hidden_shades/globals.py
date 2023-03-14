@@ -35,9 +35,9 @@ class GlobalsManager:
         self._variable_manager = VariableManager(f"{self._root_path}/vars")
 
         # these global variables are accessible in user space
-        self._variable_manager.declare_variable(FloatingVariable(1.0, "brightness"))
+        self._variable_manager.declare_variable(FloatingVariable("brightness", 1.0))
         self._variable_manager.declare_variable(
-            ColorSequenceVariable(DEFAULT_PALETTE, "palette")
+            ColorSequenceVariable("palette", DEFAULT_PALETTE)
         )
         self._variable_manager.initialize_variables()
 

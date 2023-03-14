@@ -101,26 +101,26 @@ def frames(layer):
     # declare variables
     layer.variable_manager.declare_variable(
         FloatingVariable(
-            0.001, "speed", default_range=(0, 0.05), responders=[responder]
+            "speed", 0.001, default_range=(0, 0.05), responders=[responder]
         )
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(1.0, "scale", responders=[responder])
+        FloatingVariable("scale", 1.0, responders=[responder])
     )
     layer.variable_manager.declare_variable(
         FloatingVariable(
-            0.0,
             "eccentricity",
+            0.0,
             default_range=(-0.99, 0.99),
             allowed_range=(-0.99, 0.99),
             responders=[responder],
         )
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(center.x, "centerX", responders=[responder])
+        FloatingVariable("centerX", center.x, responders=[responder])
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(center.y, "centerY", responders=[responder])
+        FloatingVariable("centerY", center.y, responders=[responder])
     )
     layer.variable_manager.initialize_variables()
 
