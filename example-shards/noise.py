@@ -53,8 +53,6 @@ def frames(layer):
 
         if name == "speed":
             timewarp.set_frequency(value)
-        if name == "offset":
-            offset = value
         if name == "scaleX":
             scale.x = value
         if name == "scaleY":
@@ -101,14 +99,17 @@ def frames(layer):
     while True:
         yield None
 
+        # get variables
+        offset = layer.variable_manager.variables["offset"].value
+
         # the timewarp uses its internal speed, as well as the speed
         # of the reference time (in this case timebase.local) to
         # compute its own local time
-        z = timewarp.local()
+        z = timewarp.local() + offset
 
         # use the OpenSimplexNoise utility to fill the scalar field
         osn.fill_scalar_field(field, screen, z, scale.vector, center.vector)
 
         # apply the scalar field to the canvas mapping against the
         # layer color palette
-        layer.canvas.scalar_field(layer.canvas.screen, field, layer.palette, offset)
+        layer.canvas.scalar_field(layer.canvas.screen, field, layer.palette)
