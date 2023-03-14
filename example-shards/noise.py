@@ -45,6 +45,7 @@ def frames(layer):
     # layer_manager.initialize_variables() method is called.
     scale = FloatVec2("scale", (1.0, 1.0))
     center = FloatVec2("center", (0.0, 0.0))
+    offset = 0.0
 
     # a callback function to handle changes to declared variables
     def handle_variable_changes(variable):
@@ -52,6 +53,8 @@ def frames(layer):
 
         if name == "speed":
             timewarp.set_frequency(value)
+        if name == "offset":
+            offset = value
         if name == "scaleX":
             scale.x = value
         if name == "scaleY":
@@ -72,6 +75,9 @@ def frames(layer):
     # note: only the "speed" variable is assinged the responder
     layer.variable_manager.declare_variable(
         FloatingVariable(0.001, "speed", responders=[responder])
+    )
+    layer.variable_manager.declare_variable(
+        FloatingVariable(offset, "offset", responders=[responder])
     )
     layer.variable_manager.declare_variable(
         FloatingVariable(scale.x, "scaleX", responders=[responder])
@@ -105,4 +111,4 @@ def frames(layer):
 
         # apply the scalar field to the canvas mapping against the
         # layer color palette
-        layer.canvas.scalar_field(layer.canvas.screen, field, layer.palette)
+        layer.canvas.scalar_field(layer.canvas.screen, field, layer.palette, offset)
