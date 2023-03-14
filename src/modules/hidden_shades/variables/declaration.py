@@ -1,5 +1,5 @@
 class VariableDeclaration:
-    def __init__(self, type, default, name, description=None, responders=None):
+    def __init__(self, type, name, default, description=None, responders=None):
         self._name = name
         self._type = type
         self._description = description

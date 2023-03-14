@@ -41,21 +41,22 @@ class Layer:
         )
         self._private_variable_manager.declare_variable(
             IntegerVariable(
-                0,
                 "composition_mode",
+                0,
                 default_range=Layer.COMPOSITION_MODE_RANGE,
                 allowed_range=Layer.COMPOSITION_MODE_RANGE,
             )
         )
         self._private_variable_manager.declare_variable(
             ColorSequenceVariable(
-                pysicgl.ColorSequence([0x000000, 0xFFFFFF]), "palette"
+                "palette",
+                pysicgl.ColorSequence([0x000000, 0xFFFFFF]),
             )
         )
         self._private_variable_manager.declare_variable(
             FloatingVariable(
-                1.0,
                 "brightness",
+                1.0,
             )
         )
         self._private_variable_manager.initialize_variables()

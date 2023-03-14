@@ -81,27 +81,27 @@ def frames(layer):
 
     layer.variable_manager.declare_variable(
         FloatingVariable(
-            0.01,
             "speed",
+            0.01,
             default_range=(0, 0.05),
         )
     )
     layer.variable_manager.declare_variable(
         FloatingVariable(
-            0.1,
             "wobble",
+            0.1,
             default_range=(0, 0.5),
         )
     )
     layer.variable_manager.declare_variable(
         FloatingVariable(
-            0.1,
             "diameter",
+            0.1,
             default_range=(0, 1.0),
         )
     )
     layer.variable_manager.declare_variable(
-        ColorSequenceVariable(pysicgl.ColorSequence([0xFF]), "ball_color")
+        ColorSequenceVariable(pysicgl.ColorSequence("ball_color", [0xFF]))
     )
     layer.variable_manager.initialize_variables()
 

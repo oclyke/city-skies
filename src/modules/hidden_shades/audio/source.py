@@ -94,16 +94,16 @@ class ManagedAudioSource(AudioSource):
         )
         self._private_variable_manager.declare_variable(
             FloatingVariable(
-                0.5,
                 "volume",
+                0.5,
                 default_range=(0.0, 1.0),
                 responders=[self._private_variable_responder],
             )
         )
         self._private_variable_manager.declare_variable(
             FloatingVariable(
-                1.5,
                 "fft_reshape_factor",
+                1.5,
                 default_range=(1.5, 2.0),
                 allowed_range=(0.5, 3.0),
                 responders=[self._private_variable_responder],
@@ -111,24 +111,24 @@ class ManagedAudioSource(AudioSource):
         )
         self._private_variable_manager.declare_variable(
             FloatingVariable(
-                0.1,
                 "fft_reshape_floor",
+                0.1,
                 default_range=(0.0, 1.0),
                 responders=[self._private_variable_responder],
             )
         )
         self._private_variable_manager.declare_variable(
             IntegerVariable(
-                0,
                 "fft_min_bin",
+                0,
                 default_range=(0, self._reshaped_fft_bins_available),
                 responders=[self._private_variable_responder],
             )
         )
         self._private_variable_manager.declare_variable(
             IntegerVariable(
-                self._reshaped_fft_bins_available,
                 "fft_max_bin",
+                self._reshaped_fft_bins_available,
                 default_range=(0.0, self._reshaped_fft_bins_available),
                 responders=[self._private_variable_responder],
             )
