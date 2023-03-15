@@ -18,7 +18,7 @@ from semver import SemanticVersion
 from stack_manager import StackManager
 from microdot_asyncio import Microdot, Response, Request
 from hidden_shades.layer import Layer
-from hidden_shades import globals
+from hidden_shades import globals, artnet_provider
 from logging import LogManager
 
 
@@ -379,6 +379,7 @@ async def main():
     asyncio.create_task(control_visualizer())
     asyncio.create_task(serve_api())
     asyncio.create_task(blink())
+    asyncio.create_task(artnet_provider.run())
 
     # start audio sources
     for source in hardware.audio_sources:
