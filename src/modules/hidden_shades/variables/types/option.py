@@ -3,9 +3,9 @@ from .typecodes import TYPECODE_OPTION
 
 
 class OptionVariable(VariableDeclaration):
-    def __init__(self, default, name, options, **kwargs):
+    def __init__(self, name, default, options, **kwargs):
         self._options = tuple(str(val) for val in options)
-        super().__init__(int, default, name, **kwargs)
+        super().__init__(int, name, default, **kwargs)
 
     def validate(self, value):
         v = self._type(value)

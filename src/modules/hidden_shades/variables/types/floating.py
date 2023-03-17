@@ -4,7 +4,7 @@ from .typecodes import TYPECODE_FLOATING
 
 class FloatingVariable(VariableDeclaration):
     def __init__(
-        self, default, name, default_range=(0, 1), allowed_range=None, **kwargs
+        self, name, default, default_range=(0, 1), allowed_range=None, **kwargs
     ):
         self._default_range = tuple(float(val) for val in default_range)
         self._allowed_range = (
@@ -12,7 +12,7 @@ class FloatingVariable(VariableDeclaration):
             if allowed_range is not None
             else None
         )
-        super().__init__(float, default, name, **kwargs)
+        super().__init__(float, name, default, **kwargs)
 
     def validate(self, value):
         v = self._type(value)

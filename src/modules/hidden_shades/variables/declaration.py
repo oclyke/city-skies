@@ -6,7 +6,9 @@ class VariableDeclaration:
 
         # validate the default value
         if not self.validate(default):
-            raise ValueError(f"invalid default value for {self}")
+            raise ValueError(
+                f'invalid default value "{default}" for {self} with type "{self._type}"'
+            )
 
         # set the default and initial values
         self._default = default
