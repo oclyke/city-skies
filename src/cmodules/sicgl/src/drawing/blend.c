@@ -17,6 +17,7 @@ typedef struct _blender_function_entry_t {
 
 STATIC const blender_function_entry_t blender_function_types_table[] = {
     {MP_ROM_QSTR(MP_QSTR_normal), blend_normal},
+    {MP_ROM_QSTR(MP_QSTR_forget), blend_forget},
     {MP_ROM_QSTR(MP_QSTR_multiply), blend_multiply},
     {MP_ROM_QSTR(MP_QSTR_screen), blend_screen},
     {MP_ROM_QSTR(MP_QSTR_overlay), blend_overlay},

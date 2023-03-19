@@ -223,6 +223,9 @@ class Variable:
         self._name = name
         self._node = RestNode.fromBase(base_node, f"{name}")
 
+    def __repr__(self) -> str:
+        return str(self.value)
+
     @property
     def info(self):
         return _to_dict(self._node.get(f"/info"))

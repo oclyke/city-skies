@@ -124,7 +124,7 @@ async def run_pipeline():
             # zero the layer interface for each shard
             # (if a layer wants to use persistent memory it can do whacky stuff
             # such as allocating its own local interface and copying out the results)
-            canvas.interface_fill(0x000000)
+            canvas.interface_fill(0xff000000)
 
             # run the layer
             try:
