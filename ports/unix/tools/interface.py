@@ -141,8 +141,11 @@ class Stack:
     def layers(self):
         return _to_list(self._node.get(f"/layers"))
 
-    def get_layer(self, layer_id):
+    def get_layer_by_id(self, layer_id):
         return Layer(self._node, layer_id)
+
+    def get_layer_at(self, index=-1):
+        return Layer(self._node, self.layers[index])
 
     def add_layer(self, uuid):
         init_info = {
@@ -243,6 +246,7 @@ if __name__ == "__main__":
     PATRIOT = [0xFF0000, 0xFFFFFF, 0x0000FF]
     RASTA = [0xFF0000, 0xFFFF00, 0x00FF00]
     MASK = [0xFF000000]
+    ALPAH_RED = [0x00000000, 0xFFFF0000]
 
     def make_color_sequence_var_string(colors, map_type="continuous_circular"):
         return json.dumps(
@@ -254,6 +258,3 @@ if __name__ == "__main__":
 
     c = CitySkiesClient("localhost", 1337)
     active = c.stacks.active
-
-    def get_layer(stack=active, index=-1):
-        return stack.get_layer(c.stacks.active.layers[index])
