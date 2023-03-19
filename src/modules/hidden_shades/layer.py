@@ -8,11 +8,11 @@ from pathutils import rmdirr
 
 
 class Layer:
-    BLENDING_MODE_OPTIONS = pysicgl.get_blending_types().keys()
-    COMPOSITION_MODE_OPTIONS = pysicgl.get_composition_types().keys()
+    BLENDING_MODES = pysicgl.get_blending_types()
+    COMPOSITION_MODES = pysicgl.get_composition_types()
 
-    DEFAULT_BLENDING_MODE = pysicgl.get_blending_types()['normal']
-    DEFAULT_COMPOSITION_MODE = pysicgl.get_composition_types()['direct_set']
+    DEFAULT_BLENDING_MODE = 'normal'
+    DEFAULT_COMPOSITION_MODE = 'alpha_simple'
 
     def __init__(self, id, path, interface, init_info={}, post_init_hook=None):
         self.id = id
@@ -43,18 +43,23 @@ class Layer:
         self._private_variable_manager = VariableManager(
             f"{self._root_path}/private_vars"
         )
+        self._private_variable_responder = VariableResponder(
+            lambda variable: self._handle_private_variable_change(variable)
+        )
         self._private_variable_manager.declare_variable(
             OptionVariable(
                 "blending_mode",
                 Layer.DEFAULT_BLENDING_MODE,
-                Layer.BLENDING_MODE_OPTIONS,
+                Layer.BLENDING_MODES.keys(),
+                responders = [self._private_variable_responder],
             )
         )
         self._private_variable_manager.declare_variable(
             OptionVariable(
                 "composition_mode",
                 Layer.DEFAULT_COMPOSITION_MODE,
-                Layer.COMPOSITION_MODE_OPTIONS,
+                Layer.COMPOSITION_MODES.keys(),
+                responders = [self._private_variable_responder],
             )
         )
         self._private_variable_manager.declare_variable(
@@ -89,6 +94,14 @@ class Layer:
         # allow for post-init
         if post_init_hook is not None:
             post_init_hook(self)
+
+    def _handle_private_variable_change(self, variable):
+        if variable.name == 'composition_mode':
+            key = self.private_variable_manager.variables["composition_mode"].value
+            self._integer_composition_mode = Layer.COMPOSITION_MODES[key]
+        if variable.name == 'blending_mode':
+            key = self.private_variable_manager.variables["blending_mode"].value
+            self._integer_blending_mode = Layer.BLENDING_MODES[key]
 
     def _handle_info_change(self, key, value):
         self.reset_canvas()
@@ -161,8 +174,8 @@ class Layer:
 
     @property
     def blending_mode(self):
-        return self.private_variable_manager.variables["blending_mode"].value
+        return self._integer_blending_mode
 
     @property
     def composition_mode(self):
-        return self.private_variable_manager.variables["composition_mode"].value
+        return self._integer_composition_mode

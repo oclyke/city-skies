@@ -3,7 +3,7 @@ from pysicgl_utils import Display
 from hidden_shades import timebase
 from hidden_shades.timewarp import TimeWarp
 from hidden_shades.variables.responder import VariableResponder
-from hidden_shades.variables.types import FloatingVariable, OptionVariable
+from hidden_shades.variables.types import FloatingVariable
 
 
 class FloatVec2:

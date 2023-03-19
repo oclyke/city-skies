@@ -340,14 +340,7 @@ async def serve_api():
         layer = stack.get_layer_by_id(str(layerid))
         variable = layer.private_variable_manager.variables[varname]
         value = request.body.decode()
-        if varname == "composition_mode":
-            variable.value = pysicgl.get_composition_types()[value]
-        elif varname == "blending_mode":
-            variable.value = pysicgl.get_blending_types()[value]
-        else:
-            variable.value = value
-        
-        print(layer.blending_mode, layer.composition_mode)
+        variable.value = variable.deserialize(value)
 
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/globals/variables/<varname> -d 'value'
     @app.put("/globals/variables/<varname>")
