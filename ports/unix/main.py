@@ -136,13 +136,13 @@ async def run_pipeline():
             canvas.blend(display, visualizer_memory, layer.blending_mode)
             visualizer.compose(display, canvas_memory, layer.composition_mode)
 
-        # apply global brightness
-        visualizer.interface_scale(
-            globals.variable_manager.variables["brightness"].value
-        )
-
         # gamma correct the canvas
         pysicgl.gamma_correct(visualizer, corrected)
+
+        # apply global brightness
+        corrected.interface_scale(
+            globals.variable_manager.variables["brightness"].value
+        )
 
         # output the display data
         for driver in hardware.drivers:
