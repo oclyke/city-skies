@@ -101,7 +101,7 @@ def frames(layer):
         )
     )
     layer.variable_manager.declare_variable(
-        ColorSequenceVariable(pysicgl.ColorSequence("ball_color", [0xFF]))
+        ColorSequenceVariable("ball_color", pysicgl.ColorSequence([0xFF0000FF]))
     )
     layer.variable_manager.initialize_variables()
 

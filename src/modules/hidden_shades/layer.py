@@ -12,7 +12,7 @@ class Layer:
     COMPOSITION_MODES = pysicgl.get_composition_types()
 
     DEFAULT_BLENDING_MODE = "normal"
-    DEFAULT_COMPOSITION_MODE = "alpha_simple"
+    DEFAULT_COMPOSITION_MODE = "direct_set"
 
     def __init__(self, id, path, interface, init_info={}, post_init_hook=None):
         self.id = id

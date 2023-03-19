@@ -1,16 +1,15 @@
 from cache import Cache
-from .source import AudioSource
-
-
-NULL_AUDIO_SOURCE = AudioSource("NULL", (16000, 1))
+from .source import ManagedAudioSource
 
 
 class AudioManager:
     def __init__(self, path):
         self._sources = {}
-        self._selected = NULL_AUDIO_SOURCE
-
         self._root_path = path
+        self._null_source = ManagedAudioSource(
+            f"{self._root_path}/sources", "NULL", (16000, 8)
+        )
+        self._selected = self._null_source
 
         initial_info = {
             "selected": None,
@@ -29,7 +28,7 @@ class AudioManager:
     def _handle_info_change(self, key, value):
         if key == "selected":
             if value == None:
-                self._selected = NULL_AUDIO_SOURCE
+                self._selected = self._null_source
             else:
                 self._selected = self._sources[value]
 
