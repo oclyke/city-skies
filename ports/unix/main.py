@@ -133,7 +133,7 @@ async def run_pipeline():
                 logger.log_exception(e)
                 layer.set_active(False)
 
-            # composite the layer's canvas into the main canvas
+            canvas.blend(display, visualizer_memory, layer.blending_mode)
             visualizer.compose(display, canvas_memory, layer.composition_mode)
 
         # apply global brightness
@@ -299,7 +299,15 @@ async def serve_api():
         stack = stack_manager.get(active)
         layer = stack.get_layer_by_id(str(layerid))
         variable = layer.private_variable_manager.variables[varname]
-        variable.value = variable.deserialize(request.body.decode())
+        value = request.body.decode()
+        if varname == "composition_mode":
+            variable.value = pysicgl.get_composition_types()[value]
+        elif varname == "blending_mode":
+            variable.value = pysicgl.get_blending_types()[value]
+        else:
+            variable.value = value
+        
+        print(layer.blending_mode, layer.composition_mode)
 
     # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/globals/vars/<varname> -d 'value'
     @app.put("/globals/vars/<varname>")

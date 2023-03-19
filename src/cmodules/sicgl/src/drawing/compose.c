@@ -1,4 +1,5 @@
 #include "sicgl/compose.h"
+#include "sicgl/compositors.h"
 
 #include <errno.h>
 
@@ -9,109 +10,52 @@
 #include "pysicgl/screen.h"
 #include "pysicgl/utilities.h"
 
-static inline color_t clamp_u8(color_t channel) {
-  if (channel > 255) {
-    return 255;
-  } else if (channel < 0) {
-    return 0;
-  } else {
-    return channel;
-  }
-}
-
-static void compositor_set(
-    color_t* source, color_t* dest, size_t width, void* args) {
-  memcpy(dest, source, width * bytes_per_pixel());
-}
-
-static void compositor_add_clamped(
-    color_t* source, color_t* dest, size_t width, void* args) {
-  for (size_t idx = 0; idx < width; idx++) {
-    dest[idx] = color_from_channels(
-        clamp_u8(color_channel_red(dest[idx]) + color_channel_red(source[idx])),
-        clamp_u8(
-            color_channel_green(dest[idx]) + color_channel_green(source[idx])),
-        clamp_u8(
-            color_channel_blue(dest[idx]) + color_channel_blue(source[idx])),
-        clamp_u8(
-            color_channel_alpha(dest[idx]) + color_channel_alpha(source[idx])));
-  }
-}
-
-static void compositor_subtract_clamped(
-    color_t* source, color_t* dest, size_t width, void* args) {
-  for (size_t idx = 0; idx < width; idx++) {
-    dest[idx] = color_from_channels(
-        clamp_u8(color_channel_red(dest[idx]) - color_channel_red(source[idx])),
-        clamp_u8(
-            color_channel_green(dest[idx]) - color_channel_green(source[idx])),
-        clamp_u8(
-            color_channel_blue(dest[idx]) - color_channel_blue(source[idx])),
-        clamp_u8(
-            color_channel_alpha(dest[idx]) - color_channel_alpha(source[idx])));
-  }
-}
-
-static void compositor_multiply_clamped(
-    color_t* source, color_t* dest, size_t width, void* args) {
-  for (size_t idx = 0; idx < width; idx++) {
-    dest[idx] = color_from_channels(
-        clamp_u8(color_channel_red(dest[idx]) * color_channel_red(source[idx])),
-        clamp_u8(
-            color_channel_green(dest[idx]) * color_channel_green(source[idx])),
-        clamp_u8(
-            color_channel_blue(dest[idx]) * color_channel_blue(source[idx])),
-        clamp_u8(
-            color_channel_alpha(dest[idx]) * color_channel_alpha(source[idx])));
-  }
-}
-
-static void compositor_AND(
-    color_t* source, color_t* dest, size_t width, void* args) {
-  for (size_t idx = 0; idx < width; idx++) {
-    dest[idx] = color_from_channels(
-        color_channel_red(dest[idx]) & color_channel_red(source[idx]),
-        color_channel_green(dest[idx]) & color_channel_green(source[idx]),
-        color_channel_blue(dest[idx]) & color_channel_blue(source[idx]),
-        color_channel_alpha(dest[idx]) & color_channel_alpha(source[idx]));
-  }
-}
-
-static void compositor_OR(
-    color_t* source, color_t* dest, size_t width, void* args) {
-  for (size_t idx = 0; idx < width; idx++) {
-    dest[idx] = color_from_channels(
-        color_channel_red(dest[idx]) | color_channel_red(source[idx]),
-        color_channel_green(dest[idx]) | color_channel_green(source[idx]),
-        color_channel_blue(dest[idx]) | color_channel_blue(source[idx]),
-        color_channel_alpha(dest[idx]) | color_channel_alpha(source[idx]));
-  }
-}
-
-static void compositor_XOR(
-    color_t* source, color_t* dest, size_t width, void* args) {
-  for (size_t idx = 0; idx < width; idx++) {
-    dest[idx] = color_from_channels(
-        color_channel_red(dest[idx]) ^ color_channel_red(source[idx]),
-        color_channel_green(dest[idx]) ^ color_channel_green(source[idx]),
-        color_channel_blue(dest[idx]) ^ color_channel_blue(source[idx]),
-        color_channel_alpha(dest[idx]) ^ color_channel_alpha(source[idx]));
-  }
-}
-
 typedef struct _compositor_function_entry_t {
   mp_obj_t name;
   compositor_fn compositor;
 } compositor_function_entry_t;
 
 STATIC const compositor_function_entry_t compositor_function_types_table[] = {
-    {MP_ROM_QSTR(MP_QSTR_set), compositor_set},
-    {MP_ROM_QSTR(MP_QSTR_add), compositor_add_clamped},
-    {MP_ROM_QSTR(MP_QSTR_subtract), compositor_subtract_clamped},
-    {MP_ROM_QSTR(MP_QSTR_multiply), compositor_multiply_clamped},
-    {MP_ROM_QSTR(MP_QSTR_AND), compositor_AND},
-    {MP_ROM_QSTR(MP_QSTR_OR), compositor_OR},
-    {MP_ROM_QSTR(MP_QSTR_XOR), compositor_XOR},
+  {MP_ROM_QSTR(MP_QSTR_direct_none), compositor_direct_none},
+  {MP_ROM_QSTR(MP_QSTR_direct_clear), compositor_direct_clear},
+  {MP_ROM_QSTR(MP_QSTR_direct_set), compositor_direct_set},
+
+  {MP_ROM_QSTR(MP_QSTR_bitwise_and), compositor_bitwise_and},
+  {MP_ROM_QSTR(MP_QSTR_bitwise_or), compositor_bitwise_or},
+  {MP_ROM_QSTR(MP_QSTR_bitwise_xor), compositor_bitwise_xor},
+  {MP_ROM_QSTR(MP_QSTR_bitwise_nand), compositor_bitwise_nand},
+  {MP_ROM_QSTR(MP_QSTR_bitwise_nor), compositor_bitwise_nor},
+  {MP_ROM_QSTR(MP_QSTR_bitwise_xnor), compositor_bitwise_xnor},
+
+  {MP_ROM_QSTR(MP_QSTR_channelwise_min), compositor_channelwise_min},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_max), compositor_channelwise_max},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_sum), compositor_channelwise_sum},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_diff), compositor_channelwise_diff},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_diff_reverse), compositor_channelwise_diff_reverse},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_multiply), compositor_channelwise_multiply},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_divide), compositor_channelwise_divide},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_divide_reverse), compositor_channelwise_divide_reverse},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_sum_clamped), compositor_channelwise_sum_clamped},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_diff_clamped), compositor_channelwise_diff_clamped},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_diff_reverse_clamped), compositor_channelwise_diff_reverse_clamped},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_multiply_clamped), compositor_channelwise_multiply_clamped},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_divide_clamped), compositor_channelwise_divide_clamped},
+  {MP_ROM_QSTR(MP_QSTR_channelwise_divide_reverse_clamped), compositor_channelwise_divide_reverse_clamped},
+
+  {MP_ROM_QSTR(MP_QSTR_alpha_simple), compositor_alpha_simple},
+  {MP_ROM_QSTR(MP_QSTR_alpha_clear), compositor_alpha_clear},
+  {MP_ROM_QSTR(MP_QSTR_alpha_copy), compositor_alpha_copy},
+  {MP_ROM_QSTR(MP_QSTR_alpha_destination), compositor_alpha_destination},
+  {MP_ROM_QSTR(MP_QSTR_alpha_source_over), compositor_alpha_source_over},
+  {MP_ROM_QSTR(MP_QSTR_alpha_destination_over), compositor_alpha_destination_over},
+  {MP_ROM_QSTR(MP_QSTR_alpha_source_in), compositor_alpha_source_in},
+  {MP_ROM_QSTR(MP_QSTR_alpha_destination_in), compositor_alpha_destination_in},
+  {MP_ROM_QSTR(MP_QSTR_alpha_source_out), compositor_alpha_source_out},
+  {MP_ROM_QSTR(MP_QSTR_alpha_destination_out), compositor_alpha_destination_out},
+  {MP_ROM_QSTR(MP_QSTR_alpha_source_atop), compositor_alpha_source_atop},
+  {MP_ROM_QSTR(MP_QSTR_alpha_destination_atop), compositor_alpha_destination_atop},
+  {MP_ROM_QSTR(MP_QSTR_alpha_xor), compositor_alpha_xor},
+  {MP_ROM_QSTR(MP_QSTR_alpha_lighter), compositor_alpha_lighter},  
 };
 STATIC const size_t NUM_COMPOSITOR_FUNCTION_TYPES =
     sizeof(compositor_function_types_table) /

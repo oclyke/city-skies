@@ -1,14 +1,15 @@
 import pysicgl
 from cache import Cache
 from .variables.manager import VariableManager
-from .variables.types import IntegerVariable, ColorSequenceVariable, FloatingVariable
+from .variables.types import OptionVariable, FloatingVariable, ColorSequenceVariable
 from .variables.responder import VariableResponder
 from hidden_shades import globals
 from pathutils import rmdirr
 
 
 class Layer:
-    COMPOSITION_MODE_RANGE = (0, len(pysicgl.get_composition_types()) - 1)
+    BLENDING_MODE_OPTIONS = pysicgl.get_blending_types().keys()
+    COMPOSITION_MODE_OPTIONS = pysicgl.get_composition_types().keys()
 
     def __init__(self, id, path, interface, init_info={}, post_init_hook=None):
         self.id = id
@@ -40,11 +41,17 @@ class Layer:
             f"{self._root_path}/private_vars"
         )
         self._private_variable_manager.declare_variable(
-            IntegerVariable(
+            OptionVariable(
+                "blending_mode",
+                0,
+                Layer.BLENDING_MODE_OPTIONS,
+            )
+        )
+        self._private_variable_manager.declare_variable(
+            OptionVariable(
                 "composition_mode",
                 0,
-                default_range=Layer.COMPOSITION_MODE_RANGE,
-                allowed_range=Layer.COMPOSITION_MODE_RANGE,
+                Layer.COMPOSITION_MODE_OPTIONS,
             )
         )
         self._private_variable_manager.declare_variable(
@@ -148,6 +155,10 @@ class Layer:
             return self._private_variable_manager.variables["palette"].value
         else:
             return globals.variable_manager.variables["palette"].value
+
+    @property
+    def blending_mode(self):
+        return self.private_variable_manager.variables["blending_mode"].value
 
     @property
     def composition_mode(self):
