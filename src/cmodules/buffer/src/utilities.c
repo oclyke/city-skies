@@ -77,7 +77,7 @@ int interpolate_float_array_linear(
   }
 
   // get bounding bins
-  double center = phase * max_idx;   // center E [0, max_idx]
+  double center = phase * max_idx;           // center E [0, max_idx]
   size_t lower_idx = (size_t)floor(center);  // lower E [0, max_idx], integer
   size_t upper_idx = (size_t)ceil(center);   // upper E [0, max_idx], integer
 

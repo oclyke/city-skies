@@ -124,7 +124,7 @@ async def run_pipeline():
             # zero the layer interface for each shard
             # (if a layer wants to use persistent memory it can do whacky stuff
             # such as allocating its own local interface and copying out the results)
-            canvas.interface_fill(0xff000000)
+            canvas.interface_fill(0xFF000000)
 
             # run the layer
             try:
@@ -220,7 +220,7 @@ async def serve_api():
         layer = stack.get_layer_by_id(str(layerid))
         variable = layer.variable_manager.variables[varname]
         return variable.serialize(variable.value)
-    
+
     @app.get("/stacks/<active>/layers/<layerid>/variables/<varname>/info")
     async def get_layer_variable_info(request, active, layerid, varname):
         stack = stack_manager.get(active)
@@ -234,14 +234,14 @@ async def serve_api():
         layer = stack.get_layer_by_id(str(layerid))
         variable = layer.private_variable_manager.variables[varname]
         return variable.serialize(variable.value)
-    
+
     @app.get("/stacks/<active>/layers/<layerid>/private_variables/<varname>/info")
     async def get_layer_private_variable_info(request, active, layerid, varname):
         stack = stack_manager.get(active)
         layer = stack.get_layer_by_id(str(layerid))
         variable = layer.private_variable_manager.variables[varname]
         return get_dict(variable.get_dict())
-    
+
     @app.get("/globals/variables/<varname>/value")
     async def get_global_variable_value(request, varname):
         variable = globals.variable_manager.variables[varname]
@@ -251,8 +251,6 @@ async def serve_api():
     async def get_layer_variable_info(request, varname):
         variable = globals.variable_manager.variables[varname]
         return get_dict(variable.get_dict())
-    
-
 
     @app.get("/audio/info")
     async def get_audio_info(request):

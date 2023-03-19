@@ -1,5 +1,4 @@
 #include "sicgl/blend.h"
-#include "sicgl/blenders.h"
 
 #include <errno.h>
 
@@ -9,6 +8,7 @@
 #include "pysicgl/interface.h"
 #include "pysicgl/screen.h"
 #include "pysicgl/utilities.h"
+#include "sicgl/blenders.h"
 
 typedef struct _blender_function_entry_t {
   mp_obj_t name;
@@ -30,8 +30,7 @@ STATIC const blender_function_entry_t blender_function_types_table[] = {
     {MP_ROM_QSTR(MP_QSTR_exclusion), blend_exclusion},
 };
 STATIC const size_t NUM_COMPOSITOR_FUNCTION_TYPES =
-    sizeof(blender_function_types_table) /
-    sizeof(blender_function_entry_t);
+    sizeof(blender_function_types_table) / sizeof(blender_function_entry_t);
 STATIC int find_blender_function_type_entry_index(
     mp_obj_t name, size_t* index) {
   int ret = 0;
@@ -88,8 +87,7 @@ mp_obj_t blend(size_t n_args, const mp_obj_t* args) {
 
   // compose the given screen onto the interface
   int ret = sicgl_blend(
-      &self->interface, screen->screen, sprite_info.buf, blender,
-      blender_args);
+      &self->interface, screen->screen, sprite_info.buf, blender, blender_args);
   if (0 != ret) {
     mp_raise_OSError(ret);
   }

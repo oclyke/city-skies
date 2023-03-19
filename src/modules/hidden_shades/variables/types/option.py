@@ -15,6 +15,6 @@ class OptionVariable(VariableDeclaration):
         additional = {
             "type": TYPECODE_OPTION,
             "options": self._options,
-            "index": self._options[self._value]
+            "index": self._options[self._value],
         }
         return dict(**base, **additional)

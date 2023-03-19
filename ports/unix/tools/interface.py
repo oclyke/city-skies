@@ -78,7 +78,9 @@ class CitySkiesClient:
     @property
     def global_variables(self):
         names = _to_list(self._node.get(f"/globals/variables"))
-        return {name: Variable(self._node, f"/globals/variables/{name}") for name in names}
+        return {
+            name: Variable(self._node, f"/globals/variables/{name}") for name in names
+        }
 
     def add_shard_from_string(self, uuid, value):
         self._node.put(f"/shards/{uuid}", value)
@@ -125,7 +127,9 @@ class AudioSource:
     @property
     def private_variables(self):
         names = _to_list(self._node.get(f"/private_variables"))
-        return {name: Variable(self._node, f"/private_variables/{name}") for name in names}
+        return {
+            name: Variable(self._node, f"/private_variables/{name}") for name in names
+        }
 
 
 class Stack:
@@ -182,7 +186,9 @@ class Layer:
     @property
     def private_variables(self):
         names = _to_list(self._node.get(f"/private_variables"))
-        return {name: Variable(self._node, f"/private_variables/{name}") for name in names}
+        return {
+            name: Variable(self._node, f"/private_variables/{name}") for name in names
+        }
 
     def update_info(self, value):
         self._node.put(f"/info", json.dumps(value))
@@ -201,21 +207,24 @@ class Layer:
 
     @property
     def use_local_palette(self):
-        return self.info['use_local_palette']
+        return self.info["use_local_palette"]
+
     @use_local_palette.setter
     def use_local_palette(self, value):
         self.update_info({"use_local_palette": bool(value)})
 
     @property
     def active(self):
-        return self.info['active']
+        return self.info["active"]
+
     @active.setter
     def active(self, value):
         self.update_info({"active": bool(value)})
 
     @property
     def composition_mode(self):
-        return self.info['composition_mode']
+        return self.info["composition_mode"]
+
     @composition_mode.setter
     def composition_mode(self, value):
         self.update_info({"composition_mode": str(value)})
@@ -237,6 +246,7 @@ class Variable:
     def value(self):
         response = self._node.get(f"/value")
         return str(response.content.decode("utf-8"))
+
     @value.setter
     def value(self, value):
         self._node.put(f"", value)
