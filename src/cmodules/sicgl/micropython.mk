@@ -8,6 +8,7 @@ SRC_USERMOD += $(MOD_DIR)/src/screen.c
 SRC_USERMOD += $(MOD_DIR)/src/field.c
 SRC_USERMOD += $(MOD_DIR)/src/interface.c
 SRC_USERMOD += $(MOD_DIR)/src/color_sequence.c
+SRC_USERMOD += $(MOD_DIR)/src/drawing/blend.c
 SRC_USERMOD += $(MOD_DIR)/src/drawing/compose.c
 SRC_USERMOD += $(MOD_DIR)/src/drawing/global.c
 SRC_USERMOD += $(MOD_DIR)/src/drawing/screen.c
@@ -16,14 +17,22 @@ SRC_USERMOD += $(MOD_DIR)/src/drawing/blit.c
 SRC_USERMOD += $(MOD_DIR)/src/drawing/field.c
 
 # sicgl sources
+SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/blend.c
+SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/blenders.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/blit.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/color_sequence.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compose.c
+SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/alpha.c
+SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/bitwise.c
+SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/channelwise.c
+SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/direct.c
+SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/simple_alpha.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/field.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/gamma.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/iter.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/screen.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/translate.c
+SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/unity_color.c
 
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/domain/global.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/domain/interface.c

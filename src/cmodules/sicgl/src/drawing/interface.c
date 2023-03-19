@@ -18,11 +18,12 @@ static inline color_t clamp_u8(color_t channel) {
 }
 
 static inline color_t color_scale(color_t color, double scale) {
+  // scales only the color components, alpha channel is untouched
   return color_from_channels(
       clamp_u8((color_t)(color_channel_red(color) * scale)),
       clamp_u8((color_t)(color_channel_green(color) * scale)),
       clamp_u8((color_t)(color_channel_blue(color) * scale)),
-      clamp_u8((color_t)(color_channel_alpha(color) * scale)));
+      color_channel_alpha(color));
 }
 
 mp_obj_t interface_scale(size_t n_args, const mp_obj_t* args) {

@@ -5,6 +5,7 @@
 
 #include "py/obj.h"
 #include "py/runtime.h"
+#include "pysicgl/drawing/blend.h"
 #include "pysicgl/drawing/blit.h"
 #include "pysicgl/drawing/compose.h"
 #include "pysicgl/drawing/field.h"
@@ -97,6 +98,7 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
     screen_ellipse_obj, 5, 5, screen_ellipse);
 
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(compose_obj, 4, 4, compose);
+STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(blend_obj, 4, 4, blend);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(blit_obj, 3, 3, blit);
 STATIC MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(
     scalar_field_obj, 4, 5, scalar_field);
@@ -137,6 +139,7 @@ STATIC const mp_rom_map_elem_t locals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_screen_circle), MP_ROM_PTR(&screen_circle_obj)},
     {MP_ROM_QSTR(MP_QSTR_screen_ellipse), MP_ROM_PTR(&screen_ellipse_obj)},
 
+    {MP_ROM_QSTR(MP_QSTR_blend), MP_ROM_PTR(&blend_obj)},
     {MP_ROM_QSTR(MP_QSTR_compose), MP_ROM_PTR(&compose_obj)},
     {MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&blit_obj)},
     {MP_ROM_QSTR(MP_QSTR_scalar_field), MP_ROM_PTR(&scalar_field_obj)},

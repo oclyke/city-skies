@@ -24,16 +24,16 @@ def frames(layer):
         variables = layer.variable_manager.variables
 
         scale = variables["scale"].value
-        direction_var = variables["direction"]
+        direction = variables["direction"].value
 
         # determine signs depending on the direction option
-        if direction_var.matches("top left"):
+        if direction == "top left":
             sx, sy = (1, 1)
-        if direction_var.matches("top right"):
+        if direction == "top right":
             sx, sy = (1, -1)
-        if direction_var.matches("bottom right"):
+        if direction == "bottom right":
             sx, sy = (-1, -1)
-        if direction_var.matches("bottom left"):
+        if direction == "bottom left":
             sx, sy = (-1, 1)
 
         # use the scale and direction signs to compute a scalar field
@@ -70,7 +70,7 @@ def frames(layer):
     layer.variable_manager.declare_variable(
         OptionVariable(
             "direction",
-            0,
+            "top left",
             ("top left", "top right", "bottom right", "bottom left"),
             responders=[responder],
         )

@@ -20,7 +20,7 @@ def frames(layer):
 
         # # choose an fft output to view
         # bins = audio_source.fft.output
-        bins = bins = audio_source.reshaped_fft_output
+        bins = audio_source.reshaped_fft_output
 
         # align the bins to the strenths (interpolate)
         bins.align(strengths)

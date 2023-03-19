@@ -1,14 +1,18 @@
 import pysicgl
 from cache import Cache
 from .variables.manager import VariableManager
-from .variables.types import IntegerVariable, ColorSequenceVariable, FloatingVariable
+from .variables.types import OptionVariable, FloatingVariable, ColorSequenceVariable
 from .variables.responder import VariableResponder
 from hidden_shades import globals
 from pathutils import rmdirr
 
 
 class Layer:
-    COMPOSITION_MODE_RANGE = (0, len(pysicgl.get_composition_types()) - 1)
+    BLENDING_MODES = pysicgl.get_blending_types()
+    COMPOSITION_MODES = pysicgl.get_composition_types()
+
+    DEFAULT_BLENDING_MODE = "normal"
+    DEFAULT_COMPOSITION_MODE = "direct_set"
 
     def __init__(self, id, path, interface, init_info={}, post_init_hook=None):
         self.id = id
@@ -39,12 +43,23 @@ class Layer:
         self._private_variable_manager = VariableManager(
             f"{self._root_path}/private_vars"
         )
+        self._private_variable_responder = VariableResponder(
+            lambda variable: self._handle_private_variable_change(variable)
+        )
         self._private_variable_manager.declare_variable(
-            IntegerVariable(
+            OptionVariable(
+                "blending_mode",
+                Layer.DEFAULT_BLENDING_MODE,
+                Layer.BLENDING_MODES.keys(),
+                responders=[self._private_variable_responder],
+            )
+        )
+        self._private_variable_manager.declare_variable(
+            OptionVariable(
                 "composition_mode",
-                0,
-                default_range=Layer.COMPOSITION_MODE_RANGE,
-                allowed_range=Layer.COMPOSITION_MODE_RANGE,
+                Layer.DEFAULT_COMPOSITION_MODE,
+                Layer.COMPOSITION_MODES.keys(),
+                responders=[self._private_variable_responder],
             )
         )
         self._private_variable_manager.declare_variable(
@@ -79,6 +94,14 @@ class Layer:
         # allow for post-init
         if post_init_hook is not None:
             post_init_hook(self)
+
+    def _handle_private_variable_change(self, variable):
+        if variable.name == "composition_mode":
+            key = self.private_variable_manager.variables["composition_mode"].value
+            self._integer_composition_mode = Layer.COMPOSITION_MODES[key]
+        if variable.name == "blending_mode":
+            key = self.private_variable_manager.variables["blending_mode"].value
+            self._integer_blending_mode = Layer.BLENDING_MODES[key]
 
     def _handle_info_change(self, key, value):
         self.reset_canvas()
@@ -150,5 +173,9 @@ class Layer:
             return globals.variable_manager.variables["palette"].value
 
     @property
+    def blending_mode(self):
+        return self._integer_blending_mode
+
+    @property
     def composition_mode(self):
-        return self.private_variable_manager.variables["composition_mode"].value
+        return self._integer_composition_mode

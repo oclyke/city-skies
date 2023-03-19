@@ -94,12 +94,12 @@ static inline int get_output_bin(
 
   // optionally give the real output
   if (NULL != real) {
-    *real = config->output[(2 * idx) + 0];
+    *real = (double)config->output[(2 * idx) + 0];
   }
 
   // optionally give the imaginary output
   if (NULL != imaginary) {
-    *imaginary = config->output[(2 * idx) + 1];
+    *imaginary = (double)config->output[(2 * idx) + 1];
   }
 
 out:

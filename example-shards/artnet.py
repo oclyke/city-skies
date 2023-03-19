@@ -36,6 +36,7 @@ def frames(layer):
                         coordinator[3 * idx + 0],
                         coordinator[3 * idx + 1],
                         coordinator[3 * idx + 2],
+                        0xFF,
                     ]
                 ),
                 "little",
