@@ -11,6 +11,9 @@ class Layer:
     BLENDING_MODE_OPTIONS = pysicgl.get_blending_types().keys()
     COMPOSITION_MODE_OPTIONS = pysicgl.get_composition_types().keys()
 
+    DEFAULT_BLENDING_MODE = pysicgl.get_blending_types()['normal']
+    DEFAULT_COMPOSITION_MODE = pysicgl.get_composition_types()['direct_set']
+
     def __init__(self, id, path, interface, init_info={}, post_init_hook=None):
         self.id = id
 
@@ -43,14 +46,14 @@ class Layer:
         self._private_variable_manager.declare_variable(
             OptionVariable(
                 "blending_mode",
-                0,
+                Layer.DEFAULT_BLENDING_MODE,
                 Layer.BLENDING_MODE_OPTIONS,
             )
         )
         self._private_variable_manager.declare_variable(
             OptionVariable(
                 "composition_mode",
-                0,
+                Layer.DEFAULT_COMPOSITION_MODE,
                 Layer.COMPOSITION_MODE_OPTIONS,
             )
         )

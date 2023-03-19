@@ -61,8 +61,8 @@ class CitySkiesClient:
 
         Stacks = namedtuple("Stacks", ["active", "inactive"])
         self._stacks = Stacks(
-            Stack(self._node, "active"),
-            Stack(self._node, "inactive"),
+            Stack(self._node, "/stacks/active"),
+            Stack(self._node, "/stacks/inactive"),
         )
 
         self._audio = Audio(self._node)
@@ -77,13 +77,14 @@ class CitySkiesClient:
 
     @property
     def global_variables(self):
-        return _to_list(self._node.get(f"/globals/variables"))
+        names = _to_list(self._node.get(f"/globals/variables"))
+        return {name: Variable(self._node, f"/globals/variables/{name}") for name in names}
 
     def add_shard_from_string(self, uuid, value):
         self._node.put(f"/shards/{uuid}", value)
 
     def set_global_variable(self, varname, value):
-        self._node.put(f"/globals/vars/{varname}", value)
+        self._node.put(f"/globals/variables/{varname}", value)
 
 
 class Audio:
@@ -111,23 +112,25 @@ class AudioSource:
         self._source_name = source_name
 
     def set_variable(self, varname, value):
-        self._node.put(f"/vars/{varname}", value)
+        self._node.put(f"/variables/{varname}", value)
 
     def set_private_variable(self, varname, value):
-        self._node.put(f"/private_vars/{varname}", value)
+        self._node.put(f"/private_variables/{varname}", value)
 
     @property
     def variables(self):
-        return _to_list(self._node.get(f"/variables"))
+        names = _to_list(self._node.get(f"/variables"))
+        return {name: Variable(self._node, f"/variables/{name}") for name in names}
 
     @property
     def private_variables(self):
-        return _to_list(self._node.get(f"/private_variables"))
+        names = _to_list(self._node.get(f"/private_variables"))
+        return {name: Variable(self._node, f"/private_variables/{name}") for name in names}
 
 
 class Stack:
     def __init__(self, base_node, stack_id):
-        self._node = RestNode.fromBase(base_node, f"/stacks/{stack_id}")
+        self._node = RestNode.fromBase(base_node, f"{stack_id}")
         self._stack_id = stack_id
 
     @property
@@ -170,27 +173,67 @@ class Layer:
 
     @property
     def variables(self):
-        return _to_list(self._node.get(f"/variables"))
+        names = _to_list(self._node.get(f"/variables"))
+        return {name: Variable(self._node, f"/variables/{name}") for name in names}
 
     @property
     def private_variables(self):
-        return _to_list(self._node.get(f"/private_variables"))
+        names = _to_list(self._node.get(f"/private_variables"))
+        return {name: Variable(self._node, f"/private_variables/{name}") for name in names}
 
     def update_info(self, value):
-        self._node.put(f"/info", value)
+        self._node.put(f"/info", json.dumps(value))
 
     def set_variable(self, varname, value):
-        self._node.put(f"/vars/{varname}", value)
+        self._node.put(f"/variables/{varname}", value)
 
     def set_private_variable(self, varname, value):
-        self._node.put(f"/private_vars/{varname}", value)
+        self._node.put(f"/private_variables/{varname}", value)
+
+    def get_variable(self, varname):
+        return Variable(self._node, f"variables/{varname}")
+
+    def get_private_variable(self, varname):
+        return Variable(self._node, f"private_variables/{varname}")
+
+    @property
+    def use_local_palette(self):
+        return self.info['use_local_palette']
+    @use_local_palette.setter
+    def use_local_palette(self, value):
+        self.update_info({"use_local_palette": bool(value)})
+
+    @property
+    def active(self):
+        return self.info['active']
+    @active.setter
+    def active(self, value):
+        self.update_info({"active": bool(value)})
+
+    @property
+    def composition_mode(self):
+        return self.info['composition_mode']
+    @composition_mode.setter
+    def composition_mode(self, value):
+        self.update_info({"composition_mode": str(value)})
 
 
 class Variable:
     def __init__(self, base_node, name):
-        self._node = RestNode.fromBase(base_node, f"/{name}")
+        self._name = name
+        self._node = RestNode.fromBase(base_node, f"{name}")
 
-    # def
+    @property
+    def info(self):
+        return _to_dict(self._node.get(f"/info"))
+
+    @property
+    def value(self):
+        response = self._node.get(f"/value")
+        return str(response.content.decode("utf-8"))
+    @value.setter
+    def value(self, value):
+        self._node.put(f"", value)
 
 
 if __name__ == "__main__":
@@ -207,3 +250,7 @@ if __name__ == "__main__":
         )
 
     c = CitySkiesClient("localhost", 1337)
+    active = c.stacks.active
+
+    def get_layer(stack=active, index=-1):
+        return stack.get_layer(c.stacks.active.layers[index])

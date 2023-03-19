@@ -90,7 +90,7 @@ int interpolate_linear(
 
   // nothing to interpolate when input has single element
   if (1 == length) {
-    *output = array[0];
+    *output = (double)array[0];
     goto out;
   }
 
@@ -98,32 +98,32 @@ int interpolate_linear(
   size_t max_idx = length - 1;
 
   // linear interpolation gets clamped at the array bounds
-  if (phase <= 0.0f) {
-    *output = array[0];
+  if (phase <= 0.0) {
+    *output = (double)array[0];
     goto out;
-  } else if (phase >= 1.0f) {
-    *output = array[max_idx];
+  } else if (phase >= 1.0) {
+    *output = (double)array[max_idx];
     goto out;
   }
 
   // get bounding bins
   double center = phase * max_idx;   // center E [0, max_idx]
-  size_t lower_idx = floor(center);  // lower E [0, max_idx], integer
-  size_t upper_idx = ceil(center);   // upper E [0, max_idx], integer
+  size_t lower_idx = (size_t)floor(center);  // lower E [0, max_idx], integer
+  size_t upper_idx = (size_t)ceil(center);   // upper E [0, max_idx], integer
 
   // handle balance case
   if (lower_idx == upper_idx) {
-    *output = array[lower_idx];
+    *output = (double)array[lower_idx];
     goto out;
   }
 
   // get delta from the lower index
-  double spacing = 1.0f / max_idx;
+  double spacing = 1.0 / max_idx;
   double delta = (phase / spacing) - lower_idx;
 
   // interpolate between these two bins
   ret = interpolate_double_between(
-      array[lower_idx], array[upper_idx], delta, output);
+      (double)array[lower_idx], (double)array[upper_idx], delta, output);
   if (0 != ret) {
     goto out;
   }

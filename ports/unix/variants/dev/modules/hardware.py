@@ -22,8 +22,8 @@ audio_sources = [
     UDPAudioSourceMic(
         audio_source_root_path, "MicStreamUDP", ("0.0.0.0", "42311"), (48000, 1024)
     ),
-    UDPAudioSource(
-        audio_source_root_path, "AudioStreamUDP", ("0.0.0.0", "42310"), (44100, 1024)
-    ),
-    MockAudioSource(audio_source_root_path, "MockAudio", 400, (16000, 256)),
+    # UDPAudioSource(
+    #     audio_source_root_path, "AudioStreamUDP", ("0.0.0.0", "42310"), (44100, 1024)
+    # ),
+    # MockAudioSource(audio_source_root_path, "MockAudio", 400, (16000, 256)),
 ]
