@@ -1,5 +1,8 @@
 # tools requirements
 requests
 
+# testing
+pytest
+
 # linting / style
 black

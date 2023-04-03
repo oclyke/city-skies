@@ -2,18 +2,18 @@ import requests
 import json
 from collections import namedtuple
 
-
-def _to_dict(response):
+# utility to get json (dict or list) from requests module response object
+def json_from_response(response):
     return json.loads(response.content.decode("utf-8"))
 
-
-def _from_dict(data):
-    return json.dumps(data)
-
-
-def _to_list(response):
-    return response.content.decode("utf-8").split("\n")
-
+# decorator for checking http response status and raising an HTTPError
+# exception for Http Error response codes
+def check_http_response_status(f):
+    def decorated(*args, **kwargs):
+        response = f(*args, **kwargs)
+        response.raise_for_status()
+        return response
+    return decorated
 
 class HttpClient:
     def __init__(self, host, port=None):
@@ -41,15 +41,19 @@ class RestNode:
     def client(self):
         return self._client
 
+    @check_http_response_status
     def get(self, path):
         return requests.get(self._endpoint(path))
 
+    @check_http_response_status
     def put(self, path, value):
         return requests.put(self._endpoint(path), str(value))
 
+    @check_http_response_status
     def post(self, path, value):
         return requests.post(self._endpoint(path), str(value))
 
+    @check_http_response_status
     def delete(self, path):
         return requests.delete(self._endpoint(path))
 
@@ -77,16 +81,25 @@ class CitySkiesClient:
 
     @property
     def global_variables(self):
-        names = _to_list(self._node.get(f"/globals/variables"))
+        names = json_from_response(self._node.get(f"/globals/variables"))
         return {
             name: Variable(self._node, f"/globals/variables/{name}") for name in names
         }
+
+    @property
+    def info(self):
+        return json_from_response(self._node.get(f"/info"))
+    
+    @property
+    def shards(self):
+        return json_from_response(self._node.get(f"/shards"))
 
     def add_shard_from_string(self, uuid, value):
         self._node.put(f"/shards/{uuid}", value)
 
     def set_global_variable(self, varname, value):
         self._node.put(f"/globals/variables/{varname}", value)
+        
 
 
 class Audio:
@@ -95,11 +108,11 @@ class Audio:
 
     @property
     def info(self):
-        return _to_dict(self._node.get(f"/info"))
+        return json_from_response(self._node.get(f"/info"))
 
     @property
     def sources(self):
-        return _to_list(self._node.get(f"/sources"))
+        return json_from_response(self._node.get(f"/sources"))
 
     def select_source(self, source_name):
         self._node.put(f"/source/{source_name}", None)
@@ -121,12 +134,12 @@ class AudioSource:
 
     @property
     def variables(self):
-        names = _to_list(self._node.get(f"/variables"))
+        names = json_from_response(self._node.get(f"/variables"))
         return {name: Variable(self._node, f"/variables/{name}") for name in names}
 
     @property
     def private_variables(self):
-        names = _to_list(self._node.get(f"/private_variables"))
+        names = json_from_response(self._node.get(f"/private_variables"))
         return {
             name: Variable(self._node, f"/private_variables/{name}") for name in names
         }
@@ -143,7 +156,7 @@ class Stack:
 
     @property
     def layers(self):
-        return _to_list(self._node.get(f"/layers"))
+        return json_from_response(self._node.get(f"/layers"))
 
     def get_layer_by_id(self, layer_id):
         return Layer(self._node, layer_id)
@@ -155,7 +168,7 @@ class Stack:
         init_info = {
             "shard_uuid": uuid,
         }
-        self._node.post(f"/layer", _from_dict(init_info))
+        self._node.post(f"/layer", json.dumps(init_info))
 
     def remove_layer(self, layer_id):
         self._node.delete(f"/layers/{layer_id}")
@@ -172,20 +185,20 @@ class Layer:
 
     @property
     def info(self):
-        return _to_dict(self._node.get(f"/info"))
+        return json_from_response(self._node.get(f"/info"))
 
     @property
     def shards(self):
-        return _to_list(self._node.get(f"/shards"))
+        return json_from_response(self._node.get(f"/shards"))
 
     @property
     def variables(self):
-        names = _to_list(self._node.get(f"/variables"))
+        names = json_from_response(self._node.get(f"/variables"))
         return {name: Variable(self._node, f"/variables/{name}") for name in names}
 
     @property
     def private_variables(self):
-        names = _to_list(self._node.get(f"/private_variables"))
+        names = json_from_response(self._node.get(f"/private_variables"))
         return {
             name: Variable(self._node, f"/private_variables/{name}") for name in names
         }
@@ -240,7 +253,7 @@ class Variable:
 
     @property
     def info(self):
-        return _to_dict(self._node.get(f"/info"))
+        return json_from_response(self._node.get(f"/info"))
 
     @property
     def value(self):
