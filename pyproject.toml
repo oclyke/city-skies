@@ -10,3 +10,9 @@ ports\/esp32\/third-party\/.*\.pyi?$|
 third-party\/.*\.pyi?$|
 bin\/.*\.pyi?$
 '''
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+  "tests",
+]

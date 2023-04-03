@@ -59,7 +59,7 @@ class AudioManager:
 
     @property
     def sources(self):
-        return self._sources
+        return dict(**self._sources, **{self._null_source.name: self._null_source})
 
     @property
     def audio_source(self):

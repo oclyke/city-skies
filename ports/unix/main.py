@@ -1,9 +1,7 @@
 import uasyncio as asyncio
 import socket
 import time
-import json
-import os
-import sys
+from microdot_asyncio import Microdot, Request, Response
 
 import cache
 import pysicgl
@@ -14,13 +12,10 @@ import hidden_shades
 import pathutils
 import config
 
-from semver import SemanticVersion
 from stack_manager import StackManager
-from microdot_asyncio import Microdot, Response, Request
 from hidden_shades.layer import Layer
 from hidden_shades import globals, artnet_provider
 from logging import LogManager
-
 
 logger = LogManager(f"{config.PERSISTENT_DIR}/logs")
 
@@ -158,230 +153,29 @@ async def run_pipeline():
 
 
 async def serve_api():
+    from api import info_app, shards_app, stacks_app, globals_app, audio_app
+    from api.stacks import init_stacks_app
+
     # set up server
     PORT = 1337
 
     # configure maximum request size
     Request.max_content_length = 128 * 1024  # 128 KB
+    Response.default_content_type = "application/json"
 
-    control_api_version = SemanticVersion.from_semver("0.0.0")
+    # a sorta ugly way to pass local data into the stacks app...
+    init_stacks_app(stack_manager, canvas, layer_post_init_hook)
+
+    # create application structure
     app = Microdot()
+    app.mount(info_app, url_prefix="/info")
+    app.mount(shards_app, url_prefix="/shards")
+    app.mount(stacks_app, url_prefix="/stacks")
+    app.mount(globals_app, url_prefix="/globals")
+    app.mount(audio_app, url_prefix="/audio")
+
+    # serve the api
     asyncio.create_task(app.start_server(debug=True, port=PORT))
-
-    def get_list(l):
-        return "\n".join(l)
-
-    def get_dict(d):
-        return json.dumps(d)
-
-    # curl -H "Content-Type: text/plain" -X GET http://localhost:1337/info
-    @app.get("/info")
-    async def get_info(request):
-        info = {
-            "hw_version": hardware.hw_version.to_string(),
-        }
-        return Response(info)
-
-    @app.get("/shards")
-    async def get_shards(request):
-        return get_list(os.listdir(f"{config.PERSISTENT_DIR}/shards"))
-
-    @app.get("/stacks/<active>/layers")
-    async def get_layers(request, active):
-        stack = stack_manager.get(active)
-        return get_list(str(layer.id) for layer in stack)
-
-    @app.get("/stacks/<active>/layers/<layerid>/info")
-    async def get_layer_info(request, active, layerid):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        return get_dict(layer.info)
-
-    @app.get("/stacks/<active>/layers/<layerid>/variables")
-    async def get_layer_variables(request, active, layerid):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        return get_list(
-            variable.name for variable in layer.variable_manager.variables.values()
-        )
-
-    @app.get("/stacks/<active>/layers/<layerid>/private_variables")
-    async def get_layer_private_variables(request, active, layerid):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        return get_list(
-            variable.name
-            for variable in layer.private_variable_manager.variables.values()
-        )
-
-    @app.get("/stacks/<active>/layers/<layerid>/variables/<varname>/value")
-    async def get_layer_variable_value(request, active, layerid, varname):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        variable = layer.variable_manager.variables[varname]
-        return variable.serialize(variable.value)
-
-    @app.get("/stacks/<active>/layers/<layerid>/variables/<varname>/info")
-    async def get_layer_variable_info(request, active, layerid, varname):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        variable = layer.variable_manager.variables[varname]
-        return get_dict(variable.get_dict())
-
-    @app.get("/stacks/<active>/layers/<layerid>/private_variables/<varname>/value")
-    async def get_layer_private_variable_value(request, active, layerid, varname):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        variable = layer.private_variable_manager.variables[varname]
-        return variable.serialize(variable.value)
-
-    @app.get("/stacks/<active>/layers/<layerid>/private_variables/<varname>/info")
-    async def get_layer_private_variable_info(request, active, layerid, varname):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        variable = layer.private_variable_manager.variables[varname]
-        return get_dict(variable.get_dict())
-
-    @app.get("/globals/variables/<varname>/value")
-    async def get_global_variable_value(request, varname):
-        variable = globals.variable_manager.variables[varname]
-        return get_dict(variable.value)
-
-    @app.get("/globals/variables/<varname>/info")
-    async def get_layer_variable_info(request, varname):
-        variable = globals.variable_manager.variables[varname]
-        return get_dict(variable.get_dict())
-
-    @app.get("/audio/info")
-    async def get_audio_info(request):
-        hidden_shades.audio_manager.info
-        return get_dict(hidden_shades.audio_manager.info)
-
-    @app.get("/audio/sources")
-    async def get_audio_sources(request):
-        return get_list(hidden_shades.audio_manager.sources.keys())
-
-    @app.get("/audio/sources/<source_name>/variables")
-    async def get_audio_source_variables(request, source_name):
-        source = hidden_shades.audio_manager.sources[source_name]
-        return get_list(
-            variable.name for variable in source.variable_manager.variables.values()
-        )
-
-    @app.get("/audio/sources/<source_name>/private_variables")
-    async def get_audio_source_private_variables(request, source_name):
-        source = hidden_shades.audio_manager.sources[source_name]
-        return get_list(
-            variable.name
-            for variable in source.private_variable_manager.variables.values()
-        )
-
-    @app.get("/audio/sources/<source_name>/variables/<varname>/value")
-    async def get_audio_source_variable_value(request, source_name, varname):
-        source = hidden_shades.audio_manager.sources[source_name]
-        variable = source.variable_manager.variables[varname]
-        return variable.serialize(variable.value)
-
-    @app.get("/audio/sources/<source_name>/variables/<varname>/info")
-    async def get_audio_source_variable_info(request, source_name, varname):
-        source = hidden_shades.audio_manager.sources[source_name]
-        variable = source.variable_manager.variables[varname]
-        return variable.info
-
-    @app.get("/audio/sources/<source_name>/private_variables/<varname>/value")
-    async def get_audio_source_private_variable_value(request, source_name, varname):
-        source = hidden_shades.audio_manager.sources[source_name]
-        variable = source.private_variable_manager.variables[varname]
-        return variable.serialize(variable.value)
-
-    @app.get("/audio/sources/<source_name>/private_variables/<varname>/info")
-    async def get_audio_source_private_variable_info(request, source_name, varname):
-        source = hidden_shades.audio_manager.sources[source_name]
-        variable = source.private_variable_manager.variables[varname]
-        return variable.info
-
-    # curl -H "Content-Type: text/plain" -X POST http://localhost:1337/stacks/<active>/layer -d '{"shard_uuid": "noise"}'
-    @app.post("/stacks/<active>/layer")
-    async def put_stack_layer(request, active):
-        data = json.loads(request.body.decode())
-        stack = stack_manager.get(active)
-        id, path, index = stack.get_new_layer_info()
-        layer = Layer(
-            id, path, canvas, init_info=data, post_init_hook=layer_post_init_hook
-        )
-        stack.add_layer(layer)
-
-    @app.delete("/stacks/<active>/layers/<layerid>")
-    async def delete_stack_layer(request, active, layerid):
-        stack = stack_manager.get(active)
-        stack.remove_layer_by_id(str(layerid))
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/layers/<layerid>/info -d '{"composition_mode": 3}'
-    @app.put("/stacks/<active>/layers/<layerid>/info")
-    async def put_layer_info(request, active, layerid):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        layer.merge_info(json.loads(request.body.decode()))
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/layers/<layerid>/variables/<varname> -d 'value'
-    @app.put("/stacks/<active>/layers/<layerid>/variables/<varname>")
-    async def put_layer_variable(request, active, layerid, varname):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        variable = layer.variable_manager.variables[varname]
-        variable.value = variable.deserialize(request.body.decode())
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/layers/<layerid>/private_variables/<varname> -d 'value'
-    @app.put("/stacks/<active>/layers/<layerid>/private_variables/<varname>")
-    async def put_layer_private_variable(request, active, layerid, varname):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        variable = layer.private_variable_manager.variables[varname]
-        value = request.body.decode()
-        variable.value = variable.deserialize(value)
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/globals/variables/<varname> -d 'value'
-    @app.put("/globals/variables/<varname>")
-    async def put_global_variable(request, varname):
-        variable = globals.variable_manager.variables[varname]
-        variable.value = variable.deserialize(request.body.decode())
-
-    @app.get("/globals/variables")
-    async def get_global_variables(request):
-        return get_list(
-            variable.name for variable in globals.variable_manager.variables.values()
-        )
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/shards/<uuid> -d $'def frames(l):\n\twhile True:\n\t\tyield None\n\t\tprint("hello world")\n\n'
-    @app.put("/shards/<uuid>")
-    async def put_shard(request, uuid):
-        # shards are immutable once published, therefore if the specified UUID
-        # exists on the filesystem it does not need to be written again
-        path = f"{config.PERSISTENT_DIR}/shards/{uuid}"
-        try:
-            os.stat(path)
-        except:
-            with open(path, "w") as f:
-                f.write(request.body)
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/audio/source/<source_name> -d 'MockAudio'
-    @app.put("/audio/source/<source_name>")
-    async def put_audio_source(request, source_name):
-        hidden_shades.audio_manager.select_source(source_name)
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/audio/sources/<source_name>/private_variables/<varname> -d 'value'
-    @app.put("/audio/sources/<source_name>/variables/<varname>")
-    async def put_audio_source_variable(request, source_name, varname):
-        source = hidden_shades.audio_manager.sources[source_name]
-        variable = source.variable_manager.variables[varname]
-        variable.value = variable.deserialize(request.body.decode())
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/audio/sources/<source_name>/private_variables/<varname> -d 'value'
-    @app.put("/audio/sources/<source_name>/private_variables/<varname>")
-    async def put_audio_source_private_variable(request, source_name, varname):
-        source = hidden_shades.audio_manager.sources[source_name]
-        variable = source.private_variable_manager.variables[varname]
-        variable.value = variable.deserialize(request.body.decode())
 
 
 async def control_visualizer():

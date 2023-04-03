@@ -1,6 +1,9 @@
 # runtime info, not to be source controlled
 bin
 
+# python caches
+__pycache__
+
 # IDE configurations
 .vscode
 
