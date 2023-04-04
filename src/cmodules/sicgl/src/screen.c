@@ -206,8 +206,12 @@ STATIC void attr(mp_obj_t self_in, qstr attribute, mp_obj_t* destination) {
   }
 }
 
-const mp_obj_type_t Screen_type = {
-    {&mp_type_type}, .name = MP_QSTR_Screen,
-    .print = print,  .make_new = make_new,
-    .attr = attr,    .locals_dict = (mp_obj_dict_t*)&locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+  Screen_type,
+  MP_QSTR_Screen,
+  MP_TYPE_FLAG_NONE,
+  make_new, make_new,
+  print, print,
+  attr, attr,
+  locals_dict, &locals_dict
+);

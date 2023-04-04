@@ -340,11 +340,11 @@ STATIC mp_obj_t subscr(mp_obj_t self_in, mp_obj_t index, mp_obj_t value) {
   }
 }
 
-STATIC const mp_rom_map_elem_t plan_locals_dict_table[] = {
+STATIC const mp_rom_map_elem_t locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_window), MP_ROM_PTR(&window_obj)},
     {MP_ROM_QSTR(MP_QSTR_execute), MP_ROM_PTR(&execute_obj)},
 };
-STATIC MP_DEFINE_CONST_DICT(plan_locals_dict, plan_locals_dict_table);
+STATIC MP_DEFINE_CONST_DICT(locals_dict, locals_dict_table);
 
 // attributes
 STATIC void attr(mp_obj_t self_in, qstr attribute, mp_obj_t* destination) {
@@ -444,15 +444,16 @@ STATIC mp_obj_t make_new(
   return MP_OBJ_FROM_PTR(self);
 }
 
-const mp_obj_type_t FftPlan_type = {
-    {&mp_type_type},
-    .name = MP_QSTR_FftPlan,
-    .print = print,
-    .make_new = make_new,
-    .locals_dict = (mp_obj_dict_t*)&plan_locals_dict,
-    .getiter = getiter,
-    .subscr = subscr,
-    .unary_op = unary_op,
-    .binary_op = binary_op,
-    .attr = attr,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+  FftPlan_type,
+  MP_QSTR_FftPlan,
+  MP_TYPE_FLAG_NONE | MP_TYPE_FLAG_ITER_IS_GETITER,
+  make_new, make_new,
+  print, print,
+  unary_op, unary_op,
+  binary_op, binary_op,
+  subscr, subscr,
+  iter, getiter,
+  attr, attr,
+  locals_dict, &locals_dict
+);

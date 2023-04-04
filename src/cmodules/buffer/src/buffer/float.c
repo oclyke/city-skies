@@ -362,7 +362,7 @@ STATIC const mp_rom_map_elem_t locals_dict_table[] = {
     {MP_ROM_QSTR(MP_QSTR_output), MP_ROM_PTR(&output_obj)},
     {MP_ROM_QSTR(MP_QSTR_align), MP_ROM_PTR(&align_obj)},
 };
-STATIC MP_DEFINE_CONST_DICT(buffer_locals_dict, locals_dict_table);
+STATIC MP_DEFINE_CONST_DICT(locals_dict, locals_dict_table);
 
 STATIC void print(
     const mp_print_t* print, mp_obj_t self_in, mp_print_kind_t kind) {
@@ -409,14 +409,15 @@ STATIC mp_obj_t make_new(
   return MP_OBJ_FROM_PTR(self);
 }
 
-const mp_obj_type_t FloatBuffer_type = {
-    {&mp_type_type},
-    .name = MP_QSTR_AudioBuffer,
-    .print = print,
-    .make_new = make_new,
-    .locals_dict = (mp_obj_dict_t*)&buffer_locals_dict,
-    .getiter = getiter,
-    .subscr = subscr,
-    .unary_op = unary_op,
-    .binary_op = binary_op,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+  FloatBuffer_type,
+  MP_QSTR_FloatBuffer,
+  MP_TYPE_FLAG_NONE | MP_TYPE_FLAG_ITER_IS_GETITER,
+  make_new, make_new,
+  print, print,
+  unary_op, unary_op,
+  binary_op, binary_op,
+  subscr, subscr,
+  iter, getiter,
+  locals_dict, &locals_dict
+);

@@ -249,10 +249,11 @@ STATIC mp_obj_t make_new(
   return MP_OBJ_FROM_PTR(self);
 }
 
-const mp_obj_type_t open_simplex_noise_obj_type = {
-    {&mp_type_type},
-    .name = MP_QSTR_OpenSimplexNoise,
-    .print = print,
-    .make_new = make_new,
-    .locals_dict = (mp_obj_dict_t*)&locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+  open_simplex_noise_obj_type,
+  MP_QSTR_OpenSimplexNoise,
+  MP_TYPE_FLAG_NONE,
+  print, print,
+  make_new, make_new,
+  locals_dict, &locals_dict
+);
