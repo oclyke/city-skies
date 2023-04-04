@@ -47,6 +47,11 @@ class Display:
         width, height = (self._screen.width, self._screen.height)
         dimu, dimv = self._dimensions
 
+        if dimu == 0:
+            dimu = 1
+        if dimv == 0:
+            dimv = 1
+
         for idx in range(self._screen.pixels):
             u = idx % width
             v = idx // width

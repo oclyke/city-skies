@@ -1,7 +1,9 @@
 import pysicgl
 import snake
 import ws2812b_spi
+import config
 
+from audio_ics43432 import ICS43432AudioSource
 
 # unique board identifier
 # (identifies a single hardware configuration)
@@ -12,6 +14,12 @@ display = pysicgl.Screen((23, 13))
 driver = snake.SnakeDriver(
     display, ws2812b_spi.WS2812B_SPI((18, 23, 19), display.pixels)
 )
+
+# audio sources
+audio_source_root_path = f"{config.EPHEMERAL_DIR}/audio/sources"
+audio_sources = [
+    ICS43432AudioSource(audio_source_root_path, "mic", (16000, 512), (14, 13, 34))
+]
 
 
 async def board_task():

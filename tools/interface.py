@@ -69,7 +69,12 @@ class CitySkiesClient:
             Stack(self._node, "/stacks/inactive"),
         )
 
+        self._stack_manager = StackManager(self._node, "/stacks/manager")
         self._audio = Audio(self._node)
+
+    @property
+    def stack_manager(self):
+        return self._stack_manager
 
     @property
     def audio(self):
@@ -144,6 +149,13 @@ class AudioSource:
             name: Variable(self._node, f"/private_variables/{name}") for name in names
         }
 
+
+class StackManager:
+    def __init__(self, base_node, extension_path):
+        self._node = RestNode.fromBase(base_node, f"{extension_path}")
+    
+    def switch(self):
+        self._node.put(f"/switch", None)
 
 class Stack:
     def __init__(self, base_node, stack_id):
@@ -265,19 +277,23 @@ class Variable:
         self._node.put(f"", value)
 
 
+def make_color_sequence_var_string(colors, map_type="continuous_circular"):
+    return json.dumps(
+        {
+            "colors": colors,
+            "map_type": map_type,
+        }
+    )
+
+
 if __name__ == "__main__":
     PATRIOT = [0xFF0000, 0xFFFFFF, 0x0000FF]
     RASTA = [0xFF0000, 0xFFFF00, 0x00FF00]
     MASK = [0xFF000000]
     ALPAH_RED = [0x00000000, 0xFFFF0000]
 
-    def make_color_sequence_var_string(colors, map_type="continuous_circular"):
-        return json.dumps(
-            {
-                "colors": colors,
-                "map_type": map_type,
-            }
-        )
+    # c = CitySkiesClient("localhost", 1337)
+    # active = c.stacks.active
 
-    c = CitySkiesClient("localhost", 1337)
+    c = CitySkiesClient("192.168.4.115", 1337)
     active = c.stacks.active

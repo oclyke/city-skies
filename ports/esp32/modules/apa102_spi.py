@@ -1,13 +1,14 @@
-import ws2812b_utils
+import apa102_utils
 import machine
 
 DEFAULT_SPI_HOST = 2  # vspi
+DEFAULT_ORDER = (3, 2, 1, 0)
 
 
-class WS2812B_SPI:
+class APA102_SPI:
     RESET_BUF = bytearray(16)
 
-    def __init__(self, pins, pixels, spi_host=DEFAULT_SPI_HOST):
+    def __init__(self, pins, pixels, order=DEFAULT_ORDER, spi_host=DEFAULT_SPI_HOST):
         (self.sck, self.mosi, self.miso) = pins
         self.bus = machine.SPI(
             spi_host,
@@ -20,10 +21,16 @@ class WS2812B_SPI:
             bits=8,
             firstbit=0,
         )
-        self.buf = bytearray(9 * pixels)
+        self.order = order
+
+        self.pixels = pixels
+        self.start_frame = bytearray(
+            4 + pixels // 8
+        )  # need extra clock pulses because lose pulses in flipping
+        self.buf = bytearray(pixels * 4)  # 4 bytes per pixel
 
     def ingest(self, interface):
-        ws2812b_utils.sicgl_memory_to_spi_bitstream(interface.memory, self.buf)
+        apa102_utils.sicgl_memory_to_spi_bitstream(interface.memory, self.buf)
 
     def push(self):
         # NOTE: there is some *actual bullshit* happening between the spi driver and the network interface, somehow

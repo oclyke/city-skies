@@ -10,6 +10,11 @@ def init_stacks_app(stack_manager, canvas, layer_post_init_hook):
     ###############
     # stack control
 
+    # change the active stack
+    @stacks_app.put("/manager/switch")
+    async def switch_stacks(request):
+        stack_manager.switch()
+
     # list layers in stack
     @stacks_app.get("/<active>/layers")
     async def get_layers(request, active):
