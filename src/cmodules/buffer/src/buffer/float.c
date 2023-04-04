@@ -410,14 +410,7 @@ STATIC mp_obj_t make_new(
 }
 
 MP_DEFINE_CONST_OBJ_TYPE(
-  FloatBuffer_type,
-  MP_QSTR_FloatBuffer,
-  MP_TYPE_FLAG_NONE | MP_TYPE_FLAG_ITER_IS_GETITER,
-  make_new, make_new,
-  print, print,
-  unary_op, unary_op,
-  binary_op, binary_op,
-  subscr, subscr,
-  iter, getiter,
-  locals_dict, &locals_dict
-);
+    FloatBuffer_type, MP_QSTR_FloatBuffer,
+    MP_TYPE_FLAG_NONE | MP_TYPE_FLAG_ITER_IS_GETITER, make_new, make_new, print,
+    print, unary_op, unary_op, binary_op, binary_op, subscr, subscr, iter,
+    getiter, locals_dict, &locals_dict);

@@ -89,11 +89,5 @@ STATIC mp_obj_t make_new(
 }
 
 MP_DEFINE_CONST_OBJ_TYPE(
-  ScalarField_type,
-  MP_QSTR_ScalarField,
-  MP_TYPE_FLAG_NONE,
-  make_new, make_new,
-  print, print,
-  subscr, subscr,
-  locals_dict, &locals_dict
-);
+    ScalarField_type, MP_QSTR_ScalarField, MP_TYPE_FLAG_NONE, make_new,
+    make_new, print, print, subscr, subscr, locals_dict, &locals_dict);

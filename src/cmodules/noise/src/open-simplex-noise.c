@@ -250,10 +250,5 @@ STATIC mp_obj_t make_new(
 }
 
 MP_DEFINE_CONST_OBJ_TYPE(
-  open_simplex_noise_obj_type,
-  MP_QSTR_OpenSimplexNoise,
-  MP_TYPE_FLAG_NONE,
-  print, print,
-  make_new, make_new,
-  locals_dict, &locals_dict
-);
+    open_simplex_noise_obj_type, MP_QSTR_OpenSimplexNoise, MP_TYPE_FLAG_NONE,
+    print, print, make_new, make_new, locals_dict, &locals_dict);
