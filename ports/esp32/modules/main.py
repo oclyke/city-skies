@@ -9,9 +9,12 @@ import csble
 import config
 import cache
 import board
+import hardware
 
 from stack_manager import StackManager
+import hidden_shades
 from hidden_shades.layer import Layer
+from hidden_shades import globals, artnet_provider
 from logging import LogManager
 
 fw_version = semver.SemanticVersion.from_semver("0.0.0")
@@ -178,7 +181,12 @@ canvas, canvas_memory = create_interface(board.display)
 
 # function to load a given shard uuid and return the module
 def load_shard(uuid):
-    return __import__(f"{config.PERSISTENT_DIR}/shards/{uuid}")
+    try:
+        # default to loading shards from dynamic memory
+        return __import__(f"{config.PERSISTENT_DIR}/shards/{uuid}")
+    except:
+        # fall back to trying to load from frozen shards (temporary)
+        return __import__(f"shards/{uuid}")
 
 
 # a function which sets the shard for a given layer after
@@ -236,7 +244,7 @@ async def run_pipeline():
             # zero the layer interface for each shard
             # (if a layer wants to use persistent memory it can do whacky stuff
             # such as allocating its own local interface and copying out the results)
-            canvas.interface_fill(0x000000)
+            canvas.interface_fill(0x2F000000)
 
             # run the layer
             try:
@@ -246,12 +254,16 @@ async def run_pipeline():
                 layer.set_active(False)
 
             # composite the layer's canvas into the main canvas
-            visualizer.compose(
-                board.display, canvas_memory, layer.info["composition_mode"]
-            )
+            canvas.blend(board.display, visualizer_memory, layer.blending_mode)
+            visualizer.compose(board.display, canvas_memory, layer.composition_mode)
 
         # gamma correct the canvas
         pysicgl.gamma_correct(visualizer, corrected)
+
+        # apply global brightness
+        corrected.interface_scale(
+            globals.variable_manager.variables["brightness"].value
+        )
 
         # allow driver to reformat the interface memory as needed
         board.driver.ingest(corrected)
@@ -268,82 +280,29 @@ async def run_pipeline():
 
 
 async def serve_api():
-    import os
-    import json
-    import microdot_asyncio
+    from microdot_asyncio import Microdot, Request, Response
+    from api import info_app, shards_app, stacks_app, globals_app, audio_app
+    from api.stacks import init_stacks_app
 
     # set up server
     PORT = 1337
-    control_api_version = semver.SemanticVersion.from_semver("0.0.0")
-    app = microdot_asyncio.Microdot()
-
-    def get_list(l):
-        return "\n".join(l)
-
-    # curl -H "Content-Type: text/plain" -X GET http://localhost:1337/info
-    @app.get("/info")
-    async def get_info(request):
-        info = {
-            "board_uuid": board.UUID,
-        }
-        return microdot_asyncio.Response(info)
-
-    @app.get("/shards")
-    async def get_shards(request):
-        return get_list(os.listdir(f"{config.PERSISTENT_DIR}/shards"))
-
-    @app.get("/stacks/<active>/layers")
-    async def get_layers(request, active):
-        stack = stack_manager.get(active)
-        return get_list(layer.id for layer in stack)
-
-    @app.get("/stacks/<active>/layers/<layerid>/variables")
-    async def get_variables(request, active, layerid):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(layerid)
-        return get_list(variable.name for variable in layer.variables.values())
-
-    # curl -H "Content-Type: text/plain" -X POST http://localhost:1337/stacks/<active>/layer -d '{"shard_uuid": "noise"}'
-    @app.post("/stacks/<active>/layer")
-    async def put_stack_layer(request, active):
-        data = json.loads(request.body.decode())
-        stack = stack_manager.get(active)
-        id, path, index = stack.get_new_layer_info()
-        layer = Layer(
-            id, path, canvas, init_info=data, post_init_hook=layer_post_init_hook
-        )
-        stack.add_layer(layer)
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/layers/<layerid>/info -d '{"composition_mode": 3}'
-    @app.put("/stacks/<active>/layers/<layerid>/info")
-    async def put_layer_info(request, active, layerid):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        layer.merge_info(json.loads(request.body.decode()))
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/stacks/<active>/layers/<layerid>/vars/<varname> -d 'value'
-    @app.put("/stacks/<active>/layers/<layerid>/vars/<varname>")
-    async def put_layer_variable(request, active, layerid, varname):
-        stack = stack_manager.get(active)
-        layer = stack.get_layer_by_id(str(layerid))
-        layer.variables[varname].value = request.body.decode()
-
-    # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/shards/<uuid> -d $'def frames(l):\n\twhile True:\n\t\tyield None\n\t\tprint("hello world")\n\n'
-    @app.put("/shards/<uuid>")
-    async def put_shard(request, uuid):
-        # shards are immutable once published, therefore if the specified UUID
-        # exists on the filesystem it does not need to be written again
-        path = f"{config.PERSISTENT_DIR}/shards/{uuid}"
-        try:
-            os.stat(path)
-        except:
-            with open(path, "w") as f:
-                f.write(request.body)
 
     # configure maximum request size
-    microdot_asyncio.Request.max_content_length = 128 * 1024  # 128 KB
+    Request.max_content_length = 32 * 1024  # 128 KB
+    Response.default_content_type = "application/json"
 
-    # start server
+    # a sorta ugly way to pass local data into the stacks app...
+    init_stacks_app(stack_manager, canvas, layer_post_init_hook)
+
+    # create application structure
+    app = Microdot()
+    app.mount(info_app, url_prefix="/info")
+    app.mount(shards_app, url_prefix="/shards")
+    app.mount(stacks_app, url_prefix="/stacks")
+    app.mount(globals_app, url_prefix="/globals")
+    app.mount(audio_app, url_prefix="/audio")
+
+    # serve the api
     asyncio.create_task(app.start_server(debug=True, port=PORT))
 
 
@@ -392,8 +351,15 @@ async def main():
     asyncio.create_task(serve_api())
     asyncio.create_task(poll_network_status())
     asyncio.create_task(blink())
+    asyncio.create_task(artnet_provider.run())
     if board.board_task is not None:
         asyncio.create_task(board.board_task())
+
+    # start audio sources
+    for source in hardware.audio_sources:
+        print("Initializing audio source: ", source)
+        hidden_shades.audio_manager.add_source(source)
+        asyncio.create_task(source.run())
 
     # set up board identity
     initial_identity = {

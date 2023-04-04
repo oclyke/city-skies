@@ -50,6 +50,13 @@ class StackManager:
         else:
             raise ValueError
 
+    def switch(self):
+        active = self._info.get("active")
+        if active == "A":
+            self.activate("B")
+        else:
+            self.activate("A")
+
     @property
     def active(self):
         return self._active

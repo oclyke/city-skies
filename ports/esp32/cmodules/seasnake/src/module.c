@@ -4,20 +4,6 @@
 #include <errno.h>
 #include <string.h>
 
-// signifying 'pattern at bit' for ws2812b leds driving bits with SPI @ 2.5 MHz
-// (0: [1h, 2l] 1: [2h, 1l])
-STATIC inline uint8_t pat_ws2812b(uint8_t b, uint8_t i) {
-  const uint8_t p0 = 0b100;
-  const uint8_t p1 = 0b110;
-  return (b & (0x80 >> i)) ? p1 : p0;
-}
-
-STATIC inline void expand_byte_into_bitstream(uint8_t b, uint8_t* output) {
-    output[0] = (pat_ws2812b(b, 0) << 5) | (pat_ws2812b(b, 1) << 2) | (pat_ws2812b(b, 2) >> 1);
-    output[1] = (pat_ws2812b(b, 2) << 7) | (pat_ws2812b(b, 3) << 4) | (pat_ws2812b(b, 4) << 1) | (pat_ws2812b(b, 5) >> 2);
-    output[2] = (pat_ws2812b(b, 5) << 6) | (pat_ws2812b(b, 6) << 3) | (pat_ws2812b(b, 7) << 0);
-}
-
 STATIC mp_obj_t map_simple(size_t n_args, const mp_obj_t* args) {
   enum {
     ARG_input,
@@ -59,9 +45,9 @@ STATIC mp_obj_t map_simple(size_t n_args, const mp_obj_t* args) {
   }
 
   // copy the reversed rows
-  for (size_t rdx = (reverse_first) ? 0 : 1; rdx < max_rows; rdx++) {
+  for (size_t rdx = (reverse_first) ? 0 : 1; rdx < max_rows; rdx += 2) {
     for (size_t idx = 0; idx < width; idx++) {
-      colors_out[idx] = colors_in[width - idx - 1];
+      colors_out[rdx * width + idx] = colors_in[rdx * width + width - idx - 1];
     }
   }
 

@@ -56,7 +56,7 @@ STATIC FloatBuffer_obj_t* create_new_float_buffer(size_t size) {
  */
 STATIC mp_obj_t scale(mp_obj_t self_in, mp_obj_t factor_obj) {
   FloatBuffer_obj_t* self = MP_OBJ_TO_PTR(self_in);
-  double factor;
+  mp_float_t factor;
   bool result = mp_obj_get_float_maybe(factor_obj, &factor);
   if (true != result) {
     mp_raise_TypeError(NULL);
