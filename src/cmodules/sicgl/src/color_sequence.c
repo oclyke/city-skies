@@ -281,10 +281,7 @@ STATIC mp_obj_t make_new(
   return self_obj;
 }
 
-const mp_obj_type_t ColorSequence_type = {
-    {&mp_type_type},        .name = MP_QSTR_ColorSequence,
-    .print = print,         .make_new = make_new,
-    .attr = attr,           .locals_dict = (mp_obj_dict_t*)&locals_dict,
-    .subscr = subscr,       .unary_op = unary_op,
-    .binary_op = binary_op,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    ColorSequence_type, MP_QSTR_ColorSequence, MP_TYPE_FLAG_NONE, make_new,
+    make_new, print, print, attr, attr, unary_op, unary_op, binary_op,
+    binary_op, subscr, subscr, locals_dict, &locals_dict);

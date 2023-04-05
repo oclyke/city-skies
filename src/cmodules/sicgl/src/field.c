@@ -88,11 +88,6 @@ STATIC mp_obj_t make_new(
   return MP_OBJ_FROM_PTR(self);
 }
 
-const mp_obj_type_t ScalarField_type = {
-    {&mp_type_type},
-    .name = MP_QSTR_ScalarField,
-    .print = print,
-    .make_new = make_new,
-    .locals_dict = (mp_obj_dict_t*)&locals_dict,
-    .subscr = subscr,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    ScalarField_type, MP_QSTR_ScalarField, MP_TYPE_FLAG_NONE, make_new,
+    make_new, print, print, subscr, subscr, locals_dict, &locals_dict);

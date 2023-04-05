@@ -75,7 +75,6 @@ class BlePeripheral:
         self._ble = bluetooth.BLE()
         self._ble.active(True)
         self._ble.config(mtu=max_attr_len)
-        self._ble.config(rxbuf=max_attr_len)
         self._ble.irq(self._irq)
 
         self._name_max_len = max_name_len
@@ -116,7 +115,7 @@ class BlePeripheral:
                     handler(self._ble.gatts_read(handle))
 
     def set_name(self, name):
-        self._name = bytearray(name)[0 : self._name_max_len - 1]
+        self._name = bytearray(name, "utf-8")[0 : self._name_max_len - 1]
 
     def advertise(self, adv_uuids=None, interval_us=500000):
         if adv_uuids is not None:

@@ -3,7 +3,7 @@ class ArtDMXPacket:
         self._buffer = bytearray(18 + 512)
         self._data = memoryview(self._buffer)
 
-        self.header = bytearray("Art-Net\0")
+        self.header = bytearray("Art-Net\0", "utf-8")
         self.opcode = 0x5000
         self.protocol_version = 0x00014
         self.physical_port = physical_port

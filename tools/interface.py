@@ -300,8 +300,5 @@ if __name__ == "__main__":
     MASK = [0xFF000000]
     ALPAH_RED = [0x00000000, 0xFFFF0000]
 
-    # c = CitySkiesClient("localhost", 1337)
-    # active = c.stacks.active
-
-    c = CitySkiesClient("192.168.4.115", 1337)
+    c = CitySkiesClient("localhost", 1337)
     active = c.stacks.active

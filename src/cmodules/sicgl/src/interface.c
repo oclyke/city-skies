@@ -216,8 +216,6 @@ STATIC void attr(mp_obj_t self_in, qstr attribute, mp_obj_t* destination) {
   }
 }
 
-const mp_obj_type_t Interface_type = {
-    {&mp_type_type}, .name = MP_QSTR_Interface,
-    .print = print,  .make_new = make_new,
-    .attr = attr,    .locals_dict = (mp_obj_dict_t*)&locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    Interface_type, MP_QSTR_Interface, MP_TYPE_FLAG_NONE, make_new, make_new,
+    print, print, attr, attr, locals_dict, &locals_dict);
