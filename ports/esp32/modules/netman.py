@@ -1,3 +1,6 @@
+import network
+
+
 class Interface:
     def __init__(self, path, wlan):
         from cache import Cache
@@ -49,37 +52,38 @@ class Interface:
 
 
 class ApInterface(Interface):
-    def __init__(self, path):
-        import network
-
+    def __init__(self, manager, path):
         super().__init__(path, network.WLAN(network.AP_IF))
+        self._manager = manager
         self._on_info_change = lambda: self.config()
         self.config()
 
     def config(self):
         self._wlan.config(essid=self.ssid)
         self._wlan.config(password=self.password)
+        self._wlan.active(self._manager.active)
 
 
 class StaInterface(Interface):
-    def __init__(self, path):
+    def __init__(self, manager, path):
         import network
 
         super().__init__(path, network.WLAN(network.STA_IF))
+        self._manager = manager
         self._on_info_change = lambda: self.reconnect()
 
     def reconnect(self):
         if self._wlan.active():
             self._wlan.disconnect()
 
-        self._wlan.active(True)
-        self._wlan.connect(self.ssid, self.password)
+        if self._manager.active:
+            self._wlan.active(True)
+            self._wlan.connect(self.ssid, self.password)
 
 
 class NetworkManager:
     def __init__(self, path):
         from cache import Cache
-        import network
 
         self._path = path
 
@@ -88,8 +92,15 @@ class NetworkManager:
             "mode": "STA",
         }
         self._info = Cache(f"{self._path}/info", initial_info)
-        self._station = StaInterface(f"{self._path}/sta")
-        self._access_point = ApInterface(f"{self._path}/ap")
+        self._station = StaInterface(self, f"{self._path}/sta")
+        self._access_point = ApInterface(self, f"{self._path}/ap")
+
+        self._initialize()
+
+    def _initialize(self):
+        self._info.set_change_handler(
+            lambda key, value: self._handle_info_change(key, value)
+        )
 
         # activate the appropriate interface, if any
         if self.active:
@@ -99,19 +110,23 @@ class NetworkManager:
                 self._station.active(True)
                 self._station.reconnect()
 
+    def _handle_info_change(self, key, value):
+        if key == "active":
+            if value == True:
+                if self.mode == "AP":
+                    self.access_point.config()
+                else:
+                    self.station.reconnect()
+        if key == "mode":
+            self._info.set("active", self.wlan.active())
+
     def set_mode(self, mode):
         if not mode in ["AP", "STA"]:
             raise ValueError
         self._info.set("mode", mode)
-        self._info.set("active", self.wlan.active())
 
     def set_active(self, active):
         self._info.set("active", active)
-        self.wlan.active(self.active)
-        if self.mode == "AP":
-            self.access_point.config()
-        else:
-            self.station.reconnect()
 
     @property
     def station(self):
