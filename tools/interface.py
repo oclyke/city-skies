@@ -254,6 +254,14 @@ class Layer:
     def composition_mode(self, value):
         self.update_info({"composition_mode": str(value)})
 
+    @property
+    def blending_mode(self):
+        return self.info["blending_mode"]
+
+    @blending_mode.setter
+    def blending_mode(self, value):
+        self.update_info({"blending_mode": str(value)})
+
 
 class Variable:
     def __init__(self, base_node, name):

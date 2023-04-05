@@ -1,3 +1,5 @@
+import network
+
 class Interface:
     def __init__(self, path, wlan):
         from cache import Cache
@@ -49,37 +51,38 @@ class Interface:
 
 
 class ApInterface(Interface):
-    def __init__(self, path):
-        import network
-
+    def __init__(self, manager, path):
         super().__init__(path, network.WLAN(network.AP_IF))
+        self._manager = manager
         self._on_info_change = lambda: self.config()
         self.config()
 
     def config(self):
         self._wlan.config(essid=self.ssid)
         self._wlan.config(password=self.password)
+        self._wlan.active(self._manager.active)
 
 
 class StaInterface(Interface):
-    def __init__(self, path):
+    def __init__(self, manager, path):
         import network
 
         super().__init__(path, network.WLAN(network.STA_IF))
+        self._manager = manager
         self._on_info_change = lambda: self.reconnect()
 
     def reconnect(self):
         if self._wlan.active():
             self._wlan.disconnect()
 
-        self._wlan.active(True)
-        self._wlan.connect(self.ssid, self.password)
+        if self._manager.active:
+            self._wlan.active(True)
+            self._wlan.connect(self.ssid, self.password)
 
 
 class NetworkManager:
     def __init__(self, path):
         from cache import Cache
-        import network
 
         self._path = path
 
@@ -88,8 +91,8 @@ class NetworkManager:
             "mode": "STA",
         }
         self._info = Cache(f"{self._path}/info", initial_info)
-        self._station = StaInterface(f"{self._path}/sta")
-        self._access_point = ApInterface(f"{self._path}/ap")
+        self._station = StaInterface(self, f"{self._path}/sta")
+        self._access_point = ApInterface(self, f"{self._path}/ap")
 
         # activate the appropriate interface, if any
         if self.active:
