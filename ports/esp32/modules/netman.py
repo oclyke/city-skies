@@ -1,5 +1,6 @@
 import network
 
+
 class Interface:
     def __init__(self, path, wlan):
         from cache import Cache
@@ -90,17 +91,16 @@ class NetworkManager:
             "active": False,
             "mode": "STA",
         }
-        self._info = Cache(
-            f"{self._path}/info",
-            initial_info
-        )
+        self._info = Cache(f"{self._path}/info", initial_info)
         self._station = StaInterface(self, f"{self._path}/sta")
         self._access_point = ApInterface(self, f"{self._path}/ap")
 
         self._initialize()
 
     def _initialize(self):
-        self._info.set_change_handler(lambda key, value: self._handle_info_change(key, value))
+        self._info.set_change_handler(
+            lambda key, value: self._handle_info_change(key, value)
+        )
 
         # activate the appropriate interface, if any
         if self.active:
