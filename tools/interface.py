@@ -302,6 +302,3 @@ if __name__ == "__main__":
 
     c = CitySkiesClient("localhost", 1337)
     active = c.stacks.active
-
-    # c = CitySkiesClient("192.168.4.115", 1337)
-    # active = c.stacks.active
