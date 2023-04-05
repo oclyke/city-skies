@@ -90,9 +90,17 @@ class NetworkManager:
             "active": False,
             "mode": "STA",
         }
-        self._info = Cache(f"{self._path}/info", initial_info)
+        self._info = Cache(
+            f"{self._path}/info",
+            initial_info
+        )
         self._station = StaInterface(self, f"{self._path}/sta")
         self._access_point = ApInterface(self, f"{self._path}/ap")
+
+        self._initialize()
+
+    def _initialize(self):
+        self._info.set_change_handler(lambda key, value: self._handle_info_change(key, value))
 
         # activate the appropriate interface, if any
         if self.active:
@@ -102,19 +110,23 @@ class NetworkManager:
                 self._station.active(True)
                 self._station.reconnect()
 
+    def _handle_info_change(self, key, value):
+        if key == "active":
+            if value == True:
+                if self.mode == "AP":
+                    self.access_point.config()
+                else:
+                    self.station.reconnect()
+        if key == "mode":
+            self._info.set("active", self.wlan.active())
+
     def set_mode(self, mode):
         if not mode in ["AP", "STA"]:
             raise ValueError
         self._info.set("mode", mode)
-        self._info.set("active", self.wlan.active())
 
     def set_active(self, active):
         self._info.set("active", active)
-        self.wlan.active(self.active)
-        if self.mode == "AP":
-            self.access_point.config()
-        else:
-            self.station.reconnect()
 
     @property
     def station(self):
