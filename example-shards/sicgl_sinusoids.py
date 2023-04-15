@@ -14,11 +14,11 @@ def random_color():
 
 def declare_variables(layer):
     layer.variable_manager.declare_variable(
-        ColorSequenceVariable("ball_color", pysicgl.ColorSequence([0xFFFF00FF]))
+        FloatingVariable("speed",2,default_range=(2, 4),)
     )
 
     layer.variable_manager.declare_variable(
-        FloatingVariable("diameter",0.1,default_range=(0, 1.0),)
+        FloatingVariable("total_circles",3,default_range=(3,6),)
     )
 
 def move(cx, cy, dirx, diry, rad, speed, num_x, num_y, stepx, stepy):
@@ -73,13 +73,12 @@ def move(cx, cy, dirx, diry, rad, speed, num_x, num_y, stepx, stepy):
 
 def frames(layer):
     declare_variables(layer)
-    total_circles = 3  # total concentric
+    total_circles = int(layer.variable_manager.variables["total_circles"].value) # total concentric
     dias = [1, 7, 15, 21, 28]
-    speed = 2
+    speed = int(layer.variable_manager.variables["speed"].value)
     screen = layer.canvas.screen
     display = Display(screen)
     (numx, numy) = display.extent
-    (maxx, maxy) = display.shape
 
     mov_angle = random.random()
     stepx = speed * math.cos(mov_angle)
