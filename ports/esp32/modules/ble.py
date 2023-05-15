@@ -110,6 +110,7 @@ class BlePeripheral:
 
             # call any write handlers which match this attribute
             conn_handle, attr_handle = data
+            self.notify(attr_handle)
             for handle, handler in self._write_handlers:
                 if handle == attr_handle:
                     handler(self._ble.gatts_read(handle))

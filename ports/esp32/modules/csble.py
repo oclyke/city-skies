@@ -26,6 +26,7 @@ class CSBLE(ble.BlePeripheral):
         ) = netcfg_handles
 
         self._netcfg_handles = {
+            "state": self._netcfg_state_handle,
             "mode": self._netcfg_mode_handle,
             "active": self._netcfg_active_handle,
             "sta_ssid": self._netcfg_sta_ssid_handle,

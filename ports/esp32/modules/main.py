@@ -306,6 +306,23 @@ async def serve_api():
     asyncio.create_task(app.start_server(debug=True, port=PORT))
 
 
+def update_network_status():
+    connected = network_manager.wlan.isconnected()
+
+    # notify of station ip address
+    ble.write(ble.netcfg_handles["sta_ipaddr"], network_manager.station.ipaddr)
+    ble.notify(ble.netcfg_handles["sta_ipaddr"])
+
+    # notify of access point ip address
+    ble.write(
+        ble.netcfg_handles["ap_ipaddr"], network_manager.access_point.ipaddr
+    )
+    ble.notify(ble.netcfg_handles["ap_ipaddr"])
+
+    # notify the state
+    ble.write(ble.netcfg_handles["state"], "0" if not connected else "1")
+    ble.notify(ble.netcfg_handles["state"])
+
 async def poll_network_status():
     prev = network_manager.wlan.isconnected()
     while True:
@@ -313,14 +330,8 @@ async def poll_network_status():
         current = network_manager.wlan.isconnected()
         if prev != current:
             print("net status changed: ", current, network_manager.wlan.ifconfig())
+            update_network_status()
 
-            ble.write(ble.netcfg_handles["sta_ipaddr"], network_manager.station.ipaddr)
-            ble.notify(ble.netcfg_handles["sta_ipaddr"])
-
-            ble.write(
-                ble.netcfg_handles["ap_ipaddr"], network_manager.access_point.ipaddr
-            )
-            ble.notify(ble.netcfg_handles["ap_ipaddr"])
         prev = current
 
 
@@ -411,6 +422,13 @@ async def main():
     )
 
     wdt.feed()
+    ble.write(ble.netcfg_handles["active"], network_manager.active)
+
+    wdt.feed()
+    ble.write(ble.netcfg_handles["sta_ssid"], network_manager.station.ssid)
+    ble.write(ble.netcfg_handles["ap_ssid"], network_manager.access_point.ssid)
+
+    wdt.feed()
     ble.write(ble.netcfg_handles["sta_ipaddr"], network_manager.station.ipaddr)
     ble.write(ble.netcfg_handles["ap_ipaddr"], network_manager.access_point.ipaddr)
 
@@ -421,6 +439,7 @@ async def main():
 
     wdt.feed()
     ble.advertise([ADV_UUID_CITY_SKIES])
+    update_network_status()
 
     # the main task should not return so that asyncio continues to handle tasks
     wdt.feed()
