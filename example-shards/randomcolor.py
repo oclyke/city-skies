@@ -1,6 +1,7 @@
 # shows how to use a random color from the color palette
 import random
 
+
 def frames(layer):
     while True:
         yield None
