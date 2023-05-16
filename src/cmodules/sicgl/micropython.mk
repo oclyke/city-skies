@@ -26,7 +26,6 @@ SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/alpha.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/bitwise.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/channelwise.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/direct.c
-SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/compositors/simple_alpha.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/field.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/gamma.c
 SRC_USERMOD += $(MOD_DIR)/third-party/sicgl/src/iter.c

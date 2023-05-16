@@ -26,7 +26,6 @@ target_sources(pysicgl INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/third-party/sicgl/src/compositors/bitwise.c
   ${CMAKE_CURRENT_LIST_DIR}/third-party/sicgl/src/compositors/channelwise.c
   ${CMAKE_CURRENT_LIST_DIR}/third-party/sicgl/src/compositors/direct.c
-  ${CMAKE_CURRENT_LIST_DIR}/third-party/sicgl/src/compositors/simple_alpha.c
   ${CMAKE_CURRENT_LIST_DIR}/third-party/sicgl/src/field.c
   ${CMAKE_CURRENT_LIST_DIR}/third-party/sicgl/src/gamma.c
   ${CMAKE_CURRENT_LIST_DIR}/third-party/sicgl/src/iter.c

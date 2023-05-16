@@ -51,7 +51,6 @@ STATIC const compositor_function_entry_t compositor_function_types_table[] = {
     {MP_ROM_QSTR(MP_QSTR_channelwise_divide_reverse_clamped),
      compositor_channelwise_divide_reverse_clamped},
 
-    {MP_ROM_QSTR(MP_QSTR_alpha_simple), compositor_alpha_simple},
     {MP_ROM_QSTR(MP_QSTR_alpha_clear), compositor_alpha_clear},
     {MP_ROM_QSTR(MP_QSTR_alpha_copy), compositor_alpha_copy},
     {MP_ROM_QSTR(MP_QSTR_alpha_destination), compositor_alpha_destination},
