@@ -153,7 +153,8 @@ STATIC mp_obj_t interpolate(mp_obj_t self_in, mp_obj_t phase_in) {
     };
 
     color_t color;
-    ret = color_sequence_interpolate_single(&sequence, self->map, mp_obj_get_float(phase_in), &color);
+    ret = color_sequence_interpolate_single(
+        &sequence, self->map, mp_obj_get_float(phase_in), &color);
     if (0 != ret) {
       mp_raise_OSError(ret);
     }
