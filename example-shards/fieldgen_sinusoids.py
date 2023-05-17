@@ -6,6 +6,7 @@ from hidden_shades.timewarp import TimeWarp
 from hidden_shades.variables.responder import VariableResponder
 from hidden_shades.variables.types import FloatingVariable
 
+
 def frames(layer):
     screen = layer.canvas.screen
     display = Display(screen)
@@ -19,7 +20,6 @@ def frames(layer):
 
     # create a timewarp
     timewarp = TimeWarp(timebase.local)
-
 
     def handle_variable_changes(variable):
         name = variable.name
@@ -38,34 +38,22 @@ def frames(layer):
         )
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(
-            "scale", 0.8, default_range=(0.1, 5.0)
-        )
+        FloatingVariable("scale", 0.8, default_range=(0.1, 5.0))
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(
-            "frequency", 40.0, default_range=(0, 50.0)
-        )
+        FloatingVariable("frequency", 40.0, default_range=(0, 50.0))
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(
-            "centerX", -0.4, default_range=(-0.5, 0.5)
-        )
+        FloatingVariable("centerX", -0.4, default_range=(-0.5, 0.5))
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(
-            "centerY", 0.4, default_range=(-0.5, 0.5)
-        )
+        FloatingVariable("centerY", 0.4, default_range=(-0.5, 0.5))
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(
-            "offset", 0.2, default_range=(0, 1.0)
-        )
+        FloatingVariable("offset", 0.2, default_range=(0, 1.0))
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable(
-            "decay", 20.0, default_range=(0.0, 30.0)
-        )
+        FloatingVariable("decay", 20.0, default_range=(0.0, 30.0))
     )
     layer.variable_manager.initialize_variables()
 
@@ -73,8 +61,10 @@ def frames(layer):
         yield None
 
         # get variables
-        center = (0.5 + layer.variable_manager.variables["centerX"].value,
-                  0.5 + layer.variable_manager.variables["centerY"].value)
+        center = (
+            0.5 + layer.variable_manager.variables["centerX"].value,
+            0.5 + layer.variable_manager.variables["centerY"].value,
+        )
         scale = layer.variable_manager.variables["scale"].value
         frequency = layer.variable_manager.variables["frequency"].value
         offset = layer.variable_manager.variables["offset"].value
@@ -84,4 +74,6 @@ def frames(layer):
         fieldgen.sinusoids(screen, field, center, scale, frequency, offset, decay)
 
         # show the scalar field
-        layer.canvas.scalar_field(layer.canvas.screen, field, layer.palette, timewarp.local())
+        layer.canvas.scalar_field(
+            layer.canvas.screen, field, layer.palette, timewarp.local()
+        )

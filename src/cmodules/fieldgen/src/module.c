@@ -1,18 +1,18 @@
+#include <errno.h>
 #include <math.h>
 #include <stdio.h>
-#include <errno.h>
 
-#include "pysicgl/field.h"
-#include "pysicgl/screen.h"
 #include "fields/sinusoids.h"
 #include "py/runtime.h"
+#include "pysicgl/field.h"
+#include "pysicgl/screen.h"
 
 /**
  * @brief Extracts the value of a scalar mp_obj_t object into a double
- * 
- * @param obj 
- * @param value 
- * @return STATIC 
+ *
+ * @param obj
+ * @param value
+ * @return STATIC
  */
 STATIC int extract_double_obj(mp_obj_t obj, double* value) {
   int ret = 0;
@@ -31,11 +31,11 @@ out:
 
 /**
  * @brief Extracts floating point values from a 2-tuple into doubles.
- * 
- * @param obj 
- * @param u 
- * @param v 
- * @return STATIC 
+ *
+ * @param obj
+ * @param u
+ * @param v
+ * @return STATIC
  */
 STATIC int unpack_double_tuple2(mp_obj_t obj, double* u, double* v) {
   int ret = 0;
@@ -65,7 +65,8 @@ out:
   return ret;
 }
 
-int extract_screen_bounds_double(Screen_obj_t* screen_obj, ext_t* max, double* u, double*v) {
+int extract_screen_bounds_double(
+    Screen_obj_t* screen_obj, ext_t* max, double* u, double* v) {
   int ret = 0;
 
   if (NULL == screen_obj) {
@@ -75,7 +76,8 @@ int extract_screen_bounds_double(Screen_obj_t* screen_obj, ext_t* max, double* u
   screen_t* screen = screen_obj->screen;
 
   // determine the larger of the dimensions
-  ext_t largest = (screen->width > screen->height) ? screen->width : screen->height;
+  ext_t largest =
+      (screen->width > screen->height) ? screen->width : screen->height;
 
   if (NULL != max) {
     *max = largest;
@@ -95,7 +97,6 @@ out:
 
 /////////////////////////////
 // Field Generation Functions
-
 
 STATIC mp_obj_t sinusoids(size_t n_args, const mp_obj_t* args) {
   // parse args
@@ -170,7 +171,9 @@ STATIC mp_obj_t sinusoids(size_t n_args, const mp_obj_t* args) {
 
     double radius = sqrt(pow(du, 2.0) + pow(dv, 2.0));
 
-    double scalar = (scale * (1.0 / (decay * radius + 1.0)) * sin(frequency * radius)) + offset;
+    double scalar =
+        (scale * (1.0 / (decay * radius + 1.0)) * sin(frequency * radius)) +
+        offset;
 
     field->scalars[idx] = scalar;
   }

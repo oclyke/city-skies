@@ -42,7 +42,7 @@ class ArtnetDriver:
                     self._sock.sendto(self._packet.buffer, self._addr)
                 except:
                     print("ERROR sending ArtNet packet")
-                    self._disabled = True                
+                    self._disabled = True
 
                 self.advance_sequence()
                 offset += length
