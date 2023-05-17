@@ -225,10 +225,10 @@ class Layer:
         self._node.put(f"/private_variables/{varname}", value)
 
     def get_variable(self, varname):
-        return Variable(self._node, f"variables/{varname}")
+        return Variable(self._node, f"/variables/{varname}")
 
     def get_private_variable(self, varname):
-        return Variable(self._node, f"private_variables/{varname}")
+        return Variable(self._node, f"/private_variables/{varname}")
 
     @property
     def use_local_palette(self):
@@ -248,7 +248,7 @@ class Layer:
 
     @property
     def composition_mode(self):
-        return self.info["composition_mode"]
+        return self.get_private_variable("composition_mode")
 
     @composition_mode.setter
     def composition_mode(self, value):
@@ -256,7 +256,7 @@ class Layer:
 
     @property
     def blending_mode(self):
-        return self.info["blending_mode"]
+        return self.get_private_variable("blending_mode")
 
     @blending_mode.setter
     def blending_mode(self, value):
