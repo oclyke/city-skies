@@ -252,7 +252,7 @@ class Layer:
 
     @composition_mode.setter
     def composition_mode(self, value):
-        self.update_info({"composition_mode": str(value)})
+        self.set_private_variable("composition_mode", str(value))
 
     @property
     def blending_mode(self):
@@ -260,7 +260,7 @@ class Layer:
 
     @blending_mode.setter
     def blending_mode(self, value):
-        self.update_info({"blending_mode": str(value)})
+        self.set_private_variable("blending_mode", str(value))
 
 
 class Variable:
