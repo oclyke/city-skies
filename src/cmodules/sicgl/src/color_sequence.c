@@ -130,6 +130,43 @@ STATIC mp_obj_t set_map_type(mp_obj_t self_in, mp_obj_t type_obj) {
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(set_map_type_obj, set_map_type);
 
+STATIC mp_obj_t interpolate(mp_obj_t self_in, mp_obj_t phase_in) {
+  ColorSequence_obj_t* self = MP_OBJ_TO_PTR(self_in);
+
+  if (mp_obj_is_float(phase_in)) {
+    // get length of color sequence
+    size_t len;
+    int ret = color_sequence_get(self, &len, NULL, 0);
+    if (0 != ret) {
+      mp_raise_OSError(ret);
+    }
+
+    // allocate sequence on stack
+    color_t colors[len];
+    ret = color_sequence_get(self, NULL, colors, len);
+    if (0 != ret) {
+      mp_raise_OSError(ret);
+    }
+    color_sequence_t sequence = {
+        .colors = colors,
+        .length = len,
+    };
+
+    color_t color;
+    ret = color_sequence_interpolate_single(
+        &sequence, self->map, mp_obj_get_float(phase_in), &color);
+    if (0 != ret) {
+      mp_raise_OSError(ret);
+    }
+    return mp_obj_new_int(color);
+  } else {
+    mp_raise_TypeError(NULL);
+  }
+
+  return mp_const_none;
+}
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(interpolate_obj, interpolate);
+
 // binary / unary operations
 STATIC mp_obj_t unary_op(mp_unary_op_t op, mp_obj_t self_in) {
   ColorSequence_obj_t* self = MP_OBJ_TO_PTR(self_in);
@@ -208,6 +245,7 @@ STATIC const mp_rom_map_elem_t locals_table[] = {
     // methods
     {MP_ROM_QSTR(MP_QSTR_set_colors), MP_ROM_PTR(&set_colors_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_map_type), MP_ROM_PTR(&set_map_type_obj)},
+    {MP_ROM_QSTR(MP_QSTR_interpolate), MP_ROM_PTR(&interpolate_obj)},
 };
 STATIC MP_DEFINE_CONST_DICT(locals_dict, locals_table);
 
