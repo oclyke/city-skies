@@ -12,7 +12,7 @@ class Layer:
     COMPOSITION_MODES = pysicgl.get_composition_types()
 
     DEFAULT_BLENDING_MODE = "normal"
-    DEFAULT_COMPOSITION_MODE = "direct_set"
+    DEFAULT_COMPOSITION_MODE = "alpha_source_over"
 
     def __init__(self, id, path, interface, init_info={}, post_init_hook=None):
         self.id = id
@@ -29,7 +29,7 @@ class Layer:
         # it is possible to set these in the post-init hook
         self._shard = None
         self._frame_generator_obj = None
-        self._ready = False
+        self._active = False
 
         # static info does not change
         self._static_info = {
@@ -107,7 +107,7 @@ class Layer:
         self.reset_canvas()
         if key == "active":
             active = bool(value)
-            self._ready = active
+            self._active = active
             return active
         if key == "palette":
             if value is None:
@@ -126,13 +126,13 @@ class Layer:
     def set_shard(self, shard):
         self._shard = shard
         self._frame_generator_obj = self._shard.frames(self)
-        self._ready = True
+        self._active = True
 
     def run(self):
         """
         Gets the next frame from the frame generator object, only if the layer is ready and active
         """
-        if self._ready:
+        if self._active:
             next(self._frame_generator_obj)
             self.canvas.interface_scale(
                 self._private_variable_manager.variables["brightness"].value
@@ -179,3 +179,7 @@ class Layer:
     @property
     def composition_mode(self):
         return self._integer_composition_mode
+
+    @property
+    def active(self):
+        return self._active

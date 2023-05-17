@@ -5,24 +5,29 @@ from .variables.types import FloatingVariable, ColorSequenceVariable
 
 DEFAULT_PALETTE = pysicgl.ColorSequence(
     map_type="continuous_circular",
-    colors=[
-        0xEFFF0000,
-        0xEFFF5F00,
-        0xEFFFBF00,
-        0xEFDFFF00,
-        0xEF7FFF00,
-        0xEF1FFF00,
-        0xEF00FF3F,
-        0xEF00FF9F,
-        0xEF00FFFF,
-        0xEF009FFF,
-        0xEF003FFF,
-        0xEF1F00FF,
-        0xEF7F00FF,
-        0xEFDF00FF,
-        0xEFFF00BF,
-        0xEFFF005F,
-    ],
+    colors=list(
+        map(
+            lambda color: pysicgl.ALPHA_TRANSPARENCY_HALF | color,
+            [
+                0xFF0000,
+                0xFF5F00,
+                0xFFBF00,
+                0xDFFF00,
+                0x7FFF00,
+                0x1FFF00,
+                0x00FF3F,
+                0x00FF9F,
+                0x00FFFF,
+                0x009FFF,
+                0x003FFF,
+                0x1F00FF,
+                0x7F00FF,
+                0xDF00FF,
+                0xFF00BF,
+                0xFF005F,
+            ],
+        )
+    ),
 )
 
 

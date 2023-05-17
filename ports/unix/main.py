@@ -109,27 +109,31 @@ async def run_pipeline():
     while True:
         profiler.set()
 
-        # zero the canvas to prevent artifacts from previous render loops
+        # zero the visualizer to prevent artifacts from previous render loops
         # from leaking through
-        # (sometimes it would be beneficial to persist the previous state,
-        # but shards can do that by allocating their own memory as needed)
-        canvas.interface_fill(0x000000)
+        visualizer.interface_fill(pysicgl.ALPHA_TRANSPARENCY_FULL | 0x000000)
 
+        # loop over all layers in the active stack manager
         for layer in stack_manager.active:
-            # zero the layer interface for each shard
-            # (if a layer wants to use persistent memory it can do whacky stuff
-            # such as allocating its own local interface and copying out the results)
-            canvas.interface_fill(0xFF000000)
+            # only compute active layers
+            if layer.active:
+                # zero the layer interface for each shard
+                # (if a layer wants to use persistent memory it can do whacky stuff
+                # such as allocating its own local interface and copying out the results)
+                canvas.interface_fill(pysicgl.ALPHA_TRANSPARENCY_FULL | 0x000000)
 
-            # run the layer
-            try:
-                layer.run()
-            except Exception as e:
-                logger.log_exception(e)
-                layer.set_active(False)
+                # run the layer
+                try:
+                    layer.run()
+                except Exception as e:
+                    logger.log_exception(e)
+                    layer.set_active(False)
 
-            canvas.blend(display, visualizer_memory, layer.blending_mode)
-            visualizer.compose(display, canvas_memory, layer.composition_mode)
+                # # blending is broken right now
+                # canvas.blend(display, visualizer_memory, layer.blending_mode)
+
+                # compose the canvas memory onto the visualizer memory
+                visualizer.compose(display, canvas_memory, layer.composition_mode)
 
         # gamma correct the canvas
         pysicgl.gamma_correct(visualizer, corrected)

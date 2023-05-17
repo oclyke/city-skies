@@ -113,6 +113,11 @@ STATIC const mp_map_elem_t pysicgl_globals_table[] = {
     {MP_OBJ_NEW_QSTR(MP_QSTR_Screen), (mp_obj_t)&Screen_type},
     {MP_OBJ_NEW_QSTR(MP_QSTR_Interface), (mp_obj_t)&Interface_type},
     {MP_OBJ_NEW_QSTR(MP_QSTR_ScalarField), (mp_obj_t)&ScalarField_type},
+
+    // constants
+    {MP_ROM_QSTR(MP_QSTR_ALPHA_TRANSPARENCY_FULL), MP_ROM_INT(0x7f000000)},
+    {MP_ROM_QSTR(MP_QSTR_ALPHA_TRANSPARENCY_HALF), MP_ROM_INT(0x40000000)},
+    {MP_ROM_QSTR(MP_QSTR_ALPHA_TRANSPARENCY_NONE), MP_ROM_INT(0x00000000)},
 };
 STATIC MP_DEFINE_CONST_DICT(pysicgl_globals, pysicgl_globals_table);
 
