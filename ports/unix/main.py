@@ -157,8 +157,9 @@ async def run_pipeline():
 
 
 async def serve_api():
-    from api import info_app, shards_app, stacks_app, globals_app, audio_app
+    from api import info_app, shards_app, stacks_app, globals_app, audio_app, stack_manager_app
     from api.stacks import init_stacks_app
+    from api.stack_manager import init_stack_manager_app
 
     # set up server
     PORT = 1337
@@ -169,12 +170,14 @@ async def serve_api():
 
     # a sorta ugly way to pass local data into the stacks app...
     init_stacks_app(stack_manager, canvas, layer_post_init_hook)
+    init_stack_manager_app(stack_manager)
 
     # create application structure
     app = Microdot()
     app.mount(info_app, url_prefix="/info")
     app.mount(shards_app, url_prefix="/shards")
     app.mount(stacks_app, url_prefix="/stacks")
+    app.mount(stack_manager_app, url_prefix="/stack_manager")
     app.mount(globals_app, url_prefix="/globals")
     app.mount(audio_app, url_prefix="/audio")
 

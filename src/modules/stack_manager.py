@@ -8,6 +8,11 @@ class StackManager:
         self._stackA = stack.Stack(f"{path}/A", layer_initializer)
         self._stackB = stack.Stack(f"{path}/B", layer_initializer)
 
+        self._stacks = {
+            "A": self._stackA,
+            "B": self._stackB,
+        }
+
         self._active = None
         self._inactive = None
 
@@ -64,3 +69,11 @@ class StackManager:
     @property
     def inactive(self):
         return self._inactive
+
+    @property
+    def info(self):
+        return self._info.cache
+    
+    @property
+    def stacks(self):
+        return self._stacks
