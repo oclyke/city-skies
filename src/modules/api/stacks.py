@@ -24,13 +24,26 @@ def init_stacks_app(stack_manager, canvas, layer_post_init_hook):
         stack = stack_manager.stacks[stackid]
         layers = list(str(layer.id) for layer in stack)
         edges = list(map(lambda id: layerEdgeById(id), layers))
-        return {
-            "total": len(layers),
-            "edges": edges,
-            "pageInfo": {
-                "endCursor": edges[-1]["cursor"],
+        total = len(edges)
+
+        if total == 0:
+            pageInfo = {
                 "hasNextPage": False,
+                "hasPreviousPage": False,
+                "startCursor": None,
+                "endCursor": None,
             }
+        else:
+            pageInfo = {
+                "hasNextPage": False,
+                "hasPreviousPage": False,
+                "startCursor": edges[0]["cursor"],
+                "endCursor": edges[-1]["cursor"]
+            }
+        return {
+            "total": total,
+            "edges": edges,
+            "pageInfo": pageInfo,
         }
 
     # add a layer to stack
