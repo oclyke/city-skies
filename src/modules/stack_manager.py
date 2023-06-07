@@ -18,6 +18,7 @@ class StackManager:
 
         initial_info = {
             "active": "A",
+            "stacks": list(self._stacks.keys())
         }
         self._info = Cache(
             f"{path}/info",
