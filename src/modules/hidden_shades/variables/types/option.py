@@ -10,8 +10,7 @@ class OptionVariable(VariableDeclaration):
     def validate(self, value):
         return value in self._options
 
-    def get_type(self):
+    def get_data(self):
         return {
-            "type": TYPECODE_OPTION,
             "options": self._options,
         }

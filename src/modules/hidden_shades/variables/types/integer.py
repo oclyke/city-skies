@@ -23,7 +23,6 @@ class IntegerVariable(VariableDeclaration):
 
     def get_data(self):
         return {
-            "type": TYPECODE_INTEGER,
             "default_range": self._default_range,
             "allowed_range": self._allowed_range,
         }
