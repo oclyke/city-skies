@@ -104,14 +104,7 @@ def init_stacks_app(stack_manager, canvas, layer_post_init_hook):
 
     ########################
     # layer public variables
-    @stacks_app.get("/<stackid>/layers/<layerid>/variables/<varname>/value")
-    async def get_layer_variable_value(request, stackid, layerid, varname):
-        stack = stack_manager.stacks[stackid]
-        layer = stack.get_layer_by_id(str(layerid))
-        variable = layer.variable_manager.variables[varname]
-        return variable.serialize(variable.value)
-
-    @stacks_app.get("/<stackid>/layers/<layerid>/variables/<varname>/info")
+    @stacks_app.get("/<stackid>/layers/<layerid>/variables/<varname>")
     async def get_layer_variable_info(request, stackid, layerid, varname):
         stack = stack_manager.stacks[stackid]
         layer = stack.get_layer_by_id(str(layerid))
@@ -128,14 +121,7 @@ def init_stacks_app(stack_manager, canvas, layer_post_init_hook):
 
     #########################
     # layer private variables
-    @stacks_app.get("/<stackid>/layers/<layerid>/private_variables/<varname>/value")
-    async def get_layer_private_variable_value(request, stackid, layerid, varname):
-        stack = stack_manager.stacks[stackid]
-        layer = stack.get_layer_by_id(str(layerid))
-        variable = layer.private_variable_manager.variables[varname]
-        return variable.serialize(variable.value)
-
-    @stacks_app.get("/<stackid>/layers/<layerid>/private_variables/<varname>/info")
+    @stacks_app.get("/<stackid>/layers/<layerid>/private_variables/<varname>")
     async def get_layer_private_variable_info(request, stackid, layerid, varname):
         stack = stack_manager.stacks[stackid]
         layer = stack.get_layer_by_id(str(layerid))
