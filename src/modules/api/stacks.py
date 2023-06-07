@@ -49,7 +49,7 @@ def init_stacks_app(stack_manager, canvas, layer_post_init_hook):
     # add a layer to stack
     # curl -H "Content-Type: text/plain" -X POST http://localhost:1337/<stackid>/layer -d '{"shard_uuid": "noise"}'
     @stacks_app.post("/<stackid>/layer")
-    async def put_stack_layer(request, active):
+    async def put_stack_layer(request, stackid):
         data = json.loads(request.body.decode())
         stack = stack_manager.stacks[stackid]
         id, path, index = stack.get_new_layer_info()
