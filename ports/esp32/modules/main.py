@@ -296,7 +296,7 @@ async def serve_api():
 
     # create application structure
     app = Microdot()
-    app.mount(info_app, url_prefix="/info")
+    app.mount(info_app, url_prefix="")
     app.mount(shards_app, url_prefix="/shards")
     app.mount(stacks_app, url_prefix="/stacks")
     app.mount(globals_app, url_prefix="/globals")
