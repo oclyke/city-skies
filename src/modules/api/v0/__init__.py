@@ -20,5 +20,5 @@ def init_api_app(stack_manager, canvas, layer_post_init_hook):
     api_app.mount(shards_app, url_prefix="/shards")
     api_app.mount(stacks_app, url_prefix="/stacks")
     api_app.mount(stack_manager_app, url_prefix="/stack_manager")
-    api_app.mount(globals_app, url_prefix="/globals")
+    api_app.mount(globals_app, url_prefix="/global")
     api_app.mount(audio_app, url_prefix="/audio")

@@ -1,30 +1,22 @@
 from microdot_asyncio import Microdot
 from hidden_shades import globals
+import json
 
 globals_app = Microdot()
 
-
-@globals_app.get("/variables")
+@globals_app.get("")
 async def get_global_variables(request):
-    return list(
-        variable.name for variable in globals.variable_manager.variables.values()
-    )
+    return {
+        "variables": globals.variable_manager.variable_names,
+    }
 
-
-@globals_app.get("/variables/<varname>/value")
-async def get_global_variable_value(request, varname):
-    variable = globals.variable_manager.variables[varname]
-    return variable.serialize(variable.value)
-
-
-@globals_app.get("/variables/<varname>/info")
-async def get_global_variable_info(request, varname):
-    variable = globals.variable_manager.variables[varname]
+@globals_app.get("/variable/<id>")
+async def get_global_variable_value(request, id):
+    variable = globals.variable_manager.variables[id]
     return variable.get_dict()
 
-
-# curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/variables/<varname> -d 'value'
-@globals_app.put("/variables/<varname>")
-async def put_global_variable(request, varname):
-    variable = globals.variable_manager.variables[varname]
-    variable.value = variable.deserialize(request.body.decode())
+@globals_app.put("/variable/<id>")
+async def put_global_variable(request, id):
+    data = json.loads(request.body.decode())
+    variable = globals.variable_manager.variables[id]
+    variable.value = variable.deserialize(data["value"])
