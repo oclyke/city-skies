@@ -24,8 +24,8 @@ async def put_audio_source(request):
 async def put_audio_source(request, id):
     source = hidden_shades.audio_manager.sources[id]
     return {
-        "privateVariables": source.private_variable_manager.variable_names,
-        "variables": source.variable_manager.variable_names,
+        "privateVariables": source.private_variable_manager.info,
+        "variables": source.variable_manager.info,
     }
 
 @audio_app.get("/source/<source_id>/variables/<var_id>")

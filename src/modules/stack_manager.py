@@ -5,8 +5,8 @@ class StackManager:
     def __init__(self, path, layer_initializer):
         from cache import Cache
 
-        self._stackA = stack.Stack(f"{path}/A", layer_initializer)
-        self._stackB = stack.Stack(f"{path}/B", layer_initializer)
+        self._stackA = stack.Stack(f"{path}/", "A", layer_initializer)
+        self._stackB = stack.Stack(f"{path}/", "B", layer_initializer)
 
         self._stacks = {
             "A": self._stackA,

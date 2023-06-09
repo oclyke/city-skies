@@ -7,7 +7,7 @@ globals_app = Microdot()
 @globals_app.get("")
 async def get_global_variables(request):
     return {
-        "variables": globals.variable_manager.variable_names,
+        "variables": globals.variable_manager.info,
     }
 
 @globals_app.get("/variable/<id>")

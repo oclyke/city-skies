@@ -17,8 +17,9 @@ class Stack:
             except:
                 yield id
 
-    def __init__(self, path, layer_initializer):
-        self._path = path
+    def __init__(self, path_prefix, id, layer_initializer):
+        self._id = id
+        self._path = f"{path_prefix}{id}"
         self._layers_path = f"{self._path}/layers"
         self._layer_id_generator = Stack.layer_id_generator(self)
 
@@ -100,3 +101,7 @@ class Stack:
 
         # remove storage
         layer.destroy_storage()
+
+    @property
+    def id(self):
+        return self._id
