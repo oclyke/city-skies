@@ -157,9 +157,14 @@ async def run_pipeline():
 
 
 async def serve_api():
-    from api import info_app, shards_app, stacks_app, globals_app, audio_app, stack_manager_app
-    from api.stacks import init_stacks_app
-    from api.stack_manager import init_stack_manager_app
+    from api import api_app, init_api_app, api_version
+
+    # initialize the api app
+    init_api_app(
+        stack_manager,
+        canvas,
+        layer_post_init_hook,
+    )
 
     # set up server
     PORT = 1337
@@ -168,18 +173,22 @@ async def serve_api():
     Request.max_content_length = 128 * 1024  # 128 KB
     Response.default_content_type = "application/json"
 
-    # a sorta ugly way to pass local data into the stacks app...
-    init_stacks_app(stack_manager, canvas, layer_post_init_hook)
-    init_stack_manager_app(stack_manager)
-
     # create application structure
     app = Microdot()
-    app.mount(info_app, url_prefix="")
-    app.mount(shards_app, url_prefix="/shards")
-    app.mount(stacks_app, url_prefix="/stacks")
-    app.mount(stack_manager_app, url_prefix="/stack_manager")
-    app.mount(globals_app, url_prefix="/globals")
-    app.mount(audio_app, url_prefix="/audio")
+    app.mount(api_app, url_prefix="/api/v0")
+
+    @app.get("/index")
+    async def get_index(request):
+        return {
+            "hw_version": hardware.hw_version.to_string(),
+            "api_version": api_version.to_string(),
+            "api": {
+                "latest": "v0",
+                "versions": {
+                    "v0": "/api/v0",
+                },
+            }
+        }
 
     # serve the api
     asyncio.create_task(app.start_server(debug=True, port=PORT))
