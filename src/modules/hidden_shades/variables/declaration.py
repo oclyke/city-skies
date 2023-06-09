@@ -98,7 +98,3 @@ class VariableDeclaration:
             raise ValueError
         self._value = val
         self.notify()
-
-    @property
-    def info(self):
-        return self.get_dict()

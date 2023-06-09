@@ -55,3 +55,7 @@ class VariableManager(VariableResponder):
     @property
     def variables(self):
         return self._variables
+
+    @property
+    def variable_names(self):
+        return list(self._variables.keys())
