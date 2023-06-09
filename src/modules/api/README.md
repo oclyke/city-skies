@@ -11,6 +11,7 @@ the following paths are available on any city-skies instance
 path | json? | description
 ---|---|---
 /index | ✅ | provides api support information for this instance
+/alive |  | allows for checking the connection to the instance
 
 ## api versioning
 

@@ -177,6 +177,10 @@ async def serve_api():
     app = Microdot()
     app.mount(api_app, url_prefix="/api/v0")
 
+    @app.get("/alive")
+    async def get_alive(request):
+        return None
+
     @app.get("/index")
     async def get_index(request):
         return {
