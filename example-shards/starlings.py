@@ -7,8 +7,10 @@ from hidden_shades.variables.types import FloatingVariable
 from pysicgl_utils import Display
 import math
 
+
 def gaussian(x):
-    return 10 * x * math.sin(2*x/math.pi) / 3.0
+    return 10 * x * math.sin(2 * x / math.pi) / 3.0
+
 
 class FloatVec2:
     def __init__(self, name, initial_values):
@@ -116,7 +118,9 @@ def frames(layer):
 
         # get variables
         offset = layer.variable_manager.variables["offset"].value
-        gaussian_amplitude = layer.variable_manager.variables["gaussian_amplitude"].value
+        gaussian_amplitude = layer.variable_manager.variables[
+            "gaussian_amplitude"
+        ].value
         noise_amplitude = layer.variable_manager.variables["noise_amplitude"].value
 
         # the timewarp uses its internal speed, as well as the speed
@@ -131,10 +135,9 @@ def frames(layer):
         for pixel in display.pixel_info():
             (idx, (u, v), (x, y)) = pixel
 
-
             gx = gaussian(x / maxx - 0.5)
             gy = gaussian(y / maxy - 0.5)
-            
+
             amount = -(gx + gy) * gaussian_amplitude
 
             field[idx] = field[idx] * noise_amplitude + amount
