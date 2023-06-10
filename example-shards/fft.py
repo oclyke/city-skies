@@ -26,7 +26,7 @@ def frames(layer):
         bins.align(strengths)
 
         # clear the background
-        layer.canvas.interface_fill(0x00000000)
+        layer.canvas.interface_fill(0xaa000000)
 
         # draw vertical bars representing the fft strength at each x location
         for idx in range(numx):
