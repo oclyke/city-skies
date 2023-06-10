@@ -5,6 +5,23 @@ from hidden_shades.layer import Layer
 
 output_app = Microdot()
 
+def stack_response(stack):
+    layers = list(str(layer.id) for layer in stack)
+    return {
+        "id": stack.id,
+        "layers": {
+            "total": len(layers),
+            "ids": layers,
+        }
+    }
+
+def layer_response(layer):
+    return {
+        "variables": layer.variable_manager.info,
+        "privateVariables":  layer.private_variable_manager.info,
+        "config": layer.info,
+    }
+
 def init_output_app(stack_manager, canvas, layer_post_init_hook):
     @output_app.get("")
     async def get_output_index(request):
@@ -25,14 +42,7 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         get information about the stack
         """
         stack = stack_manager.stacks[stack_id]
-        layers = list(str(layer.id) for layer in stack)
-        return {
-            "id": stack.id,
-            "layers": {
-                "total": len(layers),
-                "ids": layers,
-            }
-        }
+        return stack_response(stack)
 
     @output_app.put("/stack/<stack_id>")
     def activate_stack(request, stack_id):
@@ -40,17 +50,14 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         activate the given stack id
         """
         stack_manager.activate(stack_id)
+        stack = stack_manager.stacks[stack_id]
+        return stack_response(stack)
 
     @output_app.get("/stack/<stack_id>/layer/<layer_id>")
     async def get_layer_info(request, stack_id, layer_id):
         stack = stack_manager.stacks[stack_id]
         layer = stack.get_layer_by_id(str(layer_id))
-        info = layer.info
-        return {
-            "variables": layer.variable_manager.info,
-            "privateVariables":  layer.private_variable_manager.info,
-            "config": layer.info,
-        }
+        return layer_response(layer)
 
     @output_app.post("/stack/<stack_id>/layer")
     async def put_stack_layer(request, stack_id):
@@ -64,6 +71,7 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
             id, path, canvas, init_info=data, post_init_hook=layer_post_init_hook
         )
         stack.add_layer(layer)
+        return layer_response(layer)
 
     @output_app.delete("/stack/<stack_id>/layer/<layer_id>")
     async def delete_stack_layer(request, stack_id, layer_id):
@@ -72,6 +80,9 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         """
         stack = stack_manager.stacks[stack_id]
         stack.remove_layer_by_id(str(layer_id))
+        return {
+            "status": "ok",
+        }
 
     @output_app.put("/stack/<stack_id>/layer/<layer_id>/config")
     async def put_layer_config(request, stack_id, layer_id):
@@ -82,6 +93,7 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         stack = stack_manager.stacks[stack_id]
         layer = stack.get_layer_by_id(str(layer_id))
         layer.merge_info(data)
+        return layer_response(layer)
 
     @output_app.get("/stack/<stack_id>/layer/<layer_id>/variable/<variable_id>")
     async def get_layer_variable_info(request, stack_id, layer_id, variable_id):
@@ -103,15 +115,16 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         layer = stack.get_layer_by_id(str(layer_id))
         variable = layer.variable_manager.variables[variable_id]
         variable.value = variable.deserialize(data["value"])
+        return variable.get_dict()
 
-    @output_app.get("/stack/<stack_id>/layer/<layer_id>/private_variable/<variable_id>")
+    @output_app.get("/stack/<stack_id>/layer/<layer_id>/standard_variable/<variable_id>")
     async def get_layer_private_variable_info(request, stack_id, layer_id, variable_id):
         stack = stack_manager.stacks[stack_id]
         layer = stack.get_layer_by_id(str(layer_id))
         variable = layer.private_variable_manager.variables[variable_id]
         return variable.get_dict()
 
-    @output_app.put("/stack/<stack_id>/layer/<layer_id>/private_variable/<variable_id>")
+    @output_app.put("/stack/<stack_id>/layer/<layer_id>/standard_variable/<variable_id>")
     async def put_layer_private_variable(request, stack_id, layer_id, variable_id):
         """
         set private variable value
@@ -121,3 +134,4 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         layer = stack.get_layer_by_id(str(layer_id))
         variable = layer.private_variable_manager.variables[variable_id]
         variable.value = variable.deserialize(data["value"])
+        return variable.get_dict()

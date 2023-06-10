@@ -20,3 +20,4 @@ async def put_global_variable(request, id):
     data = json.loads(request.body.decode())
     variable = globals.variable_manager.variables[id]
     variable.value = variable.deserialize(data["value"])
+    return variable.get_dict()
