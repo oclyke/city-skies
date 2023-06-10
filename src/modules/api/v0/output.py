@@ -44,7 +44,7 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         stack = stack_manager.stacks[stack_id]
         return stack_response(stack)
 
-    @output_app.put("/stack/<stack_id>")
+    @output_app.put("/stack/<stack_id>/activate")
     def activate_stack(request, stack_id):
         """
         activate the given stack id

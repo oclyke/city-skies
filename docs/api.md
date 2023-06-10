@@ -45,7 +45,7 @@ path | method | json? | payload | description
 /global/variable/\<variable id> | PUT | ✅ | { value: "value" } | sets the global variable "variable id" to "value" if possible
 /output | GET | ✅ |  | get info about the output
 /output/stack/\<stack id> | GET | ✅ |  | get info about 
-/output/stack/\<stack id> | PUT | ✅ |  | activate stack "stack id"
+/output/stack/\<stack id>/activate | PUT | ✅ |  | activate stack "stack id"
 /output/
 /output/stack/\<stack id>/layer | PUT | ✅ | { shard_uuid: "shard_uuid" } | add a layer to the stack "stack id" using the settings in the payload
 /output/stack/\<stack id>/layer/\<layer id> | DELETE | ✅ |  | remove layer "layer id" from the stack "stack id"
