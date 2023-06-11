@@ -18,7 +18,7 @@ def stack_response(stack):
 def layer_response(layer):
     return {
         "variables": layer.variable_manager.info,
-        "privateVariables":  layer.private_variable_manager.info,
+        "standardVariables":  layer.private_variable_manager.info,
         "config": layer.info,
     }
 
