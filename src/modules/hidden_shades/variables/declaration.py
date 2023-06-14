@@ -69,7 +69,7 @@ class VariableDeclaration:
         serialized_value = self.serialize(self._value)
         return {
             "typecode": self._typecode,
-            "name": self._name,
+            "id": self._name,
             "description": self._description,
             "default": serialized_default,
             "value": serialized_value,
