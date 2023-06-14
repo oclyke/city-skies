@@ -191,7 +191,7 @@ async def serve_api():
                 "versions": {
                     "v0": "/api/v0",
                 },
-            }
+            },
         }
 
     # serve the api

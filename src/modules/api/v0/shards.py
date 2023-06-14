@@ -4,6 +4,7 @@ import config
 
 shards_app = Microdot()
 
+
 def shardEdgeByName(name):
     return {
         "node": {
@@ -11,6 +12,7 @@ def shardEdgeByName(name):
         },
         "cursor": f"{name}",
     }
+
 
 @shards_app.get("")
 async def get_shards(request):
@@ -24,7 +26,7 @@ async def get_shards(request):
             "pageInfo": {
                 "endCursor": None,
                 "hasNextPage": False,
-            }
+            },
         }
 
     # compute the edges
@@ -37,8 +39,9 @@ async def get_shards(request):
         "pageInfo": {
             "endCursor": edges[-1]["cursor"],
             "hasNextPage": False,
-        }
+        },
     }
+
 
 # curl -H "Content-Type: text/plain" -X PUT http://localhost:1337/shards/<uuid> -d $'def frames(l):\n\twhile True:\n\t\tyield None\n\t\tprint("hello world")\n\n'
 @shards_app.put("/<uuid>")

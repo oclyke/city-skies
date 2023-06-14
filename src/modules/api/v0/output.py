@@ -5,6 +5,7 @@ from hidden_shades.layer import Layer
 
 output_app = Microdot()
 
+
 def stack_response(stack):
     layers = list(str(layer.id) for layer in stack)
     return {
@@ -12,15 +13,17 @@ def stack_response(stack):
         "layers": {
             "total": len(layers),
             "ids": layers,
-        }
+        },
     }
+
 
 def layer_response(layer):
     return {
         "variables": layer.variable_manager.info,
-        "standardVariables":  layer.private_variable_manager.info,
+        "standardVariables": layer.private_variable_manager.info,
         "config": layer.info,
     }
+
 
 def init_output_app(stack_manager, canvas, layer_post_init_hook):
     @output_app.get("")
@@ -117,14 +120,18 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         variable.value = variable.deserialize(data["value"])
         return variable.get_dict()
 
-    @output_app.get("/stack/<stack_id>/layer/<layer_id>/standard_variable/<variable_id>")
+    @output_app.get(
+        "/stack/<stack_id>/layer/<layer_id>/standard_variable/<variable_id>"
+    )
     async def get_layer_private_variable_info(request, stack_id, layer_id, variable_id):
         stack = stack_manager.stacks[stack_id]
         layer = stack.get_layer_by_id(str(layer_id))
         variable = layer.private_variable_manager.variables[variable_id]
         return variable.get_dict()
 
-    @output_app.put("/stack/<stack_id>/layer/<layer_id>/standard_variable/<variable_id>")
+    @output_app.put(
+        "/stack/<stack_id>/layer/<layer_id>/standard_variable/<variable_id>"
+    )
     async def put_layer_private_variable(request, stack_id, layer_id, variable_id):
         """
         set private variable value

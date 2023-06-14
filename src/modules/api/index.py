@@ -18,5 +18,5 @@ async def get_index(request):
             "versions": {
                 "v0": "/api/v0",
             },
-        }
+        },
     }

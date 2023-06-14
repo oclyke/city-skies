@@ -16,10 +16,7 @@ class StackManager:
         self._active = None
         self._inactive = None
 
-        initial_info = {
-            "active": "A",
-            "stacks": list(self._stacks.keys())
-        }
+        initial_info = {"active": "A", "stacks": list(self._stacks.keys())}
         self._info = Cache(
             f"{path}/info",
             initial_info,
@@ -74,7 +71,7 @@ class StackManager:
     @property
     def info(self):
         return self._info.cache
-    
+
     @property
     def stacks(self):
         return self._stacks

@@ -10,8 +10,8 @@ api_version = SemanticVersion.from_semver("0.0.0")
 
 api_app = Microdot()
 
+
 def init_api_app(stack_manager, canvas, layer_post_init_hook):
-        
     # a sorta ugly way to pass local data into the stacks app...
     init_output_app(stack_manager, canvas, layer_post_init_hook)
 
