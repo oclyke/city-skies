@@ -7,10 +7,10 @@ def frames(layer):
     # declare variables
     # these are all of the variable types that are allowed
     layer.variable_manager.declare_variable(
-        BooleanVariable("bool", True)
+        BooleanVariable("bool", False)
     )
     layer.variable_manager.declare_variable(
-        BooleanVariable("coolBool", False, ("go to school", "do drugs"))
+        BooleanVariable("coolBool", True, ("go to school", "do drugs"))
     )
     layer.variable_manager.declare_variable(
         IntegerVariable("int", 1337, [69, 420])
