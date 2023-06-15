@@ -12,7 +12,7 @@ class IntegerVariable(VariableDeclaration):
             if allowed_range is not None
             else None
         )
-        super().__init__(int, name, default, **kwargs)
+        super().__init__(TYPECODE_INTEGER, int, name, default, **kwargs)
 
     def validate(self, value):
         v = self._type(value)
@@ -21,11 +21,8 @@ class IntegerVariable(VariableDeclaration):
                 raise ValueError
         return True
 
-    def get_dict(self):
-        base = super().get_dict()
-        additional = {
-            "type": TYPECODE_INTEGER,
+    def get_data(self):
+        return {
             "default_range": self._default_range,
             "allowed_range": self._allowed_range,
         }
-        return dict(**base, **additional)

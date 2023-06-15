@@ -55,3 +55,11 @@ class VariableManager(VariableResponder):
     @property
     def variables(self):
         return self._variables
+
+    @property
+    def info(self):
+        ids = list(self._variables.keys())
+        return {
+            "total": len(ids),
+            "ids": ids,
+        }

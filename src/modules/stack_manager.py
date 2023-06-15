@@ -5,15 +5,18 @@ class StackManager:
     def __init__(self, path, layer_initializer):
         from cache import Cache
 
-        self._stackA = stack.Stack(f"{path}/A", layer_initializer)
-        self._stackB = stack.Stack(f"{path}/B", layer_initializer)
+        self._stackA = stack.Stack(f"{path}/", "A", layer_initializer)
+        self._stackB = stack.Stack(f"{path}/", "B", layer_initializer)
+
+        self._stacks = {
+            "A": self._stackA,
+            "B": self._stackB,
+        }
 
         self._active = None
         self._inactive = None
 
-        initial_info = {
-            "active": "A",
-        }
+        initial_info = {"active": "A", "stacks": list(self._stacks.keys())}
         self._info = Cache(
             f"{path}/info",
             initial_info,
@@ -64,3 +67,11 @@ class StackManager:
     @property
     def inactive(self):
         return self._inactive
+
+    @property
+    def info(self):
+        return self._info.cache
+
+    @property
+    def stacks(self):
+        return self._stacks

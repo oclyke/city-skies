@@ -157,6 +157,9 @@ class StackManager:
     def switch(self):
         self._node.put(f"/switch", None)
 
+    def info(self):
+        self._node.get(f"/info")
+
 class Stack:
     def __init__(self, base_node, stack_id):
         self._node = RestNode.fromBase(base_node, f"{stack_id}")

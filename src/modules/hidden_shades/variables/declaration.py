@@ -1,7 +1,10 @@
 class VariableDeclaration:
-    def __init__(self, type, name, default, description=None, responders=None):
+    def __init__(
+        self, typecode, type, name, default, description=None, responders=None
+    ):
         self._name = name
         self._type = type
+        self._typecode = int(typecode)
         self._description = description
 
         # validate the default value
@@ -57,15 +60,22 @@ class VariableDeclaration:
         """
         return str(value)
 
+    def get_data(self):
+        """
+        returns additional data for derived classes
+        """
+        return {}
+
     def get_dict(self):
         serialized_default = self.serialize(self._default)
         serialized_value = self.serialize(self._value)
         return {
-            "type": None,
-            "name": self._name,
+            "typecode": self._typecode,
+            "id": self._name,
             "description": self._description,
             "default": serialized_default,
             "value": serialized_value,
+            "data": self.get_data(),
         }
 
     @property
@@ -90,7 +100,3 @@ class VariableDeclaration:
             raise ValueError
         self._value = val
         self.notify()
-
-    @property
-    def info(self):
-        return self.get_dict()

@@ -6,7 +6,9 @@ import json
 
 class ColorSequenceVariable(VariableDeclaration):
     def __init__(self, name, default, **kwargs):
-        super().__init__(pysicgl.ColorSequence, name, default, **kwargs)
+        super().__init__(
+            TYPECODE_COLOR_SEQUENCE, pysicgl.ColorSequence, name, default, **kwargs
+        )
 
     def serialize(self, value):
         return json.dumps({"colors": value.colors, "map_type": value.map_type})
@@ -14,10 +16,3 @@ class ColorSequenceVariable(VariableDeclaration):
     def deserialize(self, ser_value):
         data = json.loads(ser_value)
         return pysicgl.ColorSequence(colors=data["colors"], map_type=data["map_type"])
-
-    def get_dict(self):
-        base = super().get_dict()
-        additional = {
-            "type": TYPECODE_COLOR_SEQUENCE,
-        }
-        return dict(**base, **additional)
