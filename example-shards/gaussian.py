@@ -18,24 +18,12 @@ def frames(layer):
     (numx, numy) = display.extent
     (maxx, maxy) = display.shape
 
-    layer.variable_manager.declare_variable(
-        FloatingVariable("offset", 0.0)
-    )
-    layer.variable_manager.declare_variable(
-        FloatingVariable("scaleX", 1.0)
-    )
-    layer.variable_manager.declare_variable(
-        FloatingVariable("scaleY", 1.0)
-    )
-    layer.variable_manager.declare_variable(
-        FloatingVariable("centerX", 0.0)
-    )
-    layer.variable_manager.declare_variable(
-        FloatingVariable("centerY", 0.0)
-    )
-    layer.variable_manager.declare_variable(
-        FloatingVariable("amplitude", 1.0)
-    )
+    layer.variable_manager.declare_variable(FloatingVariable("offset", 0.0))
+    layer.variable_manager.declare_variable(FloatingVariable("scaleX", 1.0))
+    layer.variable_manager.declare_variable(FloatingVariable("scaleY", 1.0))
+    layer.variable_manager.declare_variable(FloatingVariable("centerX", 0.0))
+    layer.variable_manager.declare_variable(FloatingVariable("centerY", 0.0))
+    layer.variable_manager.declare_variable(FloatingVariable("amplitude", 1.0))
     layer.variable_manager.initialize_variables()
 
     # prepare a few static variables
