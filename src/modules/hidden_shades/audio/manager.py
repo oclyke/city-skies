@@ -25,6 +25,9 @@ class AudioManager:
             None,
         )
 
+        self.add_source(self._null_source)
+        self.select_source("NULL")
+
     def _handle_info_change(self, key, value):
         if key == "selected":
             if value == None:
