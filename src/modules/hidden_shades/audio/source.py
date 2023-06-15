@@ -104,7 +104,7 @@ class ManagedAudioSource(AudioSource):
             FloatingVariable(
                 "fft_reshape_factor",
                 1.5,
-                default_range=(1.5, 2.0),
+                default_range=(1.0, 2.0),
                 allowed_range=(0.5, 3.0),
                 responders=[self._private_variable_responder],
             )

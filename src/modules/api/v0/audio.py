@@ -7,7 +7,7 @@ audio_app = Microdot()
 
 def source_response(source):
     return {
-        "privateVariables": source.private_variable_manager.info,
+        "standardVariables": source.private_variable_manager.info,
         "variables": source.variable_manager.info,
     }
 
@@ -45,7 +45,7 @@ async def get_audio_source_variable(request, source_id, var_id):
 
 @audio_app.put("/source/<source_id>/variables/<var_id>")
 async def put_audio_source_variable(request, source_id, var_id):
-    data = json.parse(request.body.decode())
+    data = json.loads(request.body.decode())
     source = hidden_shades.audio_manager.sources[source_id]
     variable = source.variable_manager.variables[var_id]
     variable.value = variable.deserialize(data["value"])
@@ -61,7 +61,7 @@ async def get_audio_source_variable(request, source_id, var_id):
 
 @audio_app.put("/source/<source_id>/standard_variable/<var_id>")
 async def put_audio_source_variable(request, source_id, var_id):
-    data = json.parse(request.body.decode())
+    data = json.loads(request.body.decode())
     source = hidden_shades.audio_manager.sources[source_id]
     variable = source.private_variable_manager.variables[var_id]
     variable.value = variable.deserialize(data["value"])
