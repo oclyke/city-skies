@@ -66,6 +66,7 @@ def layer_post_init_hook(layer):
     uuid = layer.info.get("shard_uuid")
     shard = load_shard(uuid)
     layer.set_shard(shard)
+    layer.initialize_frame_generator()
 
 
 # a function called for each layer in the stack upon creation
