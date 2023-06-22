@@ -23,7 +23,7 @@ ways to contribute:
 * **write example shards**: use the hidden_shades api to write generalized generators that make cool patterns
 * **save preset examples**: save preset combinations of layers (with layer settings) [right now I need help making a tool to do this, and documenting the format. it is basically an array of layer settings with the layer configuration and variable values]
 * **port this all to CPython**: this should not be too hard, I just happened to write this all with MicroPython for another use case. ultimately this can be a CPython program with minimal dependencies (web server, asyncio, pysicgl, and hidden_shades module)
-* **update the python CLI interface tool**: it is now out of date with the latest changes to the API. you can check the [city-skies-app](https://github.com/oclyke-dev/city-skies-app) for an implementation of the API
+* **update the python CLI interface tool**: it is now out of date with the latest changes to the API. you can check the [city-skies-app](https://github.com/oclyke/city-skies-app) for an implementation of the API
 
 # license
 
