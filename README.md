@@ -27,3 +27,4 @@ ways to contribute:
 
 # license
 
+see [LICENSE.md](./LICENSE.md)
