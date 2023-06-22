@@ -43,6 +43,6 @@ jobs:
     runs-on: [self-hosted]
     needs: [build]
     steps:
-      - name: clean esp32 build
+      - name: clean unix build
         run: |
           . ./ports/unix/build.sh clean
