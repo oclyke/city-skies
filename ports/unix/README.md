@@ -24,7 +24,7 @@ the steps are basically:
     * ```source ./comon.sh```
 * run the city-skies unix port
     * ```$EXEC main.py```
-* use the [city-skies-visualizer](https://github.com/oclyke-dev/city-skies-visualizer) to view the output
+* use the [city-skies-visualizer](https://github.com/oclyke/city-skies-visualizer) to view the output
 * use the [city-skies-app]()
 
 # filesystem
