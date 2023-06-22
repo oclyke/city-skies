@@ -26,6 +26,41 @@ def layer_response(layer):
 
 
 def init_output_app(stack_manager, canvas, layer_post_init_hook):
+    def add_layer_to_stack(stack, layer_data, canvas, layer_post_init_hook):
+        """
+        add a layer to the stack
+        """
+        layer_config = layer_data["config"]
+        id, path, index = stack.get_new_layer_info()
+        layer = Layer(
+            id,
+            path,
+            canvas,
+            init_info=layer_config,
+            post_init_hook=layer_post_init_hook,
+        )
+        stack.add_layer(layer)
+
+        # initialize variable values
+        try:
+            variables = layer_data["variables"]
+            for variable_name, variable_value in variables.items():
+                variable = layer.variable_manager.variables[variable_name]
+                variable.value = variable.deserialize(variable_value)
+        except KeyError:
+            pass
+
+        # initialize standard variable values
+        try:
+            standard_variables = layer_data["standardVariables"]
+            for variable_name, variable_value in standard_variables.items():
+                variable = layer.private_variable_manager.variables[variable_name]
+                variable.value = variable.deserialize(variable_value)
+        except KeyError:
+            pass
+
+        return layer
+
     @output_app.get("")
     async def get_output_index(request):
         """
@@ -56,6 +91,27 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         stack = stack_manager.stacks[stack_id]
         return stack_response(stack)
 
+    @output_app.delete("/stack/<stack_id>/layers")
+    async def delete_stack_layers(request, stack_id):
+        """
+        remove all layers from the stack
+        """
+        stack = stack_manager.stacks[stack_id]
+        stack.clear_layers()
+        return stack_response(stack)
+
+    @output_app.post("/stack/<stack_id>/layers")
+    async def add_bulk_stack_layers(request, stack_id):
+        """
+        add multiple layers to the stack
+        """
+        data = json.loads(request.body.decode())
+        stack = stack_manager.stacks[stack_id]
+        for layer_data in data:
+            add_layer_to_stack(stack, layer_data, canvas, layer_post_init_hook)
+
+        return stack_response(stack)
+
     @output_app.get("/stack/<stack_id>/layer/<layer_id>")
     async def get_layer_info(request, stack_id, layer_id):
         stack = stack_manager.stacks[stack_id]
@@ -67,13 +123,9 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         """
         add a layer to the stack
         """
-        data = json.loads(request.body.decode())
+        layer_data = json.loads(request.body.decode())
         stack = stack_manager.stacks[stack_id]
-        id, path, index = stack.get_new_layer_info()
-        layer = Layer(
-            id, path, canvas, init_info=data, post_init_hook=layer_post_init_hook
-        )
-        stack.add_layer(layer)
+        layer = add_layer_to_stack(stack, layer_data, canvas, layer_post_init_hook)
         return layer_response(layer)
 
     @output_app.delete("/stack/<stack_id>/layer/<layer_id>")

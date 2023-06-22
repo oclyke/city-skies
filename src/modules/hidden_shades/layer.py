@@ -123,10 +123,12 @@ class Layer:
         """
         rmdirr(self._root_path)
 
+    def initialize_frame_generator(self):
+        self._frame_generator_obj = self._shard.frames(self)
+        next(self._frame_generator_obj)
+
     def set_shard(self, shard):
         self._shard = shard
-        self._frame_generator_obj = self._shard.frames(self)
-        self._active = True
 
     def run(self):
         """
