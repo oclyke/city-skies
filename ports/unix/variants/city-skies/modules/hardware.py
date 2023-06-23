@@ -14,7 +14,9 @@ hw_version = SemanticVersion.from_semver("0.0.0-unix-dev")
 
 # diplay hardware
 pixlpro_display = pysicgl.Screen((20, 12))
-pixlpro_driver = snake.SnakeDriver(pixlpro_display, PixlProArtnetDriver(pixlpro_display, "192.168.4.161"))
+pixlpro_driver = snake.SnakeDriver(
+    pixlpro_display, PixlProArtnetDriver(pixlpro_display, "192.168.4.161")
+)
 
 drivers = [
     UDPDriver("0.0.0.0", (6969, 6420)),

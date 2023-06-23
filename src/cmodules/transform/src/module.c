@@ -1,6 +1,6 @@
-#include "py/runtime.h"
-
 #include <errno.h>
+
+#include "py/runtime.h"
 
 STATIC mp_obj_t stride_copy(size_t n_args, const mp_obj_t* args) {
   enum {

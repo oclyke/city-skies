@@ -1,8 +1,8 @@
-#include "py/runtime.h"
-#include "sicgl/color.h"
-
 #include <errno.h>
 #include <string.h>
+
+#include "py/runtime.h"
+#include "sicgl/color.h"
 
 STATIC mp_obj_t map_simple(size_t n_args, const mp_obj_t* args) {
   enum {
