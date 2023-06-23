@@ -1,19 +1,25 @@
 from semver import SemanticVersion
 from udpdriver import UDPDriver
 from artnetdriver import ArtnetDriver
+from pixlprodriver import PixlProArtnetDriver
 from audio_stream_udp import UDPAudioSource
 from audio_stream_udp_mic import UDPAudioSourceMic
 from audio_mock import MockAudioSource
 import config
 import pysicgl
+import snake
 
 # hardware version
 hw_version = SemanticVersion.from_semver("0.0.0-unix-dev")
 
 # diplay hardware
+pixlpro_display = pysicgl.Screen((20, 12))
+pixlpro_driver = snake.SnakeDriver(pixlpro_display, PixlProArtnetDriver(pixlpro_display, "192.168.4.161"))
+
 drivers = [
     UDPDriver("0.0.0.0", (6969, 6420)),
     ArtnetDriver("192.168.4.177"),
+    pixlpro_driver,
 ]
 
 # audio sources

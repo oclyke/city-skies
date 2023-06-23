@@ -77,7 +77,7 @@ class ArtDMXPacket:
 
     @universe.setter
     def universe(self, val):
-        self._universe = int(val) & 0x7FFFF
+        self._universe = int(val) & 0x7FFF
         self._buffer[14:16] = self._universe.to_bytes(2, "little")
 
     @property
