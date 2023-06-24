@@ -146,10 +146,6 @@ def frames(layer):
             timewarp.set_frequency(variable.value)
         if name == "scale":
             compute_scalar_field()
-        if name == "centerX":
-            compute_scalar_field()
-        if name == "centerY":
-            compute_scalar_field()
 
     # a responder which injects the handle_variable_changes()
     # callback into the declared variables (as needed)
@@ -160,12 +156,6 @@ def frames(layer):
         FloatingVariable(
             "speed", 0.001, default_range=(0, 0.05), responders=[responder]
         )
-    )
-    layer.variable_manager.declare_variable(
-        FloatingVariable("centerX", center.x, responders=[responder])
-    )
-    layer.variable_manager.declare_variable(
-        FloatingVariable("centerY", center.y, responders=[responder])
     )
     layer.variable_manager.declare_variable(
         FloatingVariable(

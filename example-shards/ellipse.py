@@ -124,7 +124,7 @@ def frames(layer):
     # declare variables
     layer.variable_manager.declare_variable(
         FloatingVariable(
-            "speed", 0.001, default_range=(0, 0.05), responders=[responder]
+            "speed", 0.001, default_range=(0, 0.005), responders=[responder]
         )
     )
     layer.variable_manager.declare_variable(
@@ -140,10 +140,14 @@ def frames(layer):
         )
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable("centerX", center.x, responders=[responder])
+        FloatingVariable(
+            "centerX", center.x, default_range=(-0.5, 0.5), responders=[responder]
+        )
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable("centerY", center.y, responders=[responder])
+        FloatingVariable(
+            "centerY", center.y, default_range=(-0.5, 0.5), responders=[responder]
+        )
     )
     layer.variable_manager.initialize_variables()
 

@@ -43,8 +43,7 @@ def frames(layer):
     # the values here are used as the default values for declared variables
     # but will be reset by the stored value when the
     # layer_manager.initialize_variables() method is called.
-    scale = FloatVec2("scale", (1.0, 1.0))
-    center = FloatVec2("center", (0.0, 0.0))
+    scale = FloatVec2("scale", (0.2, 0.2))
     offset = 0.0
 
     # a callback function to handle changes to declared variables
@@ -57,10 +56,6 @@ def frames(layer):
             scale.x = value
         if name == "scaleY":
             scale.y = value
-        if name == "centerX":
-            center.x = value
-        if name == "centerY":
-            center.y = value
 
     # a responder which injects the handle_variable_changes()
     # callback into the declared variables (as needed)
@@ -72,22 +67,22 @@ def frames(layer):
     # and ColorSequence)
     # note: only the "speed" variable is assinged the responder
     layer.variable_manager.declare_variable(
-        FloatingVariable("speed", 0.001, responders=[responder])
+        FloatingVariable(
+            "speed", 0.001, default_range=(0.0, 0.005), responders=[responder]
+        )
     )
     layer.variable_manager.declare_variable(
         FloatingVariable("offset", offset, responders=[responder])
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable("scaleX", scale.x, responders=[responder])
+        FloatingVariable(
+            "scaleX", scale.x, default_range=(0.0, 0.5), responders=[responder]
+        )
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable("scaleY", scale.y, responders=[responder])
-    )
-    layer.variable_manager.declare_variable(
-        FloatingVariable("centerX", center.x, responders=[responder])
-    )
-    layer.variable_manager.declare_variable(
-        FloatingVariable("centerY", center.y, responders=[responder])
+        FloatingVariable(
+            "scaleY", scale.y, default_range=(0.0, 0.5), responders=[responder]
+        )
     )
     layer.variable_manager.initialize_variables()
 
@@ -108,7 +103,7 @@ def frames(layer):
         z = timewarp.local() + offset
 
         # use the OpenSimplexNoise utility to fill the scalar field
-        osn.fill_scalar_field(field, screen, z, scale.vector, center.vector)
+        osn.fill_scalar_field(field, screen, z, scale.vector, (0, 0))
 
         # apply the scalar field to the canvas mapping against the
         # layer color palette
