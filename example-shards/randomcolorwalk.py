@@ -6,8 +6,12 @@ from hidden_shades.variables.types import FloatingVariable
 def frames(layer):
     value = 0.5
 
-    layer.variable_manager.declare_variable(FloatingVariable("speed", 0.001))
-    layer.variable_manager.declare_variable(FloatingVariable("randomness", 0.01))
+    layer.variable_manager.declare_variable(
+        FloatingVariable("speed", 0.001, default_range=(0.0, 0.02))
+    )
+    layer.variable_manager.declare_variable(
+        FloatingVariable("randomness", 0.01, default_range=(0.0, 0.08))
+    )
 
     while True:
         yield None

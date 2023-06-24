@@ -34,11 +34,11 @@ def frames(layer):
     # declare variables
     layer.variable_manager.declare_variable(
         FloatingVariable(
-            "speed", 0.0001, default_range=(0, 0.05), responders=[responder]
+            "speed", 0.0001, default_range=(0, 0.005), responders=[responder]
         )
     )
     layer.variable_manager.declare_variable(
-        FloatingVariable("scale", 0.8, default_range=(0.1, 5.0))
+        FloatingVariable("amplitude", 0.8, default_range=(0.1, 5.0))
     )
     layer.variable_manager.declare_variable(
         FloatingVariable("frequency", 40.0, default_range=(0, 50.0))
@@ -65,13 +65,13 @@ def frames(layer):
             0.5 + layer.variable_manager.variables["centerX"].value,
             0.5 + layer.variable_manager.variables["centerY"].value,
         )
-        scale = layer.variable_manager.variables["scale"].value
+        amplitude = layer.variable_manager.variables["amplitude"].value
         frequency = layer.variable_manager.variables["frequency"].value
         offset = layer.variable_manager.variables["offset"].value
         decay = layer.variable_manager.variables["decay"].value
 
         # generate the scalar field
-        fieldgen.sinusoids(screen, field, center, scale, frequency, offset, decay)
+        fieldgen.sinusoids(screen, field, center, amplitude, frequency, offset, decay)
 
         # show the scalar field
         layer.canvas.scalar_field(
