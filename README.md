@@ -29,6 +29,10 @@ follow instructions in [ports/unix/README.md](./ports/unix/README.md) to get sta
 
 the visualizer is a simple Processing application that can be used to view output from a city-skies UDP server.
 
+# app
+
+the app is a simple Expo project graphical user interface for manipulating the city-skies REST api. 
+
 # contributing
 
 ways to contribute:
