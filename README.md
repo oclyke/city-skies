@@ -25,6 +25,10 @@ runtime performance on microcontrollers is not great due to the interruption of 
 
 follow instructions in [ports/unix/README.md](./ports/unix/README.md) to get started.
 
+# visualizer
+
+the visualizer is a simple Processing application that can be used to view output from a city-skies UDP server.
+
 # contributing
 
 ways to contribute:
