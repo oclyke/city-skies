@@ -1,0 +1,2 @@
+# increased stack size for nimble
+CONFIG_BT_NIMBLE_TASK_STACK_SIZE=8192
