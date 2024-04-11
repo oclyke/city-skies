@@ -12,7 +12,7 @@ the steps are basically:
 * clone the repo
 * update submodules (but don't do it recursively, micropython and esp-idf are huge)
     * ```git submodule update --init third-party/micropython```
-    * ```git submodule update --init --recursicve src/cmodules```
+    * ```git submodule update --init --recursive src```
 * build mpy-cross
     * ```make -C third-party/micropython/mpy-cross```
 * get unix submodules for micropython
