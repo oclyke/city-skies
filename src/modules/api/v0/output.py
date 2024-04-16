@@ -91,6 +91,41 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
         stack = stack_manager.stacks[stack_id]
         return stack_response(stack)
 
+    @output_app.get("/stack/<stack_id>/layers")
+    async def get_stack_layers(request, stack_id):
+        """
+        get information about the layers in the stack
+        """
+        stack = stack_manager.stacks[stack_id]
+        layers = stack.get_layers()
+        total = len(layers)
+
+        if total == 0:
+            return {
+                "total": 0,
+                "edges": [],
+                "pageInfo": {
+                    "endCursor": None,
+                    "hasNextPage": False,
+                },
+            }
+        else:
+
+            def layer_edge(layer):
+                return {
+                    "node": layer.info,
+                    "cursor": layer.id,
+                }
+
+            return {
+                "total": total,
+                "edges": list(map(layer_edge, layers)),
+                "pageInfo": {
+                    "endCursor": layers[-1].id,
+                    "hasNextPage": False,
+                },
+            }
+
     @output_app.delete("/stack/<stack_id>/layers")
     async def delete_stack_layers(request, stack_id):
         """

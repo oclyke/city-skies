@@ -31,7 +31,20 @@ the visualizer is a simple Processing application that can be used to view outpu
 
 # app
 
-the app is a simple Expo project graphical user interface for manipulating the city-skies REST api. 
+the app is a simple Expo project graphical user interface for manipulating the city-skies REST api.
+(Presently the app does not work because the Expo API version is no longer supported.
+Use the command line interface tool instead.)
+
+# command line interface tool
+
+```
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+cd tools
+skies --help
+```
 
 # contributing
 

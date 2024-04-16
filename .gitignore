@@ -1,6 +1,9 @@
 # runtime info, not to be source controlled
 bin
 
+# python virtual environment
+venv
+
 # python caches
 __pycache__
 

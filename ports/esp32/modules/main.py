@@ -314,14 +314,13 @@ def update_network_status():
     ble.notify(ble.netcfg_handles["sta_ipaddr"])
 
     # notify of access point ip address
-    ble.write(
-        ble.netcfg_handles["ap_ipaddr"], network_manager.access_point.ipaddr
-    )
+    ble.write(ble.netcfg_handles["ap_ipaddr"], network_manager.access_point.ipaddr)
     ble.notify(ble.netcfg_handles["ap_ipaddr"])
 
     # notify the state
     ble.write(ble.netcfg_handles["state"], "0" if not connected else "1")
     ble.notify(ble.netcfg_handles["state"])
+
 
 async def poll_network_status():
     prev = network_manager.wlan.isconnected()

@@ -1,6 +1,6 @@
 import pytest
 
-from tools.interface import CitySkiesClient
+from tools.skies import CitySkiesClient
 
 @pytest.fixture
 def client():

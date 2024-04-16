@@ -2,6 +2,13 @@
 
 this is the unix port of city-skies.
 
+# dependencies
+
+Most of the dependencies are included as git submodules.
+There are, however, a few things that need to exist on your system:
+
+* libffi: `sudo apt-get update && sudo apt-get install libffi-dev`
+
 # building
 
 building the unix port is fairly simple. it will require getting all the dependencies (available as git submodules) and then running the build script. (more or less).
@@ -12,7 +19,8 @@ the steps are basically:
 * clone the repo
 * update submodules (but don't do it recursively, micropython and esp-idf are huge)
     * ```git submodule update --init third-party/micropython```
-    * ```git submodule update --init --recursicve src/cmodules```
+    * ```git submodule update --init --recursive src/cmodules```
+    * ```git submodule update --init --recursive src/packages```
 * build mpy-cross
     * ```make -C third-party/micropython/mpy-cross```
 * get unix submodules for micropython

@@ -59,6 +59,9 @@ class Stack:
     def _layer_path_by_id(self, id):
         return f"{self._layers_path}/{id}"
 
+    def get_layers(self):
+        return self._layer_stack
+
     def get_layer_by_id(self, id):
         return self._layer_map[id]
 
