@@ -110,6 +110,7 @@ def init_output_app(stack_manager, canvas, layer_post_init_hook):
                 },
             }
         else:
+
             def layer_edge(layer):
                 return {
                     "node": layer.info,
