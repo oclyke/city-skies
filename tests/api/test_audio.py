@@ -1,5 +1,5 @@
 from tests.fixtures import client
-from tools.interface import Audio, AudioSource
+from tools.skies import Audio, AudioSource
 
 def test_audio_type(client):
     assert type(client.audio) == Audio

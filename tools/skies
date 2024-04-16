@@ -1,0 +1,212 @@
+#! python
+
+import click
+import api_v0
+
+@click.group()
+@click.option("--host", type=str, default="localhost")
+@click.option("--port", type=int, default=1337)
+@click.pass_context
+def cli(ctx, host, port):
+    ctx.ensure_object(dict)
+    ctx.obj['client'] = api_v0.HttpClient(host, port)
+    pass
+
+@cli.group()
+@click.pass_context
+def shards(ctx):
+    pass
+
+@shards.command()
+@click.pass_context
+def list(ctx):
+    client = ctx.obj['client']
+    info = api_v0.get_shard_info(client)
+    for edge in info['edges']:
+        shard = edge['cursor']
+
+        # strip the .py extension
+        shard = shard[:-3]
+
+        print(shard)
+
+@cli.group()
+@click.option("--stack", type=str, default="active")
+@click.pass_context
+def layers(ctx, stack):
+    info = api_v0.get_output_info(ctx.obj['client'])
+    ctx.ensure_object(dict)
+    ctx.obj['stack_id'] = info["stacks"][stack]
+    pass
+
+@layers.command()
+@click.pass_context
+def list(ctx):
+    info = api_v0.get_stack_layers_info(ctx.obj['client'], ctx.obj['stack_id'])
+    for edge in info['edges']:
+        layer_info = edge['node']
+        print(layer_info["index"], layer_info["id"], layer_info["shard_uuid"])
+
+@layers.command()
+@click.argument("shard", type=str)
+@click.pass_context
+def add(ctx, shard):
+    api_v0.post_stack_layer(ctx.obj['client'], ctx.obj['stack_id'], shard)
+
+@layers.command()
+@click.pass_context
+def delete(ctx):
+    api_v0.delete_stack_layers(ctx.obj['client'], ctx.obj['stack_id'])
+
+@cli.group()
+@click.option("--stack", type=str, default="active")
+@click.argument("layer", type=int)
+@click.pass_context
+def layer(ctx, stack, layer):
+    info = api_v0.get_output_info(ctx.obj['client'])
+    ctx.ensure_object(dict)
+    ctx.obj['stack_id'] = info["stacks"][stack]
+    ctx.obj['layer_id'] = layer
+    pass
+
+@layer.command()
+@click.pass_context
+def delete(ctx):
+    api_v0.delete_stack_layer(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'])
+
+@layer.group()
+@click.pass_context
+def config(ctx):
+    pass
+
+@config.command()
+@click.pass_context
+def get(ctx):
+    info = api_v0.get_stack_layer_info(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'])
+    config = info["config"]
+    print(config)
+
+@config.command()
+@click.argument("local", type=bool)
+@click.pass_context
+def palette(ctx, local):
+    api_v0.put_stack_layer_config(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'], {"use_local_palette": local})
+
+@config.command()
+@click.argument("active", type=bool, default=True)
+@click.pass_context
+def active(ctx, active):
+    api_v0.put_stack_layer_config(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'], {"active": active})
+
+@layer.group()
+@click.pass_context
+def variables(ctx):
+    pass
+
+@variables.command()
+@click.pass_context
+def list(ctx):
+    info = api_v0.get_stack_layer_info(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'])
+    info = info["variables"]
+    for id in info["ids"]:
+        print(id)
+
+@layer.group()
+@click.argument("name", type=str)
+@click.pass_context
+def variable(ctx, name):
+    ctx.ensure_object(dict)
+    ctx.obj['name'] = name
+    pass
+
+@variable.command()
+@click.pass_context
+def get(ctx):
+    value = api_v0.get_stack_layer_variable(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'], ctx.obj['name'])
+    print(value)
+
+@variable.command()
+@click.argument("value", type=str)
+@click.pass_context
+def set(ctx, value):
+    api_v0.put_stack_layer_variable(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'], ctx.obj['name'], value)
+
+@layer.group()
+@click.pass_context
+def standard_variables(ctx):
+    pass
+
+@standard_variables.command()
+@click.pass_context
+def list(ctx):
+    info = api_v0.get_stack_layer_info(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'])
+    info = info["standardVariables"]
+    for id in info["ids"]:
+        print(id)
+
+@layer.group()
+@click.argument("name", type=str)
+@click.pass_context
+def standard_variable(ctx, name):
+    ctx.ensure_object(dict)
+    ctx.obj['name'] = name
+    pass
+
+@standard_variable.command()
+@click.pass_context
+def get(ctx):
+    value = api_v0.get_stack_layer_standard_variable(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'], ctx.obj['name'])
+    print(value)
+
+@standard_variable.command()
+@click.argument("value", type=str)
+@click.pass_context
+def set(ctx, value):
+    api_v0.put_stack_layer_standard_variable(ctx.obj['client'], ctx.obj['stack_id'], ctx.obj['layer_id'], ctx.obj['name'], value)
+
+@cli.group()
+@click.pass_context
+def globals(ctx):
+    pass
+
+@globals.command()
+@click.pass_context
+def info(ctx):
+    info = api_v0.get_globals_info(ctx.obj['client'])
+    print(info)
+
+@globals.group()
+@click.pass_context
+def variables(ctx):
+    pass
+
+@variables.command()
+@click.pass_context
+def list(ctx):
+    info = api_v0.get_globals_info(ctx.obj['client'])
+    info = info["variables"]
+    for id in info["ids"]:
+        print(id)
+
+@globals.group()
+@click.argument("name", type=str)
+@click.pass_context
+def variable(ctx, name):
+    ctx.ensure_object(dict)
+    ctx.obj['name'] = name
+    pass
+
+@variable.command()
+@click.pass_context
+def get(ctx):
+    value = api_v0.get_global_variable_info(ctx.obj['client'], ctx.obj['name'])
+    print(value)
+
+@variable.command()
+@click.argument("value", type=str)
+@click.pass_context
+def set(ctx, value):
+    api_v0.put_global_variable(ctx.obj['client'], ctx.obj['name'], value)
+
+if __name__ == '__main__':
+    cli()

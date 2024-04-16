@@ -1,5 +1,5 @@
 from tests.fixtures import client
-from tools.interface import Stack
+from tools.skies import Stack
 
 def test_active_stack(client):
     assert type(client.stacks.active) == Stack

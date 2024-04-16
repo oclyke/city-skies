@@ -1,5 +1,6 @@
 # tools requirements
 requests
+click >= 8.1.0, < 9
 
 # testing
 pytest
