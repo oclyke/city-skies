@@ -70,3 +70,10 @@ path | name | description
 /runtime/ephemeral/stacks/\<stack\>/layers/\<layer\>/vars | layer variables | variables for a layer.
 /runtime/ephemeral/stacks/\<stack\>/layers/\<layer\>/private_vars | standard layer variables | standard variables for a layer (relied upon by system).
 /runtime/ephemeral/timebase | timebase | information about the timebase.
+
+the shards are stored in the persistent directory.
+use a symbolic link to the example-shards directory to use the example shards.
+
+```
+ln -s ~/city-skies/example-shards ~/city-skies/ports/unix/dist/runtime/persistent/shards
+```
